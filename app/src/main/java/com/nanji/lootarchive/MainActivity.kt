@@ -4,6 +4,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +33,7 @@ class MainActivity : ComponentActivity() {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
             val bgUri by settingsRepository.customBackgroundUri.collectAsState(initial = "")
             LootArchiveTheme(themeMode = themeMode) {
+                Crossfade(themeMode, animationSpec = tween(1000)) {
                 Box(Modifier.fillMaxSize()) {
                     // 全局自定义背景图
                     if (bgUri.isNotEmpty()) {
@@ -41,6 +44,7 @@ class MainActivity : ComponentActivity() {
                     }
                     MainScreen()
                 }
+                } // Crossfade
             }
         }
     }

@@ -14,6 +14,7 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = true,
     val items: List<ItemEntity> = emptyList(),
+    val photoPaths: Map<Long, String> = emptyMap(),
     val totalCount: Int = 0,
     val totalValue: Double = 0.0,
     val warrantyExpiringCount: Int = 0,
@@ -30,17 +31,13 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    // 保修提醒阈值（默认7天）
     private val warrantyThresholdMs = 7L * 24 * 60 * 60 * 1000
     private val warrantyThreshold = System.currentTimeMillis() + warrantyThresholdMs
 
-    init {
-        loadData()
-    }
+    init { loadData() }
 
     private fun loadData() {
         viewModelScope.launch {
-            // 使用 combine 链式合并多个 Flow（标准 combine 最多支持5个参数）
             combine(
                 combine(
                     itemRepository.getAllItems(),
@@ -53,34 +50,25 @@ class HomeViewModel @Inject constructor(
                 },
                 settingsRepository.appName
             ) { quintet, appName ->
+                // 加载每件物品的第一张照片
+                val paths = mutableMapOf<Long, String>()
+                quintet.items.forEach { item ->
+                    try {
+                        val photos = itemRepository.getItemPhotos(item.id).first()
+                        if (photos.isNotEmpty()) paths[item.id] = photos.first().photoPath
+                    } catch (_: Exception) {}
+                }
                 HomeUiState(
-                    isLoading = false,
-                    items = quintet.items,
-                    totalCount = quintet.count,
-                    totalValue = quintet.value,
-                    warrantyExpiringCount = quintet.expiringCount,
-                    currency = quintet.currency,
-                    appName = appName
+                    isLoading = false, items = quintet.items, photoPaths = paths,
+                    totalCount = quintet.count, totalValue = quintet.value,
+                    warrantyExpiringCount = quintet.expiringCount, currency = quintet.currency, appName = appName
                 )
-            }.catch { e ->
-                _uiState.value = _uiState.value.copy(isLoading = false)
-            }.collect { state ->
-                _uiState.value = state
-            }
+            }.catch { e -> _uiState.value = _uiState.value.copy(isLoading = false) }
+             .collect { state -> _uiState.value = state }
         }
     }
 
-    private data class Quintet(
-        val items: List<com.nanji.lootarchive.data.local.entity.ItemEntity>,
-        val count: Int,
-        val value: Double,
-        val expiringCount: Int,
-        val currency: String
-    )
+    private data class Quintet(val items: List<ItemEntity>, val count: Int, val value: Double, val expiringCount: Int, val currency: String)
 
-    fun deleteItem(itemId: Long) {
-        viewModelScope.launch {
-            itemRepository.softDeleteItem(itemId)
-        }
-    }
+    fun deleteItem(itemId: Long) { viewModelScope.launch { itemRepository.softDeleteItem(itemId) } }
 }

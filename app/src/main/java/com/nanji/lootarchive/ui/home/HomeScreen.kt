@@ -14,6 +14,9 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,6 +59,11 @@ fun HomeScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    // 数字滚动动画
+    val animCount by animateIntAsState(uiState.totalCount, animationSpec = tween(400))
+    val animValue by animateFloatAsState(uiState.totalValue.toFloat(), animationSpec = tween(400))
+    val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(400))
+
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = {
@@ -80,10 +88,10 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    GlassStatCard("物品总数", "${uiState.totalCount}", Modifier.weight(1f))
-                    GlassStatCard("全部资产", "¥${numberFormat.format(uiState.totalValue)}",
+                    GlassStatCard("物品总数", "$animCount", Modifier.weight(1f))
+                    GlassStatCard("全部资产", "¥${numberFormat.format(animValue.toDouble())}",
                         Modifier.weight(1f), onClick = onNavigateToStats)
-                    GlassStatCard("保修待提醒", "${uiState.warrantyExpiringCount}",
+                    GlassStatCard("保修待提醒", "$animWarranty",
                         Modifier.weight(1f),
                         valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary(),
                         onClick = { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true })
@@ -118,6 +126,7 @@ fun HomeScreen(
                 items(uiState.items, key = { it.id }) { item ->
                     ItemCard(
                         item = item,
+                        photoPath = uiState.photoPaths[item.id],
                         numberFormat = numberFormat,
                         onClick = { onNavigateToDetail(item.id) }
                     )
@@ -158,16 +167,21 @@ private fun QuickAction(label: String, icon: androidx.compose.ui.graphics.vector
 }
 
 @Composable
-private fun ItemCard(item: ItemEntity, numberFormat: NumberFormat, onClick: () -> Unit) {
+private fun ItemCard(item: ItemEntity, photoPath: String?, numberFormat: NumberFormat, onClick: () -> Unit) {
     GlassCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        // 缩略图
+        // 缩略图（真实照片或占位）
         Surface(
             modifier = Modifier.fillMaxWidth().height(100.dp),
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = Color(0xFFBBBBBB))
+            if (photoPath != null) {
+                AsyncImage(model = File(photoPath), contentDescription = null,
+                    modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            } else {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = Color(0xFFBBBBBB))
+                }
             }
         }
         Spacer(Modifier.height(8.dp))

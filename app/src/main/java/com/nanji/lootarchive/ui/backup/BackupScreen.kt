@@ -1,5 +1,8 @@
 package com.nanji.lootarchive.ui.backup
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,6 +32,14 @@ fun BackupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
+    val context = LocalContext.current
+
+    val restorePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) viewModel.restoreDatabase(uri.toString())
+    }
+    val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) viewModel.importFromExcel(uri.toString())
+    }
 
     LaunchedEffect(uiState.message) {
         // 消息显示3秒后自动清除
@@ -99,13 +111,13 @@ fun BackupScreen(
                             icon = Icons.Filled.Restore,
                             title = "恢复数据库",
                             subtitle = "选择备份文件恢复所有数据（将覆盖现有数据）",
-                            onClick = { /* TODO: 文件选择器 */ }
+                            onClick = { restorePicker.launch(arrayOf("*/*")) }
                         )
                         BackupActionButton(
                             icon = Icons.Filled.UploadFile,
                             title = "从 Excel 导入",
                             subtitle = "选择 Excel 文件导入物品数据",
-                            onClick = { /* TODO: 文件选择器 */ }
+                            onClick = { importPicker.launch(arrayOf("*/*")) }
                         )
                     }
                 }

@@ -75,6 +75,8 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
+    fun refresh() { loadStatistics() }
+
     fun setTimeFilter(filter: String) {
         _uiState.update { it.copy(timeFilter = filter) }
         viewModelScope.launch {
