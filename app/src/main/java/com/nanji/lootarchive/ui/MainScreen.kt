@@ -14,6 +14,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.additem.AddItemScreen
+import com.nanji.lootarchive.ui.detail.DetailScreen
+import com.nanji.lootarchive.ui.home.HomeScreen
+import com.nanji.lootarchive.ui.search.SearchScreen
+import com.nanji.lootarchive.ui.settings.SettingsScreen
+import com.nanji.lootarchive.ui.statistics.StatisticsScreen
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextPrimary
 import androidx.navigation.NavType
@@ -22,211 +28,107 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.nanji.lootarchive.ui.additem.AddItemScreen
-import com.nanji.lootarchive.ui.detail.DetailScreen
-import com.nanji.lootarchive.ui.home.HomeScreen
-import com.nanji.lootarchive.ui.search.SearchScreen
-import com.nanji.lootarchive.ui.settings.SettingsScreen
-import com.nanji.lootarchive.ui.statistics.StatisticsScreen
 
-enum class MainTab(
-    val label: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector
-) {
+enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
     HOME("首页", Icons.Filled.Home, Icons.Outlined.Home),
     STATS("资产汇总", Icons.Filled.PieChart, Icons.Outlined.PieChart),
     MY("我的", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
+// ─── 诊断版 v2.0.3：最小 MainScreen 排查 Android 17 闪退 ───
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
+    // 只渲染一个简单页面，不含 NavHost、不含底部 Tab、不含抽屉
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("拾物集", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary) })
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("v2.0.3 诊断版", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Spacer(Modifier.height(12.dp))
+                Text("如看到此页面，说明 MainScreen 可以正常加载", fontSize = 14.sp, color = TextPrimary)
+                Text("闪退根源在上层组件（NavHost / Tab / Drawer）", fontSize = 14.sp, color = TextPrimary)
+            }
+        }
+    }
+}
+
+// ─── 以下为完整实现（注释中），确认诊断版不闪退后逐一解封 ───
+/*
+@Composable
+fun MainScreen_FULL() {
     var selectedTab by remember { mutableIntStateOf(0) }
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
-
     val subNavController = rememberNavController()
     val navBackStackEntry by subNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val isSubPage = currentRoute != null && currentRoute !in listOf("home", "stats", "my")
 
-    // FIXME: ModalNavigationDrawer 疑似在 Android 17 上导致闪退，暂时禁用
     Scaffold(
-            topBar = {
-                if (!isSubPage) {
-                    when (MainTab.entries[selectedTab]) {
-                        MainTab.HOME -> HomeTopBar(
-                            filterLabel = drawerCategoryFilter?.second,
-                            onMenuClick = { /* TODO: 侧边抽屉（待重新实现） */ },
-                            onSearchClick = { subNavController.navigate("search") },
-                            onClearFilter = { drawerCategoryFilter = null }
-                        )
-                        MainTab.STATS -> StatsTopBar(
-                            timeFilter = "全部时间",
-                            onTimeFilterClick = { /* TODO: time filter */ }
-                        )
-                        MainTab.MY -> MyTopBar()
-                    }
+        topBar = {
+            if (!isSubPage) {
+                when (MainTab.entries[selectedTab]) {
+                    MainTab.HOME -> HomeTopBar(
+                        filterLabel = drawerCategoryFilter?.second,
+                        onMenuClick = {},
+                        onSearchClick = { subNavController.navigate("search") },
+                        onClearFilter = { drawerCategoryFilter = null }
+                    )
+                    MainTab.STATS -> TopAppBar(
+                        title = { Text("资产汇总", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary) },
+                        actions = { TextButton(onClick = {}) { Text("全部时间", fontSize = 16.sp, color = Primary); Icon(Icons.Filled.ArrowDropDown, null, tint = Primary) } }
+                    )
+                    MainTab.MY -> TopAppBar(title = { Text("我的", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary) })
                 }
-            },
-            floatingActionButton = {
-                if (selectedTab == 0 && !isSubPage) {
-                    FloatingActionButton(
-                        onClick = { subNavController.navigate("add_item") },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ) {
-                        Icon(Icons.Filled.Add, contentDescription = "新增物品")
-                    }
+            }
+        },
+        floatingActionButton = {
+            if (selectedTab == 0 && !isSubPage) {
+                FloatingActionButton(onClick = { subNavController.navigate("add_item") }, containerColor = Primary) {
+                    Icon(Icons.Filled.Add, "新增物品")
                 }
-            },
-            bottomBar = {
-                if (!isSubPage) {
-                    NavigationBar {
-                        MainTab.entries.forEachIndexed { index, tab ->
-                            NavigationBarItem(
-                                selected = selectedTab == index,
-                                onClick = {
-                                    selectedTab = index
-                                    subNavController.navigate(
-                                        when (index) {
-                                            0 -> "home"; 1 -> "stats"; 2 -> "my"; else -> "home"
-                                        }
-                                    ) {
-                                        popUpTo("home") { inclusive = false }
-                                        launchSingleTop = true
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        if (selectedTab == index) tab.selectedIcon else tab.unselectedIcon,
-                                        contentDescription = tab.label
-                                    )
-                                },
-                                label = { Text(tab.label) }
-                            )
-                        }
+            }
+        },
+        bottomBar = {
+            if (!isSubPage) {
+                NavigationBar {
+                    MainTab.entries.forEachIndexed { index, tab ->
+                        NavigationBarItem(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index; subNavController.navigate(when(index){0->"home";1->"stats";else->"my"}){popUpTo("home"){inclusive=false};launchSingleTop=true} },
+                            icon = { Icon(if(selectedTab==index)tab.selectedIcon else tab.unselectedIcon, tab.label) },
+                            label = { Text(tab.label) }
+                        )
                     }
                 }
             }
-        ) { padding ->
-            NavHost(
-                navController = subNavController,
-                startDestination = "home",
-                modifier = Modifier.padding(padding),
-                enterTransition = { fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(300)) { it / 4 } },
-                exitTransition = { fadeOut(animationSpec = tween(300)) + slideOutHorizontally(animationSpec = tween(300)) { -it / 4 } },
-                popEnterTransition = { fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(300)) { -it / 4 } },
-                popExitTransition = { fadeOut(animationSpec = tween(300)) + slideOutHorizontally(animationSpec = tween(300)) { it / 4 } }
-            ) {
-                composable("home") {
-                    HomeScreen(
-                        categoryFilter = drawerCategoryFilter,
-                        onNavigateToAddItem = { subNavController.navigate("add_item") },
-                        onNavigateToDetail = { id -> subNavController.navigate("detail/$id") },
-                        onNavigateToSearch = { subNavController.navigate("search") },
-                        onNavigateToStats = { selectedTab = 1; subNavController.navigate("stats") { launchSingleTop = true } }
-                    )
-                }
-                composable("stats") {
-                    StatisticsScreen(
-                        onNavigateBack = { subNavController.popBackStack() },
-                        onNavigateToDetail = { id -> subNavController.navigate("detail/$id") },
-                        isTabMode = true
-                    )
-                }
-                composable("my") {
-                    SettingsScreen(
-                        onNavigateBack = { subNavController.popBackStack() },
-                        isTabMode = true
-                    )
-                }
-                composable(
-                    "add_item?itemId={itemId}",
-                    arguments = listOf(navArgument("itemId") { type = NavType.LongType; defaultValue = -1L })
-                ) { entry ->
-                    val itemId = entry.arguments?.getLong("itemId") ?: -1L
-                    AddItemScreen(
-                        editItemId = if (itemId > 0) itemId else null,
-                        onNavigateBack = { subNavController.popBackStack() }
-                    )
-                }
-                composable(
-                    "detail/{itemId}",
-                    arguments = listOf(navArgument("itemId") { type = NavType.LongType })
-                ) { entry ->
-                    val itemId = entry.arguments?.getLong("itemId") ?: return@composable
-                    DetailScreen(
-                        itemId = itemId,
-                        onNavigateBack = { subNavController.popBackStack() },
-                        onNavigateToEdit = { id -> subNavController.navigate("add_item?itemId=$id") }
-                    )
-                }
-                composable("search") {
-                    SearchScreen(
-                        onNavigateBack = { subNavController.popBackStack() },
-                        onNavigateToDetail = { id -> subNavController.navigate("detail/$id") }
-                    )
-                }
-            }
+        }
+    ) { padding ->
+        NavHost(navController = subNavController, startDestination = "home", modifier = Modifier.padding(padding),
+            enterTransition = { fadeIn(tween(300)) + slideInHorizontally(tween(300)){it/4} },
+            exitTransition = { fadeOut(tween(300)) + slideOutHorizontally(tween(300)){-it/4} }
+        ) {
+            composable("home") { HomeScreen(categoryFilter=drawerCategoryFilter, onNavigateToAddItem={subNavController.navigate("add_item")}, onNavigateToDetail={subNavController.navigate("detail/$it")}, onNavigateToSearch={subNavController.navigate("search")}, onNavigateToStats={selectedTab=1;subNavController.navigate("stats"){launchSingleTop=true}}) }
+            composable("stats") { StatisticsScreen(onNavigateBack={subNavController.popBackStack()}, onNavigateToDetail={subNavController.navigate("detail/$it")}, isTabMode=true) }
+            composable("my") { SettingsScreen(onNavigateBack={subNavController.popBackStack()}, isTabMode=true) }
+            composable("add_item?itemId={itemId}", arguments=listOf(navArgument("itemId"){type=NavType.LongType;defaultValue=-1L})){entry->val id=entry.arguments?.getLong("itemId")?:-1L;AddItemScreen(editItemId=if(id>0)id else null,onNavigateBack={subNavController.popBackStack()})}
+            composable("detail/{itemId}", arguments=listOf(navArgument("itemId"){type=NavType.LongType})){entry->val id=entry.arguments?.getLong("itemId")?:return@composable;DetailScreen(itemId=id,onNavigateBack={subNavController.popBackStack()},onNavigateToEdit={subNavController.navigate("add_item?itemId=$it")})}
+            composable("search") { SearchScreen(onNavigateBack={subNavController.popBackStack()}, onNavigateToDetail={subNavController.navigate("detail/$it")}) }
         }
     }
-
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeTopBar(
-    filterLabel: String?,
-    onMenuClick: () -> Unit,
-    onSearchClick: () -> Unit,
-    onClearFilter: (() -> Unit)?
-) {
+private fun HomeTopBar(filterLabel:String?,onMenuClick:()->Unit,onSearchClick:()->Unit,onClearFilter:(()->Unit)?){
     TopAppBar(
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("拾物集", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                if (filterLabel != null) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    AssistChip(
-                        onClick = { onClearFilter?.invoke() },
-                        label = { Text(filterLabel, style = MaterialTheme.typography.labelSmall) },
-                        trailingIcon = { Icon(Icons.Filled.Close, null, modifier = Modifier.size(14.dp)) }
-                    )
-                }
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onMenuClick) {
-                Icon(Icons.Filled.Menu, contentDescription = "分类抽屉", tint = TextPrimary)
-            }
-        },
-        actions = {
-            IconButton(onClick = onSearchClick) {
-                Icon(Icons.Filled.Search, contentDescription = "搜索")
-            }
-        }
+        title={Row(verticalAlignment=Alignment.CenterVertically){Text("拾物集",fontSize=24.sp,fontWeight=FontWeight.Bold,color=TextPrimary);if(filterLabel!=null){Spacer(Modifier.width(8.dp));AssistChip(onClick={onClearFilter?.invoke()},label={Text(filterLabel,style=MaterialTheme.typography.labelSmall)},trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))})}}},
+        navigationIcon={IconButton(onClick=onMenuClick){Icon(Icons.Filled.Menu,"分类抽屉",tint=TextPrimary)}},
+        actions={IconButton(onClick=onSearchClick){Icon(Icons.Filled.Search,"搜索")}}
     )
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StatsTopBar(
-    timeFilter: String = "全部时间",
-    onTimeFilterClick: () -> Unit = {}
-) {
-    TopAppBar(
-        title = { Text("资产汇总", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary) },
-        actions = {
-            TextButton(onClick = onTimeFilterClick) {
-                Text(timeFilter, fontSize = 16.sp, color = Primary)
-                Icon(Icons.Filled.ArrowDropDown, null, tint = Primary)
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun MyTopBar() {
-    TopAppBar(title = { Text("我的", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary) })
-}
-
+*/
