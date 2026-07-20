@@ -48,11 +48,7 @@ fun MainScreen() {
         topBar = {
             if (!isSubPage) {
                 when (MainTab.entries[selectedTab]) {
-                    MainTab.HOME -> HomeTopBar(
-                        filterLabel = drawerCategoryFilter?.second,
-                        onMenuClick = {},
-                        onClearFilter = { drawerCategoryFilter = null }
-                    )
+                    MainTab.HOME -> { /* 首页无 TopBar，按钮改为悬浮 */ }
                     MainTab.STATS -> StatsTopBar()
                     MainTab.MY -> MyTopBar()
                 }
@@ -106,7 +102,22 @@ fun MainScreen() {
                         onNavigateToSearch = { subNavController.navigate("search") },
                         onNavigateToStats = { selectedTab = 1; subNavController.navigate("stats") { launchSingleTop = true } }
                     )
-                    // 悬浮半透明搜索图标
+                    // 悬浮半透明菜单图标（左上）
+                    IconButton(
+                        onClick = { },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(top = 4.dp, start = 8.dp)
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Menu,
+                            contentDescription = "菜单",
+                            tint = TextPrimary.copy(alpha = 0.30f),
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                    // 悬浮半透明搜索图标（右上）
                     IconButton(
                         onClick = { subNavController.navigate("search") },
                         modifier = Modifier
@@ -117,8 +128,19 @@ fun MainScreen() {
                         Icon(
                             Icons.Filled.Search,
                             contentDescription = "搜索",
-                            tint = TextPrimary.copy(alpha = 0.35f),
+                            tint = TextPrimary.copy(alpha = 0.30f),
                             modifier = Modifier.size(26.dp)
+                        )
+                    }
+                    // 分类筛选标签（选中分类时浮在顶部中间）
+                    if (drawerCategoryFilter != null) {
+                        AssistChip(
+                            onClick = { drawerCategoryFilter = null },
+                            label = { Text(drawerCategoryFilter!!.second, style = MaterialTheme.typography.labelSmall) },
+                            trailingIcon = { Icon(Icons.Filled.Close, null, Modifier.size(14.dp)) },
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 4.dp)
                         )
                     }
                 }
@@ -153,27 +175,6 @@ fun MainScreen() {
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun HomeTopBar(
-    filterLabel: String?,
-    onMenuClick: () -> Unit,
-    onClearFilter: (() -> Unit)?
-) {
-    TopAppBar(
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("拾物集", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                if (filterLabel != null) {
-                    Spacer(Modifier.width(8.dp))
-                    AssistChip(onClick = { onClearFilter?.invoke() }, label = { Text(filterLabel, style = MaterialTheme.typography.labelSmall) }, trailingIcon = { Icon(Icons.Filled.Close, null, Modifier.size(14.dp)) })
-                }
-            }
-        },
-        navigationIcon = { IconButton(onClick = onMenuClick) { Icon(Icons.Filled.Menu, "分类", tint = TextPrimary) } }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
