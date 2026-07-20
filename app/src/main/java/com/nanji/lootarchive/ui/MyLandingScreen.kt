@@ -16,13 +16,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.util.ApkDownloader
 import com.nanji.lootarchive.util.UpdateChecker
 import com.nanji.lootarchive.util.UpdateInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private const val CURRENT_VERSION_CODE = 26
 
 @Composable
 fun MyLandingScreen(
@@ -75,7 +79,7 @@ fun MyLandingScreen(
                     isChecking = true
                     scope.launch {
                         try {
-                            val result = UpdateChecker.check(25)
+                            val result = UpdateChecker.check(CURRENT_VERSION_CODE)
                             result.onSuccess { info ->
                                 if (info != null) { updateInfo = info; showUpdateDialog = true }
                                 else { showNoUpdate = true }
@@ -112,10 +116,14 @@ fun MyLandingScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateInfo!!.apkUrl))
-                    context.startActivity(intent)
                     showUpdateDialog = false
-                }) { Text("下载", color = Primary()) }
+                    val url = updateInfo!!.apkDownloadUrl
+                    if (url.isNotEmpty()) {
+                        ApkDownloader.download(context, url, "LootArchive-v${updateInfo!!.versionName}.apk")
+                    } else {
+                        Toast.makeText(context, "暂无下载地址", Toast.LENGTH_SHORT).show()
+                    }
+                }) { Text("下载并安装", color = Primary()) }
             },
             dismissButton = {
                 TextButton(onClick = { showUpdateDialog = false }) { Text("取消") }

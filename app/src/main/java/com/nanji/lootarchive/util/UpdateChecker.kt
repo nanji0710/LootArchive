@@ -11,7 +11,7 @@ data class UpdateInfo(
     val versionCode: Int,
     val updateDate: String,
     val updateLog: String,
-    val apkUrl: String
+    val apkDownloadUrl: String
 )
 
 object UpdateChecker {
@@ -42,7 +42,7 @@ object UpdateChecker {
                         versionCode = remoteCode,
                         updateDate = obj.optString("updateDate", ""),
                         updateLog = obj.optString("updateLog", ""),
-                        apkUrl = obj.optString("apkUrl", "")
+                        apkDownloadUrl = obj.optString("apkDownloadUrl", "")
                     ))
                 }
             } catch (e: Exception) {
