@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">拾物集</string>
+    <string name="app_name_en">LootArchive</string>
+
+    <!-- 主页 -->
+    <string name="home_total_count">物品总数</string>
+    <string name="home_total_value">总价值</string>
+    <string name="home_warranty_alert">待提醒</string>
+    <string name="home_add_item">新增物品</string>
+    <string name="home_category">分类管理</string>
+    <string name="home_export">导出Excel</string>
+    <string name="home_backup">备份数据</string>
+    <string name="home_empty_title">还没有物品</string>
+    <string name="home_empty_subtitle">点击"新增物品"开始记录你的第一件宝贝吧</string>
+
+    <!-- 物品录入 -->
+    <string name="add_item_title">新增物品</string>
+    <string name="edit_item_title">编辑物品</string>
+    <string name="item_name">物品名称</string>
+    <string name="item_category">所属分类</string>
+    <string name="item_price">购入价格</string>
+    <string name="item_location">存放位置</string>
+    <string name="item_date">购入日期</string>
+    <string name="item_warranty">保修信息</string>
+    <string name="item_description">物品描述</string>
+    <string name="item_photos">物品照片</string>
+    <string name="save">保存</string>
+
+    <!-- 分类 -->
+    <string name="category_title">分类管理</string>
+    <string name="category_add">新增分类</string>
+    <string name="category_name">分类名称</string>
+    <string name="category_delete_warning">分类删除后，该分类下的物品将归入"其他"分类</string>
+
+    <!-- 详情 -->
+    <string name="detail_title">物品详情</string>
+    <string name="detail_edit">编辑</string>
+    <string name="detail_delete">删除</string>
+    <string name="delete_confirm">物品将被移入回收站，可在设置中彻底清空</string>
+
+    <!-- 统计 -->
+    <string name="statistics_title">物品统计</string>
+
+    <!-- 备份 -->
+    <string name="backup_title">备份与恢复</string>
+    <string name="backup_database">备份数据库</string>
+    <string name="backup_photos">备份照片</string>
+    <string name="backup_export_excel">导出为Excel</string>
+    <string name="backup_restore">恢复数据库</string>
+    <string name="backup_import_excel">从Excel导入</string>
+
+    <!-- 搜索 -->
+    <string name="search_hint">搜索物品名称、位置、描述...</string>
+
+    <!-- 设置 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_currency">价格单位</string>
+    <string name="settings_reminder">保修到期提醒</string>
+    <string name="settings_theme">主题模式</string>
+    <string name="settings_trash">清空回收站</string>
+    <string name="settings_about">关于</string>
+</resources>

@@ -1,0 +1,43 @@
+# ─── Android ───
+*.apk
+*.aab
+*.dex
+*.class
+*.ap_
+*.hprof
+
+# Gradle
+.gradle/
+build/
+*/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/settings.json
+
+# Android Studio
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ProGuard
+proguard/
+
+# Logs
+*.log
+
+# Testing
+/test-results/
+/reports/

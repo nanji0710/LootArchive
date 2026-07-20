@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "fwcd.kotlin",
+        "vscjava.vscode-gradle",
+        "mathiasfrohlich.kotlin",
+        "vscjava.vscode-java-pack",
+        "redhat.java",
+        "naco-siren.gradle-language"
+    ]
+}

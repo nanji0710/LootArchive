@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 宝箱/物品盒图标 -->
+    <group
+        android:translateX="27"
+        android:translateY="27">
+        <!-- 盒子主体 -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M6,20 L27,20 L27,48 L6,48 Z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M27,20 L48,20 L48,48 L27,48 Z"/>
+        <!-- 盒盖 -->
+        <path
+            android:fillColor="#E8D5B7"
+            android:pathData="M6,20 L27,8 L48,20 L27,20 Z"/>
+        <!-- 锁扣 -->
+        <path
+            android:fillColor="#8B6914"
+            android:pathData="M24,28 L30,28 L30,34 L24,34 Z"/>
+    </group>
+</vector>
