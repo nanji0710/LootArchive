@@ -23,6 +23,7 @@ import java.text.NumberFormat
 fun StatisticsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (Long) -> Unit,
+    isTabMode: Boolean = false,
     viewModel: StatisticsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -30,10 +31,12 @@ fun StatisticsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("物品统计") },
-                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
-            )
+            if (!isTabMode) {
+                TopAppBar(
+                    title = { Text("物品统计") },
+                    navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->

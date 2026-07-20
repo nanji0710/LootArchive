@@ -1,6 +1,5 @@
 package com.nanji.lootarchive.ui
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -8,13 +7,14 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.nanji.lootarchive.ui.additem.AddItemScreen
@@ -38,15 +38,29 @@ enum class MainTab(
 @Composable
 fun MainScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
-    // 抽屉选中的分类 ID（null = 全部）
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
-    var showDrawer by remember { mutableStateOf(false) }
 
     val subNavController = rememberNavController()
+    val navBackStackEntry by subNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val isSubPage = currentRoute != null && currentRoute !in listOf("home", "stats", "my")
+
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    // 切 Tab 时关闭抽屉
+    LaunchedEffect(selectedTab) {
+        if (drawerState.isOpen) drawerState.close()
+    }
+
+    // 进入子页面时关闭抽屉
+    LaunchedEffect(isSubPage) {
+        if (isSubPage && drawerState.isOpen) drawerState.close()
+    }
 
     ModalNavigationDrawer(
-        drawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
-        gesturesEnabled = selectedTab == 0,
+        drawerState = drawerState,
+        gesturesEnabled = selectedTab == 0 && !isSubPage,
         drawerContent = {
             ModalDrawerSheet {
                 CategoryDrawer(
@@ -55,25 +69,24 @@ fun MainScreen() {
                         drawerCategoryFilter = if (categoryId == -1L) null
                         else Pair(categoryId, categoryName)
                         selectedTab = 0
-                        showDrawer = false
                     },
-                    onClose = { showDrawer = false }
+                    onClose = { /* drawerState.close() handled by scope */ }
                 )
             }
         }
     ) {
         Scaffold(
             topBar = {
-                // 子页面（非Tab）不显示 TopBar，由各自页面管理
-                val currentRoute = subNavController.currentBackStackEntry?.destination?.route
-                if (currentRoute == null || currentRoute in listOf("home", "stats", "my")) {
+                if (!isSubPage) {
                     when (MainTab.entries[selectedTab]) {
                         MainTab.HOME -> HomeTopBar(
                             filterLabel = drawerCategoryFilter?.second,
-                            onMenuClick = { showDrawer = true },
-                            onSearchClick = {
-                                subNavController.navigate("search")
+                            onMenuClick = {
+                                scope.launch {
+                                    if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                                }
                             },
+                            onSearchClick = { subNavController.navigate("search") },
                             onClearFilter = { drawerCategoryFilter = null }
                         )
                         MainTab.STATS -> StatsTopBar()
@@ -82,7 +95,7 @@ fun MainScreen() {
                 }
             },
             floatingActionButton = {
-                if (selectedTab == 0) {
+                if (selectedTab == 0 && !isSubPage) {
                     FloatingActionButton(
                         onClick = { subNavController.navigate("add_item") },
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -93,9 +106,7 @@ fun MainScreen() {
                 }
             },
             bottomBar = {
-                // 子页面隐藏底部 Tab
-                val currentRoute = subNavController.currentBackStackEntry?.destination?.route
-                if (currentRoute == null || currentRoute in listOf("home", "stats", "my")) {
+                if (!isSubPage) {
                     NavigationBar {
                         MainTab.entries.forEachIndexed { index, tab ->
                             NavigationBarItem(
@@ -103,7 +114,9 @@ fun MainScreen() {
                                 onClick = {
                                     selectedTab = index
                                     subNavController.navigate(
-                                        when (index) { 0 -> "home"; 1 -> "stats"; 2 -> "my"; else -> "home" }
+                                        when (index) {
+                                            0 -> "home"; 1 -> "stats"; 2 -> "my"; else -> "home"
+                                        }
                                     ) {
                                         popUpTo("home") { inclusive = false }
                                         launchSingleTop = true
@@ -122,57 +135,58 @@ fun MainScreen() {
                 }
             }
         ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
-                NavHost(
-                    navController = subNavController,
-                    startDestination = "home"
-                ) {
-                    composable("home") {
-                        HomeScreen(
-                            categoryFilter = drawerCategoryFilter,
-                            onNavigateToAddItem = { subNavController.navigate("add_item") },
-                            onNavigateToDetail = { id -> subNavController.navigate("detail/$id") },
-                            onNavigateToSearch = { subNavController.navigate("search") }
-                        )
-                    }
-                    composable("stats") {
-                        StatisticsScreen(
-                            onNavigateBack = { subNavController.popBackStack() },
-                            onNavigateToDetail = { id -> subNavController.navigate("detail/$id") }
-                        )
-                    }
-                    composable("my") {
-                        SettingsScreen(
-                            onNavigateBack = { subNavController.popBackStack() }
-                        )
-                    }
-                    composable("add_item?itemId={itemId}",
-                        arguments = listOf(navArgument("itemId") { type = NavType.LongType; defaultValue = -1L })
-                    ) { entry ->
-                        val itemId = entry.arguments?.getLong("itemId") ?: -1L
-                        AddItemScreen(
-                            editItemId = if (itemId > 0) itemId else null,
-                            onNavigateBack = { subNavController.popBackStack() }
-                        )
-                    }
-                    composable("detail/{itemId}",
-                        arguments = listOf(navArgument("itemId") { type = NavType.LongType })
-                    ) { entry ->
-                        val itemId = entry.arguments?.getLong("itemId") ?: return@composable
-                        DetailScreen(
-                            itemId = itemId,
-                            onNavigateBack = { subNavController.popBackStack() },
-                            onNavigateToEdit = { id ->
-                                subNavController.navigate("add_item?itemId=$id")
-                            }
-                        )
-                    }
-                    composable("search") {
-                        SearchScreen(
-                            onNavigateBack = { subNavController.popBackStack() },
-                            onNavigateToDetail = { id -> subNavController.navigate("detail/$id") }
-                        )
-                    }
+            NavHost(
+                navController = subNavController,
+                startDestination = "home",
+                modifier = Modifier.padding(padding)
+            ) {
+                composable("home") {
+                    HomeScreen(
+                        categoryFilter = drawerCategoryFilter,
+                        onNavigateToAddItem = { subNavController.navigate("add_item") },
+                        onNavigateToDetail = { id -> subNavController.navigate("detail/$id") },
+                        onNavigateToSearch = { subNavController.navigate("search") }
+                    )
+                }
+                composable("stats") {
+                    StatisticsScreen(
+                        onNavigateBack = { subNavController.popBackStack() },
+                        onNavigateToDetail = { id -> subNavController.navigate("detail/$id") },
+                        isTabMode = true
+                    )
+                }
+                composable("my") {
+                    SettingsScreen(
+                        onNavigateBack = { subNavController.popBackStack() },
+                        isTabMode = true
+                    )
+                }
+                composable(
+                    "add_item?itemId={itemId}",
+                    arguments = listOf(navArgument("itemId") { type = NavType.LongType; defaultValue = -1L })
+                ) { entry ->
+                    val itemId = entry.arguments?.getLong("itemId") ?: -1L
+                    AddItemScreen(
+                        editItemId = if (itemId > 0) itemId else null,
+                        onNavigateBack = { subNavController.popBackStack() }
+                    )
+                }
+                composable(
+                    "detail/{itemId}",
+                    arguments = listOf(navArgument("itemId") { type = NavType.LongType })
+                ) { entry ->
+                    val itemId = entry.arguments?.getLong("itemId") ?: return@composable
+                    DetailScreen(
+                        itemId = itemId,
+                        onNavigateBack = { subNavController.popBackStack() },
+                        onNavigateToEdit = { id -> subNavController.navigate("add_item?itemId=$id") }
+                    )
+                }
+                composable("search") {
+                    SearchScreen(
+                        onNavigateBack = { subNavController.popBackStack() },
+                        onNavigateToDetail = { id -> subNavController.navigate("detail/$id") }
+                    )
                 }
             }
         }
@@ -227,3 +241,4 @@ private fun StatsTopBar() {
 private fun MyTopBar() {
     TopAppBar(title = { Text("我的") })
 }
+

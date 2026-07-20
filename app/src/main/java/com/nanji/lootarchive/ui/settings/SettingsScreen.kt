@@ -21,6 +21,7 @@ import com.nanji.lootarchive.ui.component.GlassAlertDialog
 @Suppress("DEPRECATION")
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    isTabMode: Boolean = false,  // true = 嵌入Tab显示，不渲染独立TopBar
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -32,10 +33,12 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("设置") },
-                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
-            )
+            if (!isTabMode) {
+                TopAppBar(
+                    title = { Text("设置") },
+                    navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -203,7 +206,7 @@ fun SettingsScreen(
                 SettingItem(
                     icon = Icons.Filled.Info,
                     title = "拾物集 LootArchive",
-                    subtitle = "v1.1.0 · 纯本地资产管理工具",
+                    subtitle = "v1.1.1 · 纯本地资产管理工具",
                     onClick = {}
                 )
             }
