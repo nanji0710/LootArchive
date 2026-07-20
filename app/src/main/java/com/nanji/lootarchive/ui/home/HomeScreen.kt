@@ -42,6 +42,10 @@ fun HomeScreen(
     onNavigateToDetail: (Long) -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToStats: () -> Unit = {},
+    onNavigateToCategory: () -> Unit = {},
+    onExportExcel: () -> Unit = {},
+    onImportExcel: () -> Unit = {},
+    onBackupData: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -83,10 +87,10 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        QuickAction("分类管理", Icons.Filled.Category) { /* TODO */ }
-                        QuickAction("导出Excel", Icons.Filled.FileDownload) { /* TODO */ }
-                        QuickAction("导入Excel", Icons.Filled.UploadFile) { /* TODO */ }
-                        QuickAction("备份数据", Icons.Filled.Backup) { /* TODO */ }
+                        QuickAction("分类管理", Icons.Filled.Category, onNavigateToCategory)
+                        QuickAction("导出Excel", Icons.Filled.FileDownload, onExportExcel)
+                        QuickAction("导入Excel", Icons.Filled.UploadFile, onImportExcel)
+                        QuickAction("备份数据", Icons.Filled.Backup, onBackupData)
                     }
                 }
             }

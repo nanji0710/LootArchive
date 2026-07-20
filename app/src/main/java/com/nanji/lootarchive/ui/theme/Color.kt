@@ -18,12 +18,12 @@ val TextAuxiliary = Color(0xFF999999)         // 辅助小字
 val PrimaryDark = Color(0xFFE6B886)           // 深色金色
 val BackgroundDark = Color(0xFF1A1A1A)
 val SurfaceDark = Color(0xFF303030)
-val GlassBgDark = Color(0xCC303030)           // 80% 深灰玻璃
+val GlassBgDark = Color(0xDD303030)           // 87% 深灰玻璃，提高可读性
 val GlassBorderDark = Color(0x33000000)       // 20% 黑边框
 
-val TextPrimaryDark = Color(0xFFF2F2F2)
-val TextSecondaryDark = Color(0xFFCCCCCC)
-val TextAuxiliaryDark = Color(0xFF888888)
+val TextPrimaryDark = Color(0xFFF5F5F5)
+val TextSecondaryDark = Color(0xFFD9D9D9)
+val TextAuxiliaryDark = Color(0xFFAAAAAA)
 
 // ─── 功能色 ───
 val WarrantyActive = Color(0xFF4CAF50)

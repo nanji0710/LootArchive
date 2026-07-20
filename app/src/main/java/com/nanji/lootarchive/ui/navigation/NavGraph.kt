@@ -28,7 +28,12 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
                 categoryFilter = null,
                 onNavigateToAddItem = { navController.navigate(Screen.AddItem.createRoute()) },
                 onNavigateToDetail = { itemId -> navController.navigate(Screen.Detail.createRoute(itemId)) },
-                onNavigateToSearch = { navController.navigate(Screen.Search.route) }
+                onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                onNavigateToStats = { navController.navigate(Screen.Statistics.route) },
+                onNavigateToCategory = { navController.navigate(Screen.Category.route) },
+                onExportExcel = { navController.navigate(Screen.Backup.route) },
+                onImportExcel = { navController.navigate(Screen.Backup.route) },
+                onBackupData = { navController.navigate(Screen.Backup.route) }
             )
         }
 

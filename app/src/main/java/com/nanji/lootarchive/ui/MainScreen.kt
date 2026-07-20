@@ -1,7 +1,5 @@
 package com.nanji.lootarchive.ui
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,6 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.additem.AddItemScreen
+import com.nanji.lootarchive.ui.backup.BackupScreen
+import com.nanji.lootarchive.ui.category.CategoryScreen
 import com.nanji.lootarchive.ui.detail.DetailScreen
 import com.nanji.lootarchive.ui.home.HomeScreen
 import com.nanji.lootarchive.ui.search.SearchScreen
@@ -87,11 +87,7 @@ fun MainScreen() {
         NavHost(
             navController = subNavController,
             startDestination = "home",
-            modifier = Modifier.padding(padding),
-            enterTransition = { fadeIn(tween(300)) + slideInHorizontally(tween(300)) { it / 4 } },
-            exitTransition = { fadeOut(tween(300)) + slideOutHorizontally(tween(300)) { -it / 4 } },
-            popEnterTransition = { fadeIn(tween(300)) + slideInHorizontally(tween(300)) { -it / 4 } },
-            popExitTransition = { fadeOut(tween(300)) + slideOutHorizontally(tween(300)) { it / 4 } }
+            modifier = Modifier.padding(padding)
         ) {
             composable("home") {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -100,7 +96,11 @@ fun MainScreen() {
                         onNavigateToAddItem = { subNavController.navigate("add_item") },
                         onNavigateToDetail = { subNavController.navigate("detail/$it") },
                         onNavigateToSearch = { subNavController.navigate("search") },
-                        onNavigateToStats = { selectedTab = 1; subNavController.navigate("stats") { launchSingleTop = true } }
+                        onNavigateToStats = { selectedTab = 1; subNavController.navigate("stats") { launchSingleTop = true } },
+                        onNavigateToCategory = { subNavController.navigate("category") },
+                        onExportExcel = { subNavController.navigate("backup") },
+                        onImportExcel = { subNavController.navigate("backup") },
+                        onBackupData = { subNavController.navigate("backup") }
                     )
                     // 悬浮半透明菜单图标（左上）
                     IconButton(
@@ -153,10 +153,23 @@ fun MainScreen() {
                 )
             }
             composable("my") {
+                MyLandingScreen(
+                    onNavigateToSettings = { subNavController.navigate("settings") },
+                    onNavigateToCategory = { subNavController.navigate("category") },
+                    onNavigateToBackup = { subNavController.navigate("backup") }
+                )
+            }
+            composable("settings") {
                 SettingsScreen(
                     onNavigateBack = { subNavController.popBackStack() },
-                    isTabMode = true
+                    isTabMode = false
                 )
+            }
+            composable("category") {
+                CategoryScreen(onNavigateBack = { subNavController.popBackStack() })
+            }
+            composable("backup") {
+                BackupScreen(onNavigateBack = { subNavController.popBackStack() })
             }
             composable("add_item?itemId={itemId}",
                 arguments = listOf(navArgument("itemId") { type = NavType.LongType; defaultValue = -1L })
