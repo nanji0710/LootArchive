@@ -15,6 +15,8 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,10 +53,18 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
     var showWarrantyDialog by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     PullToRefreshBox(
-        isRefreshing = uiState.isLoading,
-        onRefresh = { },
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            scope.launch {
+                kotlinx.coroutines.delay(800)
+                isRefreshing = false
+            }
+        },
         modifier = Modifier.fillMaxSize()
     ) {
         LazyVerticalGrid(
@@ -75,7 +85,7 @@ fun HomeScreen(
                         Modifier.weight(1f), onClick = onNavigateToStats)
                     GlassStatCard("保修待提醒", "${uiState.warrantyExpiringCount}",
                         Modifier.weight(1f),
-                        valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary,
+                        valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary(),
                         onClick = { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true })
                 }
             }
@@ -141,9 +151,9 @@ private fun QuickAction(label: String, icon: androidx.compose.ui.graphics.vector
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(8.dp)
     ) {
-        Icon(icon, null, tint = Primary, modifier = Modifier.size(20.dp))
+        Icon(icon, null, tint = Primary(), modifier = Modifier.size(20.dp))
         Spacer(Modifier.height(4.dp))
-        Text(label, fontSize = 14.sp, color = TextPrimary)
+        Text(label, fontSize = 14.sp, color = TextPrimary())
     }
 }
 
@@ -161,13 +171,13 @@ private fun ItemCard(item: ItemEntity, numberFormat: NumberFormat, onClick: () -
             }
         }
         Spacer(Modifier.height(8.dp))
-        Text(item.name, fontSize = 18.sp, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(item.name, fontSize = 18.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(4.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary)
+            Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary())
             if (item.warrantyExpiryDate != null) {
                 val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)
-                val color = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> TextAuxiliary }
+                val color = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> TextAuxiliary() }
                 val text = when { days < 0 -> "已过期"; days == 0L -> "今天到期"; else -> "${days}天" }
                 Text(text, fontSize = 13.sp, color = color)
             }

@@ -40,14 +40,14 @@ enum class GlassTier(
  */
 @Composable
 fun glassBackground(tier: GlassTier): Color {
-    val base = if (isSystemInDarkTheme()) GlassBgDark else GlassBgLight
+    val base = if (isSystemInDarkTheme()) _GlassBgDark else _GlassBgLight
     val alpha = if (isSystemInDarkTheme()) tier.alphaDark else tier.alphaLight
     return base.copy(alpha = alpha.coerceIn(0f, 1f))
 }
 
 @Composable
 fun glassBorderColor(): Color =
-    if (isSystemInDarkTheme()) GlassBorderDark else GlassBorderLight
+    if (isSystemInDarkTheme()) _GlassBorderDark else _GlassBorderLight
 
 /**
  * 应用玻璃效果的 Modifier — 统一使用透明度模拟毛玻璃

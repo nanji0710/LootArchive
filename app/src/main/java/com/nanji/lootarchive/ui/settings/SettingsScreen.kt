@@ -48,7 +48,7 @@ fun SettingsScreen(
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 // 显示模式
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("显示模式", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    Text("显示模式", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf("system" to "跟随", "light" to "浅色", "dark" to "深色").forEach { (mode, label) ->
                             FilterChip(
@@ -62,9 +62,9 @@ fun SettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 // 背景图
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("自定义首页背景图", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
-                    TextButton(onClick = { /* TODO: 相册选择 */ }) { Text("上传图片", color = Primary) }
-                    TextButton(onClick = { /* TODO: 恢复默认 */ }) { Text("恢复默认", color = TextAuxiliary) }
+                    Text("自定义首页背景图", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
+                    TextButton(onClick = { /* TODO: 相册选择 */ }) { Text("上传图片", color = Primary()) }
+                    TextButton(onClick = { /* TODO: 恢复默认 */ }) { Text("恢复默认", color = TextAuxiliary()) }
                 }
             }
 
@@ -84,7 +84,7 @@ fun SettingsScreen(
                 TextButton(onClick = { if (uiState.trashItemCount > 0) showEmptyTrashDialog = true }) {
                     Icon(Icons.Filled.DeleteSweep, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("清理冗余图片 (${uiState.trashItemCount})", fontSize = 14.sp, color = TextAuxiliary)
+                    Text("清理冗余图片 (${uiState.trashItemCount})", fontSize = 14.sp, color = TextAuxiliary())
                 }
             }
 
@@ -92,16 +92,16 @@ fun SettingsScreen(
             SectionTitle("快捷工具")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("分类管理", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
-                    Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary)
+                    Text("分类管理", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
+                    Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("保修提醒", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    Text("保修提醒", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("提前 ${uiState.warrantyReminderDays} 天", fontSize = 13.sp, color = TextAuxiliary)
+                        Text("提前 ${uiState.warrantyReminderDays} 天", fontSize = 13.sp, color = TextAuxiliary())
                         IconButton(onClick = { editReminderDays = uiState.warrantyReminderDays.toString(); showReminderDialog = true }) {
-                            Icon(Icons.Filled.Edit, null, Modifier.size(16.dp), tint = Primary)
+                            Icon(Icons.Filled.Edit, null, Modifier.size(16.dp), tint = Primary())
                         }
                     }
                 }
@@ -110,9 +110,9 @@ fun SettingsScreen(
             // ─── 卡片4：关于 ───
             SectionTitle("关于拾物集")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary)
+                Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v2.3.0", fontSize = 13.sp, color = TextAuxiliary)
+                Text("当前版本 v2.3.0", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(16.dp))
@@ -144,7 +144,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SectionTitle(title: String) {
-    Text(title, fontSize = 18.sp, color = TextPrimary, modifier = Modifier.padding(top = 4.dp))
+    Text(title, fontSize = 18.sp, color = TextPrimary(), modifier = Modifier.padding(top = 4.dp))
 }
 
 @Composable

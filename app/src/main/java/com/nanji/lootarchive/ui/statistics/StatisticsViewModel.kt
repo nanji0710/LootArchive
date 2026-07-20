@@ -77,7 +77,31 @@ class StatisticsViewModel @Inject constructor(
 
     fun setTimeFilter(filter: String) {
         _uiState.update { it.copy(timeFilter = filter) }
-        // TODO: 根据筛选条件重新加载数据
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val cutoff = when (filter) {
+                "3months" -> now - 90L * 24 * 60 * 60 * 1000
+                "6months" -> now - 180L * 24 * 60 * 60 * 1000
+                "1year" -> now - 365L * 24 * 60 * 60 * 1000
+                else -> 0L
+            }
+            itemRepository.getAllItems().collect { allItems ->
+                val filtered = if (cutoff == 0L) allItems else allItems.filter { (it.purchaseDate ?: 0) >= cutoff }
+                val categories = categoryRepository.getAllCategories().first()
+                val summaries = categories.map { cat ->
+                    val catItems = filtered.filter { it.categoryId == cat.id }
+                    CategorySummary(category = cat, itemCount = catItems.size, totalValue = catItems.sumOf { it.purchasePrice })
+                }
+                _uiState.update { it.copy(
+                    isLoading = false,
+                    totalCount = filtered.size,
+                    totalValue = filtered.sumOf { it.purchasePrice },
+                    categorySummaries = summaries,
+                    items = filtered,
+                    timeFilter = filter
+                )}
+            }
+        }
     }
 
     fun selectCategorySummary(summary: CategorySummary) {

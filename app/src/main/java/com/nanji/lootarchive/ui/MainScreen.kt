@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -21,6 +22,7 @@ import com.nanji.lootarchive.ui.search.SearchScreen
 import com.nanji.lootarchive.ui.settings.SettingsScreen
 import com.nanji.lootarchive.ui.statistics.StatisticsScreen
 import com.nanji.lootarchive.ui.theme.Primary
+import com.nanji.lootarchive.ui.theme.TextAuxiliary
 import com.nanji.lootarchive.ui.theme.TextPrimary
 
 enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
@@ -51,32 +53,39 @@ fun MainScreen() {
 
     val isSubPage = currentRoute !in listOf(Route.HOME, Route.STATS, Route.MY)
 
+    // 系统返回键：子页面回退，主页不拦截
+    BackHandler(enabled = isSubPage) { goBack() }
+
     Scaffold(
         topBar = {
-            if (!isSubPage) {
-                when (currentRoute) {
-                    Route.HOME -> { /* 首页无 TopBar，悬浮按钮替代 */ }
-                    Route.STATS -> StatsTopBar()
-                    Route.MY -> MyTopBar()
-                }
-            }
+            // 所有Tab页面取消TopBar，按钮改为悬浮
         },
         floatingActionButton = {
             if (currentRoute == Route.HOME) {
-                FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = Primary) {
+                FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = Primary()) {
                     Icon(Icons.Filled.Add, "新增物品")
                 }
             }
         },
         bottomBar = {
             if (!isSubPage) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
                     MainTab.entries.forEachIndexed { index, tab ->
+                        val selected = currentTab == index
                         NavigationBarItem(
-                            selected = currentTab == index,
+                            selected = selected,
                             onClick = { switchTab(index) },
-                            icon = { Icon(if(currentTab==index)tab.selectedIcon else tab.unselectedIcon, tab.label) },
-                            label = { Text(tab.label) }
+                            icon = { Icon(if(selected)tab.selectedIcon else tab.unselectedIcon, tab.label) },
+                            label = { Text(tab.label, fontWeight = if(selected) FontWeight.Bold else FontWeight.Normal) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Primary(),
+                                selectedTextColor = Primary(),
+                                unselectedIconColor = TextAuxiliary(),
+                                unselectedTextColor = TextAuxiliary(),
+                                indicatorColor = Primary().copy(alpha = 0.15f)
+                            )
                         )
                     }
                 }
@@ -100,11 +109,11 @@ fun MainScreen() {
                         )
                         // 悬浮菜单（左上）
                         IconButton(onClick={}, modifier=Modifier.align(Alignment.TopStart).padding(top=4.dp,start=8.dp).size(40.dp)) {
-                            Icon(Icons.Filled.Menu,"菜单",tint=TextPrimary.copy(alpha=0.30f),modifier=Modifier.size(26.dp))
+                            Icon(Icons.Filled.Menu,"菜单",tint=TextPrimary().copy(alpha=0.30f),modifier=Modifier.size(26.dp))
                         }
                         // 悬浮搜索（右上）
                         IconButton(onClick={navigate(Route.SEARCH)}, modifier=Modifier.align(Alignment.TopEnd).padding(top=4.dp,end=12.dp).size(40.dp)) {
-                            Icon(Icons.Filled.Search,"搜索",tint=TextPrimary.copy(alpha=0.30f),modifier=Modifier.size(26.dp))
+                            Icon(Icons.Filled.Search,"搜索",tint=TextPrimary().copy(alpha=0.30f),modifier=Modifier.size(26.dp))
                         }
                         if (drawerCategoryFilter != null) {
                             AssistChip(onClick={drawerCategoryFilter=null}, label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
@@ -113,7 +122,27 @@ fun MainScreen() {
                         }
                     }
                 }
-                Route.STATS -> StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={detailItemId=it;navigate(Route.DETAIL)}, isTabMode=true)
+                Route.STATS -> {
+                    var showTimeFilter by remember { mutableStateOf(false) }
+                    var timeFilterLabel by remember { mutableStateOf("全部时间") }
+                    Box(Modifier.fillMaxSize()) {
+                        StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={detailItemId=it;navigate(Route.DETAIL)}, isTabMode=true)
+                        // 悬浮时间筛选按钮
+                        Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
+                            Box {
+                                TextButton(onClick={showTimeFilter=true}) {
+                                    Text(timeFilterLabel, fontSize=14.sp, color=Primary())
+                                    Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
+                                }
+                                DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false}) {
+                                    listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
+                                        DropdownMenuItem(text={Text(label)}, onClick={timeFilterLabel=label;showTimeFilter=false})
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 Route.MY -> MyLandingScreen(
                     onNavigateToSettings = { navigate(Route.SETTINGS) },
                     onNavigateToCategory = { navigate(Route.CATEGORY) },
@@ -130,15 +159,3 @@ fun MainScreen() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StatsTopBar() {
-    TopAppBar(title={Text("资产汇总",fontSize=24.sp,fontWeight=FontWeight.Bold,color=TextPrimary)},
-        actions={TextButton(onClick={}){Text("全部时间",fontSize=16.sp,color=Primary);Icon(Icons.Filled.ArrowDropDown,null,tint=Primary)}})
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun MyTopBar() {
-    TopAppBar(title={Text("我的",fontSize=24.sp,fontWeight=FontWeight.Bold,color=TextPrimary)})
-}

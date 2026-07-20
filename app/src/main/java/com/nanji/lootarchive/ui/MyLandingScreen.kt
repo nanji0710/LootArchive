@@ -32,16 +32,16 @@ fun MyLandingScreen(
                 Surface(
                     modifier = Modifier.size(64.dp),
                     shape = androidx.compose.foundation.shape.CircleShape,
-                    color = Primary.copy(alpha = 0.15f)
+                    color = Primary().copy(alpha = 0.15f)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Filled.Person, null, Modifier.size(36.dp), tint = Primary)
+                        Icon(Icons.Filled.Person, null, Modifier.size(36.dp), tint = Primary())
                     }
                 }
                 Spacer(Modifier.width(16.dp))
                 Column {
-                    Text("拾物集", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                    Text("你的私人物品资产管理工具", fontSize = 13.sp, color = TextAuxiliary)
+                    Text("拾物集", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
+                    Text("你的私人物品资产管理工具", fontSize = 13.sp, color = TextAuxiliary())
                 }
             }
         }
@@ -57,9 +57,9 @@ fun MyLandingScreen(
 
         // 关于
         GlassCard(modifier = Modifier.fillMaxWidth()) {
-            Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary)
+            Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v2.3.0", fontSize = 13.sp, color = TextAuxiliary)
+            Text("当前版本 v2.3.0", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 }
@@ -68,13 +68,13 @@ fun MyLandingScreen(
 private fun MyMenuItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = androidx.compose.ui.graphics.Color.Transparent) {
         Row(Modifier.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, Modifier.size(22.dp), tint = Primary)
+            Icon(icon, null, Modifier.size(22.dp), tint = Primary())
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-                Text(subtitle, fontSize = 13.sp, color = TextAuxiliary)
+                Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                Text(subtitle, fontSize = 13.sp, color = TextAuxiliary())
             }
-            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary)
+            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
         }
     }
 }

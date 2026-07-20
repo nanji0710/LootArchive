@@ -36,13 +36,15 @@ fun GlassStatCard(
     title: String,
     value: String,
     modifier: Modifier = Modifier,
-    valueColor: Color = Primary,
+    valueColor: Color = Primary(),
     onClick: (() -> Unit)? = null
 ) {
     GlassCard(modifier = modifier, onClick = onClick) {
-        Text(value, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = valueColor)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(title, style = MaterialTheme.typography.bodySmall, color = TextAuxiliary)
+        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = valueColor,
+            maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(title, style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(),
+            maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
 
@@ -59,10 +61,10 @@ fun EmptyState(
     ) {
         icon()
         Spacer(modifier = Modifier.height(24.dp))
-        Text(title, fontSize = 20.sp, color = TextSecondary)
+        Text(title, fontSize = 20.sp, color = TextSecondary())
         if (subtitle.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextAuxiliary)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
         }
     }
 }

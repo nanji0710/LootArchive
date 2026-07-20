@@ -50,12 +50,12 @@ fun SearchScreen(
                     OutlinedTextField(
                         value = uiState.query,
                         onValueChange = viewModel::updateQuery,
-                        placeholder = { Text("搜索物品名称 / 存放位置 / 购入备注", fontSize = 14.sp, color = TextAuxiliary) },
+                        placeholder = { Text("搜索物品名称 / 存放位置 / 购入备注", fontSize = 14.sp, color = TextAuxiliary()) },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                         singleLine = true,
                         shape = RoundedCornerShape(18.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = Color(0xFFEEEEEE), unfocusedContainerColor = Color(0xFFEEEEEE)),
-                        leadingIcon = { Icon(Icons.Filled.Search, null, tint = TextAuxiliary) },
+                        leadingIcon = { Icon(Icons.Filled.Search, null, tint = TextAuxiliary()) },
                         trailingIcon = { if (uiState.query.isNotEmpty()) IconButton(onClick = { viewModel.updateQuery("") }) { Icon(Icons.Filled.Close, "清除", Modifier.size(20.dp)) } }
                     )
                 },
@@ -77,8 +77,8 @@ fun SearchScreen(
                     val selected = uiState.activeFilter == filters[index].second
                     TextButton(onClick = { viewModel.setActiveFilter(filters[index].second) }) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(label, fontSize = 14.sp, color = if (selected) Primary else TextAuxiliary)
-                            if (selected) Spacer(Modifier.width(20.dp).height(2.dp).background(Primary, RoundedCornerShape(1.dp)))
+                            Text(label, fontSize = 14.sp, color = if (selected) Primary() else TextAuxiliary())
+                            if (selected) Spacer(Modifier.width(20.dp).height(2.dp).background(Primary(), RoundedCornerShape(1.dp)))
                         }
                     }
                 }
@@ -87,9 +87,9 @@ fun SearchScreen(
             // 结果统计+排序
             if (uiState.query.isNotEmpty() || uiState.activeFilter != null) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("找到 ${uiState.results.size} 件物品", fontSize = 16.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+                    Text("找到 ${uiState.results.size} 件物品", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                     var showSort by remember { mutableStateOf(false) }
-                    Box { TextButton(onClick = { showSort = true }) { Text("排序", fontSize = 14.sp, color = Primary) }
+                    Box { TextButton(onClick = { showSort = true }) { Text("排序", fontSize = 14.sp, color = Primary()) }
                         DropdownMenu(expanded = showSort, onDismissRequest = { showSort = false }) {
                             listOf("price_desc" to "价格从高到低", "date_new" to "购入时间最新", "warranty" to "保修到期优先").forEach { (key, label) ->
                                 DropdownMenuItem(text = { Text(label) }, onClick = { viewModel.setSort(key); showSort = false })
@@ -104,16 +104,16 @@ fun SearchScreen(
                 if (uiState.recentSearches.isNotEmpty()) {
                     Column(Modifier.padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("最近搜索", fontSize = 16.sp, color = TextPrimary, modifier = Modifier.weight(1f))
-                            TextButton(onClick = { viewModel.clearHistory() }) { Text("清空记录", fontSize = 14.sp, color = Primary) }
+                            Text("最近搜索", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                            TextButton(onClick = { viewModel.clearHistory() }) { Text("清空记录", fontSize = 14.sp, color = Primary()) }
                         }
                         Spacer(Modifier.height(8.dp))
                         uiState.recentSearches.forEach { query ->
                             Surface(onClick = { viewModel.updateQuery(query); viewModel.submitSearch() }, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
                                 Row(Modifier.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Filled.History, null, Modifier.size(18.dp), tint = TextAuxiliary)
+                                    Icon(Icons.Filled.History, null, Modifier.size(18.dp), tint = TextAuxiliary())
                                     Spacer(Modifier.width(12.dp))
-                                    Text(query, fontSize = 16.sp, color = TextSecondary)
+                                    Text(query, fontSize = 16.sp, color = TextSecondary())
                                 }
                             }
                         }
@@ -153,8 +153,8 @@ private fun SearchItemCard(item: ItemEntity, numberFormat: NumberFormat, onClick
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = Color(0xFFBBBBBB)) }
         }
         Spacer(Modifier.height(8.dp))
-        Text(item.name, fontSize = 18.sp, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(item.name, fontSize = 18.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(4.dp))
-        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary)
+        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary())
     }
 }

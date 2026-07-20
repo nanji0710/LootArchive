@@ -10,56 +10,34 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-    secondary = TextSecondary,
-    background = BackgroundLight,
-    surface = SurfaceLight,
-    surfaceVariant = GlassBgLight,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary,
-    onSurfaceVariant = TextSecondary,
-    outline = GlassBorderLight
+    primary = _Primary, onPrimary = _OnPrimary,
+    secondary = _TextSecondaryLight, background = _BackgroundLight, surface = _SurfaceLight,
+    surfaceVariant = _GlassBgLight,
+    onBackground = _TextPrimaryLight, onSurface = _TextPrimaryLight, onSurfaceVariant = _TextSecondaryLight,
+    outline = _GlassBorderLight
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryDark,
-    onPrimary = Color(0xFF1A1A1A),
-    secondary = TextSecondaryDark,
-    background = BackgroundDark,
-    surface = SurfaceDark,
-    surfaceVariant = GlassBgDark,
-    onBackground = TextPrimaryDark,
-    onSurface = TextPrimaryDark,
-    onSurfaceVariant = TextSecondaryDark,
-    outline = GlassBorderDark
+    primary = _PrimaryDark, onPrimary = Color(0xFF1A1A1A),
+    secondary = _TextSecondaryDark, background = _BackgroundDark, surface = _SurfaceDark,
+    surfaceVariant = _GlassBgDark,
+    onBackground = _TextPrimaryDark, onSurface = _TextPrimaryDark, onSurfaceVariant = _TextSecondaryDark,
+    outline = _GlassBorderDark
 )
 
 @Composable
-fun LootArchiveTheme(
-    themeMode: String = "system",
-    content: @Composable () -> Unit
-) {
+fun LootArchiveTheme(themeMode: String = "system", content: @Composable () -> Unit) {
     val darkTheme = when (themeMode) {
-        "dark" -> true
-        "light" -> false
-        else -> isSystemInDarkTheme()
+        "dark" -> true; "light" -> false; else -> isSystemInDarkTheme()
     }
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
-            WindowCompat.getInsetsController(window, view).apply {
+            WindowCompat.getInsetsController((view.context as Activity).window, view).apply {
                 isAppearanceLightStatusBars = !darkTheme
             }
         }
     }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content
-    )
+    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
 }
