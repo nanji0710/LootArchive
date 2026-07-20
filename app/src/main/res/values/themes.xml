@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.LootArchive" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowTranslucentNavigation">true</item>
+        <!-- Android 15+ (API 35) 强制 Edge-to-Edge，不能设 translucent -->
+        <!-- statusBarColor/navigationBarColor 由 Compose enableEdgeToEdge() 接管 -->
     </style>
 </resources>

@@ -18,7 +18,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.nanji.lootarchive.ui.additem.AddItemScreen
-import com.nanji.lootarchive.ui.component.CategoryDrawer
 import com.nanji.lootarchive.ui.detail.DetailScreen
 import com.nanji.lootarchive.ui.home.HomeScreen
 import com.nanji.lootarchive.ui.search.SearchScreen
@@ -45,47 +44,13 @@ fun MainScreen() {
     val currentRoute = navBackStackEntry?.destination?.route
     val isSubPage = currentRoute != null && currentRoute !in listOf("home", "stats", "my")
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    // 切 Tab 时关闭抽屉
-    LaunchedEffect(selectedTab) {
-        if (drawerState.isOpen) drawerState.close()
-    }
-
-    // 进入子页面时关闭抽屉
-    LaunchedEffect(isSubPage) {
-        if (isSubPage && drawerState.isOpen) drawerState.close()
-    }
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        gesturesEnabled = selectedTab == 0 && !isSubPage,
-        drawerContent = {
-            ModalDrawerSheet {
-                CategoryDrawer(
-                    selectedFilter = drawerCategoryFilter,
-                    onCategorySelected = { categoryId, categoryName ->
-                        drawerCategoryFilter = if (categoryId == -1L) null
-                        else Pair(categoryId, categoryName)
-                        selectedTab = 0
-                    },
-                    onClose = { /* drawerState.close() handled by scope */ }
-                )
-            }
-        }
-    ) {
-        Scaffold(
+    // FIXME: ModalNavigationDrawer 疑似在 Android 17 上导致闪退，暂时禁用
+    Scaffold(
             topBar = {
                 if (!isSubPage) {
                     when (MainTab.entries[selectedTab]) {
                         MainTab.HOME -> HomeTopBar(
                             filterLabel = drawerCategoryFilter?.second,
-                            onMenuClick = {
-                                scope.launch {
-                                    if (drawerState.isClosed) drawerState.open() else drawerState.close()
-                                }
-                            },
                             onSearchClick = { subNavController.navigate("search") },
                             onClearFilter = { drawerCategoryFilter = null }
                         )
@@ -191,13 +156,12 @@ fun MainScreen() {
             }
         }
     }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopBar(
     filterLabel: String?,
-    onMenuClick: () -> Unit,
     onSearchClick: () -> Unit,
     onClearFilter: (() -> Unit)?
 ) {
@@ -215,11 +179,6 @@ private fun HomeTopBar(
                         }
                     )
                 }
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onMenuClick) {
-                Icon(Icons.Filled.Menu, contentDescription = "分类抽屉")
             }
         },
         actions = {

@@ -206,7 +206,7 @@ fun SettingsScreen(
                 SettingItem(
                     icon = Icons.Filled.Info,
                     title = "拾物集 LootArchive",
-                    subtitle = "v1.1.1 · 纯本地资产管理工具",
+                    subtitle = "v1.1.2 · 纯本地资产管理工具",
                     onClick = {}
                 )
             }
