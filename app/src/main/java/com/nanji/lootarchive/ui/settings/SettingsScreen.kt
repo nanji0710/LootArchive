@@ -2,6 +2,7 @@ package com.nanji.lootarchive.ui.settings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -115,6 +116,8 @@ fun SettingsScreen(
             SectionTitle("显示设置")
 
             GlassCard {
+                // 主题切换改用弹窗三选一，更直观
+                var showThemeDialog by remember { mutableStateOf(false) }
                 SettingItem(
                     icon = Icons.Filled.Palette,
                     title = "主题模式",
@@ -124,15 +127,58 @@ fun SettingsScreen(
                         "dark" -> "深色模式"
                         else -> uiState.themeMode
                     },
-                    onClick = {
-                        val next = when (uiState.themeMode) {
-                            "system" -> "light"
-                            "light" -> "dark"
-                            else -> "system"
-                        }
-                        viewModel.setThemeMode(next)
-                    }
+                    onClick = { showThemeDialog = true }
                 )
+
+                if (showThemeDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showThemeDialog = false },
+                        title = { Text("选择主题模式") },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                listOf(
+                                    "system" to "跟随系统",
+                                    "light" to "浅色模式",
+                                    "dark" to "深色模式"
+                                ).forEach { (mode, label) ->
+                                    Surface(
+                                        onClick = {
+                                            viewModel.setThemeMode(mode)
+                                            showThemeDialog = false
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (uiState.themeMode == mode)
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        else
+                                            MaterialTheme.colorScheme.surface
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            if (uiState.themeMode == mode) {
+                                                Icon(
+                                                    Icons.Filled.Check,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            } else {
+                                                Spacer(modifier = Modifier.width(18.dp))
+                                            }
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(label, style = MaterialTheme.typography.bodyLarge)
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showThemeDialog = false }) { Text("关闭") }
+                        }
+                    )
+                }
             }
 
             // 数据管理
@@ -157,7 +203,7 @@ fun SettingsScreen(
                 SettingItem(
                     icon = Icons.Filled.Info,
                     title = "拾物集 LootArchive",
-                    subtitle = "v1.0.1 · 纯本地资产管理工具",
+                    subtitle = "v1.0.2 · 纯本地资产管理工具",
                     onClick = {}
                 )
             }
