@@ -25,7 +25,9 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.PhotoUtil
+import androidx.compose.ui.unit.sp
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -82,26 +84,6 @@ fun AddItemScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(if (uiState.isEditMode) "编辑物品" else "新增物品")
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    TextButton(
-                        onClick = { viewModel.saveItem() },
-                        enabled = !uiState.isLoading
-                    ) {
-                        Text("保存", fontWeight = FontWeight.Bold)
-                    }
-                }
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
@@ -112,6 +94,21 @@ fun AddItemScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // 顶部操作栏：返回 + 标题 + 保存
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary())
+                }
+                Text(
+                    if (uiState.isEditMode) "编辑物品" else "新增物品",
+                    fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(),
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = { viewModel.saveItem() }, enabled = !uiState.isLoading) {
+                    Text("保存", fontWeight = FontWeight.Bold, color = Primary())
+                }
+            }
+
             // 物品名称
             GlassCard {
                 OutlinedTextField(

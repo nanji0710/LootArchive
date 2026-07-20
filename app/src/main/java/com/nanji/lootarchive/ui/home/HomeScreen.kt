@@ -59,9 +59,17 @@ fun HomeScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    // 按分类筛选
+    val filteredItems = remember(uiState.items, categoryFilter) {
+        if (categoryFilter != null) uiState.items.filter { it.categoryId == categoryFilter.first }
+        else uiState.items
+    }
+    val filteredCount = filteredItems.size
+    val filteredValue = filteredItems.sumOf { it.purchasePrice }
+
     // 数字滚动动画
-    val animCount by animateIntAsState(uiState.totalCount, animationSpec = tween(400))
-    val animValue by animateFloatAsState(uiState.totalValue.toFloat(), animationSpec = tween(400))
+    val animCount by animateIntAsState(filteredCount, animationSpec = tween(400))
+    val animValue by animateFloatAsState(filteredValue.toFloat(), animationSpec = tween(400))
     val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(400))
 
     PullToRefreshBox(
@@ -114,7 +122,7 @@ fun HomeScreen(
             }
 
             // ─── 物品双列网格 ───
-            if (uiState.items.isEmpty() && !uiState.isLoading) {
+            if (filteredItems.isEmpty() && !uiState.isLoading) {
                 item(span = { GridItemSpan(2) }) {
                     EmptyState(
                         icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(120.dp), tint = Color(0xFFBBBBBB)) },
@@ -123,7 +131,7 @@ fun HomeScreen(
                     )
                 }
             } else {
-                items(uiState.items, key = { it.id }) { item ->
+                items(filteredItems, key = { it.id }) { item ->
                     ItemCard(
                         item = item,
                         photoPath = uiState.photoPaths[item.id],
