@@ -35,8 +35,11 @@ fun StatisticsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
 
-    // 每次进入此页面强制刷新数据
-    LaunchedEffect(Unit) { viewModel.refresh() }
+    // 每次进入页面重新收集数据
+    DisposableEffect(Unit) {
+        viewModel.refresh()
+        onDispose { }
+    }
 
     Scaffold(
         topBar = { if (!isTabMode) { TopAppBar(title = { Text("资产汇总") }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }) } },

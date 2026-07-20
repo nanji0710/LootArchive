@@ -8,6 +8,7 @@ import com.nanji.lootarchive.data.repository.CategoryRepository
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,13 +40,15 @@ class StatisticsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
+    private var collectJob: Job? = null
 
-    init {
-        loadStatistics()
-    }
+    init { loadStatistics() }
+
+    fun refresh() { loadStatistics() }
 
     private fun loadStatistics() {
-        viewModelScope.launch {
+        collectJob?.cancel()
+        collectJob = viewModelScope.launch {
             combine(
                 itemRepository.getAllItems(),
                 itemRepository.getTotalCount(),
@@ -74,8 +77,6 @@ class StatisticsViewModel @Inject constructor(
             }
         }
     }
-
-    fun refresh() { loadStatistics() }
 
     fun setTimeFilter(filter: String) {
         _uiState.update { it.copy(timeFilter = filter) }

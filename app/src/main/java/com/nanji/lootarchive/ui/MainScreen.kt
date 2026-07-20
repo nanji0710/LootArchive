@@ -83,7 +83,8 @@ fun MainScreen() {
         bottomBar = {
             if (!isSubPage) {
                 NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.height(64.dp)
                 ) {
                     MainTab.entries.forEachIndexed { index, tab ->
                         val selected = currentTab == index
@@ -164,7 +165,7 @@ fun MainScreen() {
                 Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()})
                 Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
                 Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
-                Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()})
+                Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
                 Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                 Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
             }

@@ -3,6 +3,7 @@ package com.nanji.lootarchive.ui.settings
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +29,7 @@ import com.nanji.lootarchive.ui.theme.*
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     isTabMode: Boolean = false,
+    onNavigateToCategory: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -102,7 +104,7 @@ fun SettingsScreen(
             // ─── 卡片3：快捷工具 ───
             SectionTitle("快捷工具")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().clickable(onClick = onNavigateToCategory).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("分类管理", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
                     Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
                 }
