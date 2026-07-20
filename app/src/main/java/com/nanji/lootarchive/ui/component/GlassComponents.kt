@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -19,12 +20,12 @@ fun GlassCard(
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = modifier.glassEffect(tier = tier),
+    Surface(
+        modifier = modifier
+            .glassEffect(tier = tier)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         shape = RoundedCornerShape(tier.cornerRadiusDp.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        onClick = onClick ?: {}
+        color = Color.Transparent
     ) {
         Column(modifier = Modifier.padding(12.dp)) { content() }
     }

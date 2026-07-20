@@ -3,7 +3,6 @@ package com.nanji.lootarchive
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
@@ -23,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // enableEdgeToEdge() — 暂时注释测试 Android 17 闪退
         setContent {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
             LootArchiveTheme(themeMode = themeMode) {
