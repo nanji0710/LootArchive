@@ -10,7 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.nanji.lootarchive.data.repository.SettingsRepository
-import com.nanji.lootarchive.ui.navigation.NavGraph
+import com.nanji.lootarchive.ui.MainScreen
 import com.nanji.lootarchive.ui.theme.LootArchiveTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
             LootArchiveTheme(themeMode = themeMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    NavGraph()
+                    MainScreen()
                 }
             }
         }

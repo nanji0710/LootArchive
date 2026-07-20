@@ -25,12 +25,9 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
         // 主页
         composable(Screen.Home.route) {
             HomeScreen(
+                categoryFilter = null,
                 onNavigateToAddItem = { navController.navigate(Screen.AddItem.createRoute()) },
                 onNavigateToDetail = { itemId -> navController.navigate(Screen.Detail.createRoute(itemId)) },
-                onNavigateToCategory = { navController.navigate(Screen.Category.route) },
-                onNavigateToStatistics = { navController.navigate(Screen.Statistics.route) },
-                onNavigateToBackup = { navController.navigate(Screen.Backup.route) },
-                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToSearch = { navController.navigate(Screen.Search.route) }
             )
         }
