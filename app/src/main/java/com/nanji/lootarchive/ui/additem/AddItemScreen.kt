@@ -1,6 +1,10 @@
 package com.nanji.lootarchive.ui.additem
 
 import android.app.DatePickerDialog
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,11 +16,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.util.PhotoUtil
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,6 +41,35 @@ fun AddItemScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+
+    // 照片选择弹窗控制
+    var showPhotoPickerDialog by remember { mutableStateOf(false) }
+    // 用于相机拍照的临时文件 URI
+    var cameraPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // 相册选择器
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
+            PhotoUtil.savePhotoFromUri(context, uri)?.let { path ->
+                viewModel.addPhotoPath(path)
+            }
+        }
+    }
+
+    // 相机拍照
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraPhotoUri?.let { uri ->
+                PhotoUtil.savePhotoFromUri(context, uri)?.let { path ->
+                    viewModel.addPhotoPath(path)
+                }
+            }
+        }
+    }
 
     // 编辑模式初始化
     LaunchedEffect(editItemId) {
@@ -92,18 +131,25 @@ fun AddItemScreen(
                 Text("所属分类 *", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 if (uiState.categories.isEmpty()) {
-                    Text("暂无分类，请先在分类管理中创建", style = MaterialTheme.typography.bodySmall)
+                    Text("暂无分类", style = MaterialTheme.typography.bodySmall)
                 } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        uiState.categories.forEach { category ->
-                            FilterChip(
-                                selected = uiState.categoryId == category.id,
-                                onClick = { viewModel.updateCategoryId(category.id) },
-                                label = { Text(category.name) }
-                            )
+                    Column {
+                        // 分行展示 FilterChip
+                        val chunked = uiState.categories.chunked(3)
+                        chunked.forEach { row ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                row.forEach { category ->
+                                    FilterChip(
+                                        selected = uiState.categoryId == category.id,
+                                        onClick = { viewModel.updateCategoryId(category.id) },
+                                        label = { Text(category.name) }
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
                         }
                     }
                 }
@@ -148,9 +194,7 @@ fun AddItemScreen(
                             DatePickerDialog(
                                 context,
                                 { _, year, month, day ->
-                                    val cal = Calendar.getInstance().apply {
-                                        set(year, month, day)
-                                    }
+                                    val cal = Calendar.getInstance().apply { set(year, month, day) }
                                     viewModel.updatePurchaseDate(cal.timeInMillis)
                                 },
                                 calendar.get(Calendar.YEAR),
@@ -161,11 +205,7 @@ fun AddItemScreen(
                         .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Filled.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    Icon(Icons.Filled.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text("购入日期", style = MaterialTheme.typography.labelSmall)
@@ -193,7 +233,6 @@ fun AddItemScreen(
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
-                    // 保修到期日
                     Row(
                         modifier = Modifier
                             .weight(1f)
@@ -203,9 +242,7 @@ fun AddItemScreen(
                                 DatePickerDialog(
                                     context,
                                     { _, year, month, day ->
-                                        val cal = Calendar.getInstance().apply {
-                                            set(year, month, day)
-                                        }
+                                        val cal = Calendar.getInstance().apply { set(year, month, day) }
                                         viewModel.updateWarrantyExpiryDate(cal.timeInMillis)
                                     },
                                     calendar.get(Calendar.YEAR),
@@ -238,44 +275,102 @@ fun AddItemScreen(
                 )
             }
 
-            // 照片区域
+            // ─── 照片区域（完整实现） ───
             GlassCard {
                 Text("物品照片", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // 已选照片预览占位
-                    if (uiState.photoUris.isEmpty()) {
-                        Text(
-                            "点击下方按钮添加照片",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        uiState.photoUris.forEach { uri ->
-                            // TODO: 实际使用 Coil 加载照片缩略图
-                            Surface(
-                                modifier = Modifier.size(72.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Filled.Image, contentDescription = null)
+
+                // 已选照片预览
+                if (uiState.photoPaths.isEmpty()) {
+                    Text(
+                        "点击下方按钮添加照片",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        uiState.photoPaths.take(4).forEach { path ->
+                            Box(modifier = Modifier.size(80.dp)) {
+                                AsyncImage(
+                                    model = File(path),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                                // 删除按钮
+                                IconButton(
+                                    onClick = { viewModel.removePhotoPath(path) },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .size(22.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f),
+                                            RoundedCornerShape(4.dp)
+                                        )
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = "删除",
+                                        modifier = Modifier.size(14.dp),
+                                        tint = MaterialTheme.colorScheme.onErrorContainer
+                                    )
                                 }
                             }
                         }
+                        if (uiState.photoPaths.size > 4) {
+                            Text(
+                                "+${uiState.photoPaths.size - 4}",
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(start = 4.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = { /* TODO: 启动照片选择器 */ },
-                    modifier = Modifier.fillMaxWidth()
+
+                // 拍照 / 选择按钮
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Filled.AddAPhoto, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("拍摄/选择照片")
+                    OutlinedButton(
+                        onClick = {
+                            // 创建临时文件用于拍照
+                            val photoFile = File(
+                                PhotoUtil.getPhotoDir(context),
+                                PhotoUtil.generatePhotoFileName()
+                            )
+                            cameraPhotoUri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                photoFile
+                            )
+                            cameraLauncher.launch(cameraPhotoUri!!)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("拍照")
+                    }
+                    OutlinedButton(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("相册")
+                    }
                 }
             }
 
@@ -294,7 +389,16 @@ fun AddItemScreen(
                 }
             }
 
-            // 底部留白
+            // Loading 指示器
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                }
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }

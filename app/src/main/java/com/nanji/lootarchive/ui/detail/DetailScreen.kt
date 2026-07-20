@@ -10,13 +10,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.theme.*
+import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -91,15 +95,14 @@ fun DetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             data.photos.take(3).forEach { photo ->
-                                Surface(
-                                    modifier = Modifier.size(100.dp),
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.surfaceVariant
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Filled.Image, contentDescription = null, modifier = Modifier.size(32.dp))
-                                    }
-                                }
+                                AsyncImage(
+                                    model = File(photo.photoPath),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
                             }
                         }
                     }

@@ -1,6 +1,5 @@
 package com.nanji.lootarchive.ui.additem
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
@@ -27,7 +26,7 @@ data class AddItemUiState(
     val warrantyExpiryDate: Long? = null,
     val warrantyPeriodDays: String = "",
     val description: String = "",
-    val photoUris: List<Uri> = emptyList(),
+    val photoPaths: List<String> = emptyList(),
     // 表单校验
     val nameError: String? = null,
     val priceError: String? = null,
@@ -62,7 +61,7 @@ class AddItemViewModel @Inject constructor(
                     warrantyExpiryDate = item.warrantyExpiryDate,
                     warrantyPeriodDays = item.warrantyPeriodDays?.toString() ?: "",
                     description = item.description,
-                    photoUris = itemWithPhotos.photos.map { p -> Uri.parse(p.photoPath) }
+                    photoPaths = itemWithPhotos.photos.map { it.photoPath }
                 )
             }
         }
@@ -108,12 +107,12 @@ class AddItemViewModel @Inject constructor(
         _uiState.update { it.copy(description = desc) }
     }
 
-    fun addPhotoUri(uri: Uri) {
-        _uiState.update { it.copy(photoUris = it.photoUris + uri) }
+    fun addPhotoPath(path: String) {
+        _uiState.update { it.copy(photoPaths = it.photoPaths + path) }
     }
 
-    fun removePhotoUri(uri: Uri) {
-        _uiState.update { it.copy(photoUris = it.photoUris - uri) }
+    fun removePhotoPath(path: String) {
+        _uiState.update { it.copy(photoPaths = it.photoPaths - path) }
     }
 
     fun saveItem() {
@@ -128,6 +127,15 @@ class AddItemViewModel @Inject constructor(
         if (price == null || price < 0) {
             _uiState.update { it.copy(priceError = "请输入有效价格") }
             return
+        }
+
+        // 分类未选时默认归入"其他"
+        val actualCategoryId = if (state.categoryId == 0L) {
+            state.categories.find { it.name == "其他" }?.id
+                ?: state.categories.firstOrNull()?.id
+                ?: 1L
+        } else {
+            state.categoryId
         }
 
         viewModelScope.launch {
@@ -146,7 +154,7 @@ class AddItemViewModel @Inject constructor(
                 val item = ItemEntity(
                     id = editingItemId ?: 0,
                     name = state.name.trim(),
-                    categoryId = state.categoryId,
+                    categoryId = actualCategoryId,
                     purchasePrice = price,
                     storageLocation = state.storageLocation.trim(),
                     purchaseDate = state.purchaseDate,
@@ -163,12 +171,12 @@ class AddItemViewModel @Inject constructor(
                     itemRepository.insertItem(item)
                 }
 
-                // 保存照片引用（实际照片已在文件系统中）
-                state.photoUris.forEachIndexed { index, uri ->
+                // 保存照片引用
+                state.photoPaths.forEachIndexed { index, path ->
                     itemRepository.addPhoto(
                         ItemPhotoEntity(
                             itemId = savedId,
-                            photoPath = uri.toString(),
+                            photoPath = path,
                             sortOrder = index
                         )
                     )

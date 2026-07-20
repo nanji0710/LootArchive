@@ -1,20 +1,11 @@
 package com.nanji.lootarchive.data.local.entity
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "items",
-    foreignKeys = [
-        ForeignKey(
-            entity = CategoryEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["categoryId"],
-            onDelete = ForeignKey.SET_DEFAULT
-        )
-    ],
     indices = [
         Index("categoryId"),
         Index("name"),
