@@ -14,8 +14,8 @@ android {
         applicationId = "com.nanji.lootarchive"
         minSdk = 31
         targetSdk = 36
-        versionCode = 25
-        versionName = "2.4.4"
+        versionCode = 26
+        versionName = "2.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -45,6 +45,13 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                "LootArchive-${buildType.name}-v${defaultConfig.versionName}.apk"
+        }
     }
 }
 

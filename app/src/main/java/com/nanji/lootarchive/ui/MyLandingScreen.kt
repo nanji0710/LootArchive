@@ -7,14 +7,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.util.UpdateChecker
+import com.nanji.lootarchive.util.UpdateInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun MyLandingScreen(
@@ -22,6 +30,14 @@ fun MyLandingScreen(
     onNavigateToCategory: () -> Unit,
     onNavigateToBackup: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isChecking by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var showNoUpdate by remember { mutableStateOf(false) }
+    var checkError by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -53,14 +69,88 @@ fun MyLandingScreen(
             MyMenuItem(Icons.Outlined.Category, "分类管理", "管理物品分类") { onNavigateToCategory() }
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
             MyMenuItem(Icons.Outlined.Backup, "备份与恢复", "导出Excel、备份数据") { onNavigateToBackup() }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
+            MyMenuItem(Icons.Outlined.SystemUpdate, "检查更新", "检测GitHub最新版本") {
+                if (!isChecking) {
+                    isChecking = true
+                    scope.launch {
+                        try {
+                            val result = UpdateChecker.check(25)
+                            result.onSuccess { info ->
+                                if (info != null) { updateInfo = info; showUpdateDialog = true }
+                                else { showNoUpdate = true }
+                            }.onFailure { e -> checkError = e.message }
+                        } catch (e: Exception) { checkError = e.message }
+                        isChecking = false
+                    }
+                }
+            }
         }
 
         // 关于
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v2.3.0", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v2.4.4", fontSize = 13.sp, color = TextAuxiliary())
         }
+    }
+
+    // 更新弹窗
+    if (showUpdateDialog && updateInfo != null) {
+        AlertDialog(
+            onDismissRequest = { showUpdateDialog = false },
+            title = { Text("发现新版本", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text("版本：${updateInfo!!.versionName}", fontSize = 16.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text("更新日期：${updateInfo!!.updateDate}", fontSize = 14.sp, color = TextSecondary())
+                    Spacer(Modifier.height(8.dp))
+                    Text("更新内容：", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(updateInfo!!.updateLog, fontSize = 13.sp, color = TextSecondary())
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateInfo!!.apkUrl))
+                    context.startActivity(intent)
+                    showUpdateDialog = false
+                }) { Text("下载", color = Primary()) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUpdateDialog = false }) { Text("取消") }
+            }
+        )
+    }
+
+    // 已是最新
+    if (showNoUpdate) {
+        AlertDialog(
+            onDismissRequest = { showNoUpdate = false },
+            title = { Text("已是最新版本") },
+            text = { Text("当前已是最新版本 v2.4.4") },
+            confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
+        )
+    }
+
+    // 检查失败
+    if (checkError != null) {
+        AlertDialog(
+            onDismissRequest = { checkError = null },
+            title = { Text("检查失败") },
+            text = { Text("无法连接到更新服务器：${checkError}") },
+            confirmButton = { TextButton(onClick = { checkError = null }) { Text("确定") } }
+        )
+    }
+
+    // 检查中
+    if (isChecking) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("正在检查更新...") },
+            text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator() } },
+            confirmButton = { }
+        )
     }
 }
 
