@@ -2,6 +2,8 @@ package com.nanji.lootarchive.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -23,6 +25,9 @@ import com.nanji.lootarchive.ui.settings.SettingsScreen
 import com.nanji.lootarchive.ui.statistics.StatisticsScreen
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.data.repository.SettingsRepository
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
+import com.nanji.lootarchive.ui.theme.ChartColors
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
 import com.nanji.lootarchive.ui.theme.TextPrimary
@@ -36,6 +41,7 @@ enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselec
 // 简易页面路由（替代 NavHost，根除闪退）
 private object Route { const val HOME="home"; const val STATS="stats"; const val MY="my"; const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"; const val SETTINGS="settings"; const val CATEGORY="category"; const val BACKUP="backup" }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     var currentTab by remember { mutableIntStateOf(0) }
@@ -43,6 +49,7 @@ fun MainScreen() {
     var detailItemId by remember { mutableStateOf(0L) }
     var editItemId by remember { mutableStateOf<Long?>(null) }
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
+    var showCategorySheet by remember { mutableStateOf(false) }
     val backStack = remember { mutableListOf<String>() }
 
     fun navigate(route: String) { backStack.add(currentRoute); currentRoute = route }
@@ -109,8 +116,8 @@ fun MainScreen() {
                             onImportExcel = { navigate(Route.BACKUP) },
                             onBackupData = { navigate(Route.BACKUP) }
                         )
-                        // 悬浮菜单（左上）→ 分类管理
-                        IconButton(onClick={navigate(Route.CATEGORY)}, modifier=Modifier.align(Alignment.TopStart).padding(top=4.dp,start=8.dp).size(40.dp)) {
+                        // 悬浮菜单（左上）→ 分类筛选底部弹出
+                        IconButton(onClick={showCategorySheet=true}, modifier=Modifier.align(Alignment.TopStart).padding(top=4.dp,start=8.dp).size(40.dp)) {
                             Icon(Icons.Filled.Menu,"菜单",tint=TextPrimary().copy(alpha=0.30f),modifier=Modifier.size(26.dp))
                         }
                         // 悬浮搜索（右上）
@@ -158,6 +165,71 @@ fun MainScreen() {
                 Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
             }
         }
+    }
+
+    // 分类筛选底部弹出
+    if (showCategorySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCategorySheet = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            CategoryFilterSheet(
+                selectedFilter = drawerCategoryFilter,
+                onCategorySelected = { id, name ->
+                    drawerCategoryFilter = if (id == -1L) null else Pair(id, name)
+                    showCategorySheet = false
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryFilterSheet(
+    selectedFilter: Pair<Long, String>?,
+    onCategorySelected: (Long, String) -> Unit
+) {
+    val viewModel: CategoryDrawerViewModel = hiltViewModel()
+    val state by viewModel.uiState.collectAsState()
+
+    Column(Modifier.padding(24.dp).fillMaxWidth()) {
+        Text("物品分类", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
+        Spacer(Modifier.height(16.dp))
+
+        // 全部物品
+        Surface(
+            onClick = { onCategorySelected(-1L, "全部物品") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            color = if (selectedFilter == null) Primary().copy(alpha = 0.12f) else Color.Transparent
+        ) {
+            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("全部物品", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                Text("${state.totalItemCount}", fontSize = 13.sp, color = TextAuxiliary())
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        state.categories.forEachIndexed { index, cat ->
+            val color = ChartColors[index % ChartColors.size]
+            val isSelected = selectedFilter?.first == cat.id
+            Surface(
+                onClick = { onCategorySelected(cat.id, cat.name) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                color = if (isSelected) color.copy(alpha = 0.12f) else Color.Transparent
+            ) {
+                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(Modifier.width(4.dp).height(30.dp), RoundedCornerShape(2.dp), color = color) {}
+                    Spacer(Modifier.width(10.dp))
+                    Text(cat.name, fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                }
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
     }
 }
 
