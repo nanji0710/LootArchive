@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "com.nanji.lootarchive"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nanji.lootarchive"
         minSdk = 31
-        targetSdk = 34
-        versionCode = 12
-        versionName = "2.0.5"
+        targetSdk = 36
+        versionCode = 13
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,7 +50,7 @@ android {
 
 dependencies {
     // Compose BOM
-    val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
+    val composeBom = platform("androidx.compose:compose-bom:2025.06.00")
     implementation(composeBom)
 
     // Compose UI
@@ -64,12 +64,12 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Activity & Lifecycle
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
     // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.8.5")
 
     // Hilt DI
     implementation("com.google.dagger:hilt-android:2.53.1")
@@ -82,7 +82,7 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     // Coil (Image Loading)
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Vico (Charts)
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
@@ -94,10 +94,10 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // WorkManager (Backup reminder)
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 
     // Core
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.15.0")
 }
