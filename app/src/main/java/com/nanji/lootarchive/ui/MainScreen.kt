@@ -51,7 +51,6 @@ fun MainScreen() {
                     MainTab.HOME -> HomeTopBar(
                         filterLabel = drawerCategoryFilter?.second,
                         onMenuClick = {},
-                        onSearchClick = { subNavController.navigate("search") },
                         onClearFilter = { drawerCategoryFilter = null }
                     )
                     MainTab.STATS -> StatsTopBar()
@@ -99,13 +98,30 @@ fun MainScreen() {
             popExitTransition = { fadeOut(tween(300)) + slideOutHorizontally(tween(300)) { it / 4 } }
         ) {
             composable("home") {
-                HomeScreen(
-                    categoryFilter = drawerCategoryFilter,
-                    onNavigateToAddItem = { subNavController.navigate("add_item") },
-                    onNavigateToDetail = { subNavController.navigate("detail/$it") },
-                    onNavigateToSearch = { subNavController.navigate("search") },
-                    onNavigateToStats = { selectedTab = 1; subNavController.navigate("stats") { launchSingleTop = true } }
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    HomeScreen(
+                        categoryFilter = drawerCategoryFilter,
+                        onNavigateToAddItem = { subNavController.navigate("add_item") },
+                        onNavigateToDetail = { subNavController.navigate("detail/$it") },
+                        onNavigateToSearch = { subNavController.navigate("search") },
+                        onNavigateToStats = { selectedTab = 1; subNavController.navigate("stats") { launchSingleTop = true } }
+                    )
+                    // 悬浮半透明搜索图标
+                    IconButton(
+                        onClick = { subNavController.navigate("search") },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 4.dp, end = 12.dp)
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Search,
+                            contentDescription = "搜索",
+                            tint = TextPrimary.copy(alpha = 0.35f),
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                }
             }
             composable("stats") {
                 StatisticsScreen(
@@ -144,7 +160,6 @@ fun MainScreen() {
 private fun HomeTopBar(
     filterLabel: String?,
     onMenuClick: () -> Unit,
-    onSearchClick: () -> Unit,
     onClearFilter: (() -> Unit)?
 ) {
     TopAppBar(
@@ -157,8 +172,7 @@ private fun HomeTopBar(
                 }
             }
         },
-        navigationIcon = { IconButton(onClick = onMenuClick) { Icon(Icons.Filled.Menu, "分类", tint = TextPrimary) } },
-        actions = { IconButton(onClick = onSearchClick) { Icon(Icons.Filled.Search, "搜索") } }
+        navigationIcon = { IconButton(onClick = onMenuClick) { Icon(Icons.Filled.Menu, "分类", tint = TextPrimary) } }
     )
 }
 
