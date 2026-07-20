@@ -17,9 +17,10 @@ data class SearchUiState(
     val query: String = "",
     val results: List<ItemEntity> = emptyList(),
     val categories: List<CategoryEntity> = emptyList(),
-    val activeFilter: String? = null,   // null=全部, "name", "location", "desc", "warranty"
-    val sort: String = "date_new",      // "price_desc", "date_new", "warranty"
-    val isLoading: Boolean = false
+    val activeFilter: String? = null,
+    val sort: String = "date_new",
+    val isLoading: Boolean = false,
+    val recentSearches: List<String> = emptyList()
 )
 
 @HiltViewModel
@@ -32,6 +33,7 @@ class SearchViewModel @Inject constructor(
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
+    private val history = mutableListOf<String>()
 
     init {
         viewModelScope.launch {
@@ -43,7 +45,6 @@ class SearchViewModel @Inject constructor(
 
     fun updateQuery(query: String) {
         _uiState.update { it.copy(query = query) }
-        // 防抖搜索（300ms）
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             delay(300)
@@ -51,32 +52,33 @@ class SearchViewModel @Inject constructor(
                 _uiState.update { it.copy(results = emptyList(), isLoading = false) }
                 return@launch
             }
-            _uiState.update { it.copy(isLoading = true) }
-            itemRepository.searchItems(query).catch {}.collect { items ->
-                _uiState.update { it.copy(results = items, isLoading = false) }
-            }
+            executeSearch(query)
         }
     }
 
-    fun setActiveFilter(filter: String?) {
-        _uiState.update { it.copy(activeFilter = filter) }
-        doSearch()
+    fun submitSearch() {
+        val q = _uiState.value.query.trim()
+        if (q.isBlank()) return
+        if (!history.contains(q)) { history.add(0, q); if (history.size > 20) history.removeLast() }
+        _uiState.update { it.copy(recentSearches = history.toList()) }
+        executeSearch(q)
     }
 
-    fun setSort(sort: String) {
-        _uiState.update { it.copy(sort = sort) }
-        doSearch()
-    }
+    fun clearHistory() { history.clear(); _uiState.update { it.copy(recentSearches = emptyList()) } }
+
+    fun setActiveFilter(filter: String?) { _uiState.update { it.copy(activeFilter = filter) }; doSearch() }
+    fun setSort(sort: String) { _uiState.update { it.copy(sort = sort) }; doSearch() }
 
     private fun doSearch() {
-        val state = _uiState.value
-        if (state.query.isBlank() && state.activeFilter == null) {
-            _uiState.update { it.copy(results = emptyList()) }
-            return
-        }
+        val q = _uiState.value.query
+        if (q.isBlank() && _uiState.value.activeFilter == null) { _uiState.update { it.copy(results = emptyList()) }; return }
+        executeSearch(q)
+    }
+
+    private fun executeSearch(q: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            itemRepository.searchItems(state.query.ifBlank { "" }).catch {}.collect { items ->
+            itemRepository.searchItems(q.ifBlank { "" }).catch {}.collect { items ->
                 _uiState.update { it.copy(results = items, isLoading = false) }
             }
         }

@@ -99,13 +99,32 @@ fun SearchScreen(
                 }
             }
 
-            // 结果列表
+            // 结果列表 / 搜索历史 / 空状态
             if (uiState.results.isEmpty() && uiState.query.isEmpty() && uiState.activeFilter == null) {
-                EmptyState(
-                    icon = { Icon(Icons.Filled.Search, null, Modifier.size(100.dp), tint = Color(0xFFBBBBBB)) },
-                    title = "搜索物品",
-                    subtitle = "输入关键词查找你的物品"
-                )
+                if (uiState.recentSearches.isNotEmpty()) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text("最近搜索", fontSize = 16.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+                            TextButton(onClick = { viewModel.clearHistory() }) { Text("清空记录", fontSize = 14.sp, color = Primary) }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        uiState.recentSearches.forEach { query ->
+                            Surface(onClick = { viewModel.updateQuery(query); viewModel.submitSearch() }, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
+                                Row(Modifier.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Filled.History, null, Modifier.size(18.dp), tint = TextAuxiliary)
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(query, fontSize = 16.sp, color = TextSecondary)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    EmptyState(
+                        icon = { Icon(Icons.Filled.Search, null, Modifier.size(100.dp), tint = Color(0xFFBBBBBB)) },
+                        title = "搜索物品",
+                        subtitle = "输入关键词查找你的物品"
+                    )
+                }
             } else if (uiState.results.isEmpty()) {
                 EmptyState(
                     icon = { Icon(Icons.Filled.SearchOff, null, Modifier.size(100.dp), tint = Color(0xFFBBBBBB)) },

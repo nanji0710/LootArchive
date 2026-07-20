@@ -2,6 +2,8 @@ package com.nanji.lootarchive.ui.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -39,10 +41,12 @@ fun HomeScreen(
     onNavigateToAddItem: () -> Unit,
     onNavigateToDetail: (Long) -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToStats: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
+    var showWarrantyDialog by remember { mutableStateOf(false) }
 
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
@@ -64,10 +68,11 @@ fun HomeScreen(
                 ) {
                     GlassStatCard("物品总数", "${uiState.totalCount}", Modifier.weight(1f))
                     GlassStatCard("全部资产", "¥${numberFormat.format(uiState.totalValue)}",
-                        Modifier.weight(1f), onClick = { /* TODO: switch to Tab2 */ })
+                        Modifier.weight(1f), onClick = onNavigateToStats)
                     GlassStatCard("保修待提醒", "${uiState.warrantyExpiringCount}",
                         Modifier.weight(1f),
-                        valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary)
+                        valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary,
+                        onClick = { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true })
                 }
             }
 
@@ -105,6 +110,24 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+    // 保修待提醒弹窗
+    if (showWarrantyDialog) {
+        val expiringItems = uiState.items.filter { it.warrantyExpiryDate != null && it.warrantyExpiryDate < System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000 }
+        AlertDialog(
+            onDismissRequest = { showWarrantyDialog = false },
+            modifier = Modifier.glassEffect(tier = GlassTier.DIALOG),
+            title = { Text("保修待提醒 (${expiringItems.size})", fontWeight = FontWeight.SemiBold) },
+            text = {
+                if (expiringItems.isEmpty()) {
+                    Text("暂无即将到期的保修物品")
+                } else {
+                    LazyColumn { items(expiringItems.size) { i -> Text("${expiringItems[i].name}", modifier = Modifier.padding(vertical = 4.dp)) } }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showWarrantyDialog = false }) { Text("关闭") } }
+        )
     }
 }
 

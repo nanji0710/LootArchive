@@ -1,5 +1,7 @@
 package com.nanji.lootarchive.ui
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,6 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextPrimary
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -57,7 +60,10 @@ fun MainScreen() {
                             onSearchClick = { subNavController.navigate("search") },
                             onClearFilter = { drawerCategoryFilter = null }
                         )
-                        MainTab.STATS -> StatsTopBar()
+                        MainTab.STATS -> StatsTopBar(
+                            timeFilter = "全部时间",
+                            onTimeFilterClick = { /* TODO: time filter */ }
+                        )
                         MainTab.MY -> MyTopBar()
                     }
                 }
@@ -106,14 +112,19 @@ fun MainScreen() {
             NavHost(
                 navController = subNavController,
                 startDestination = "home",
-                modifier = Modifier.padding(padding)
+                modifier = Modifier.padding(padding),
+                enterTransition = { fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(300)) { it / 4 } },
+                exitTransition = { fadeOut(animationSpec = tween(300)) + slideOutHorizontally(animationSpec = tween(300)) { -it / 4 } },
+                popEnterTransition = { fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(300)) { -it / 4 } },
+                popExitTransition = { fadeOut(animationSpec = tween(300)) + slideOutHorizontally(animationSpec = tween(300)) { it / 4 } }
             ) {
                 composable("home") {
                     HomeScreen(
                         categoryFilter = drawerCategoryFilter,
                         onNavigateToAddItem = { subNavController.navigate("add_item") },
                         onNavigateToDetail = { id -> subNavController.navigate("detail/$id") },
-                        onNavigateToSearch = { subNavController.navigate("search") }
+                        onNavigateToSearch = { subNavController.navigate("search") },
+                        onNavigateToStats = { selectedTab = 1; subNavController.navigate("stats") { launchSingleTop = true } }
                     )
                 }
                 composable("stats") {
@@ -198,13 +209,24 @@ private fun HomeTopBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StatsTopBar() {
-    TopAppBar(title = { Text("资产汇总") })
+private fun StatsTopBar(
+    timeFilter: String = "全部时间",
+    onTimeFilterClick: () -> Unit = {}
+) {
+    TopAppBar(
+        title = { Text("资产汇总", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary) },
+        actions = {
+            TextButton(onClick = onTimeFilterClick) {
+                Text(timeFilter, fontSize = 16.sp, color = Primary)
+                Icon(Icons.Filled.ArrowDropDown, null, tint = Primary)
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MyTopBar() {
-    TopAppBar(title = { Text("我的") })
+    TopAppBar(title = { Text("我的", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary) })
 }
 
