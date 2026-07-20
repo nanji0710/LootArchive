@@ -73,13 +73,6 @@ fun MainScreen() {
         topBar = {
             // 所有Tab页面取消TopBar，按钮改为悬浮
         },
-        floatingActionButton = {
-            if (currentRoute == Route.HOME) {
-                FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = Primary()) {
-                    Icon(Icons.Filled.Add, "新增物品")
-                }
-            }
-        },
         bottomBar = {
             if (!isSubPage) {
                 NavigationBar(
@@ -121,14 +114,38 @@ fun MainScreen() {
                             onImportExcel = { navigate(Route.BACKUP) },
                             onBackupData = { navigate(Route.BACKUP) }
                         )
-                        // 悬浮菜单（左上）→ 分类筛选底部弹出
-                        IconButton(onClick={showCategorySheet=true}, modifier=Modifier.align(Alignment.TopStart).padding(top=4.dp,start=8.dp).size(40.dp)) {
-                            Icon(Icons.Filled.Menu,"菜单",tint=TextPrimary().copy(alpha=0.30f),modifier=Modifier.size(26.dp))
+                        // 底部悬浮三按钮：分类(左下) / 新增(中) / 搜索(右下)
+                        Row(
+                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 80.dp, start = 20.dp, end = 20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            // 分类筛选
+                            FloatingActionButton(
+                                onClick = { showCategorySheet = true },
+                                containerColor = Primary().copy(alpha = 0.7f),
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
+                            }
+                            // 新增物品
+                            FloatingActionButton(
+                                onClick = { navigate(Route.ADD) },
+                                containerColor = Primary(),
+                                modifier = Modifier.size(56.dp)
+                            ) {
+                                Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(28.dp))
+                            }
+                            // 搜索
+                            FloatingActionButton(
+                                onClick = { navigate(Route.SEARCH) },
+                                containerColor = Primary().copy(alpha = 0.7f),
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
+                            }
                         }
-                        // 悬浮搜索（右上）
-                        IconButton(onClick={navigate(Route.SEARCH)}, modifier=Modifier.align(Alignment.TopEnd).padding(top=4.dp,end=12.dp).size(40.dp)) {
-                            Icon(Icons.Filled.Search,"搜索",tint=TextPrimary().copy(alpha=0.30f),modifier=Modifier.size(26.dp))
-                        }
+                        // 分类筛选标签（选中分类时显示在顶部）
                         if (drawerCategoryFilter != null) {
                             AssistChip(onClick={drawerCategoryFilter=null}, label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
                                 trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))},
