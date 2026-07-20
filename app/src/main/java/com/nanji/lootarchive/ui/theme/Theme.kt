@@ -4,10 +4,15 @@ import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+
+// ─── 传递 APP 主题模式给所有子组件 ───
+val LocalDarkTheme = staticCompositionLocalOf { false }
 
 private val LightColorScheme = lightColorScheme(
     primary = _Primary, onPrimary = _OnPrimary,
@@ -39,5 +44,7 @@ fun LootArchiveTheme(themeMode: String = "system", content: @Composable () -> Un
             }
         }
     }
-    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
+    CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+        MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
+    }
 }

@@ -2,7 +2,6 @@ package com.nanji.lootarchive.ui.theme
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -40,14 +39,15 @@ enum class GlassTier(
  */
 @Composable
 fun glassBackground(tier: GlassTier): Color {
-    val base = if (isSystemInDarkTheme()) _GlassBgDark else _GlassBgLight
-    val alpha = if (isSystemInDarkTheme()) tier.alphaDark else tier.alphaLight
+    val dark = LocalDarkTheme.current
+    val base = if (dark) _GlassBgDark else _GlassBgLight
+    val alpha = if (dark) tier.alphaDark else tier.alphaLight
     return base.copy(alpha = alpha.coerceIn(0f, 1f))
 }
 
 @Composable
 fun glassBorderColor(): Color =
-    if (isSystemInDarkTheme()) _GlassBorderDark else _GlassBorderLight
+    if (LocalDarkTheme.current) _GlassBorderDark else _GlassBorderLight
 
 /**
  * 应用玻璃效果的 Modifier — 统一使用透明度模拟毛玻璃

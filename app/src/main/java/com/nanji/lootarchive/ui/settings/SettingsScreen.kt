@@ -1,5 +1,8 @@
 package com.nanji.lootarchive.ui.settings
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,9 +38,16 @@ fun SettingsScreen(
     var showReminderDialog by remember { mutableStateOf(false) }
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
     var editReminderDays by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    val bgImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            viewModel.setBackgroundUri(uri.toString())
+        }
+    }
 
     Scaffold(
-        topBar = { if (!isTabMode) { TopAppBar(title = { Text("设置") }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }) } },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
@@ -63,8 +74,8 @@ fun SettingsScreen(
                 // 背景图
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("自定义首页背景图", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
-                    TextButton(onClick = { /* TODO: 相册选择 */ }) { Text("上传图片", color = Primary()) }
-                    TextButton(onClick = { /* TODO: 恢复默认 */ }) { Text("恢复默认", color = TextAuxiliary()) }
+                    TextButton(onClick = { bgImageLauncher.launch("image/*") }) { Text("上传图片", color = Primary()) }
+                    TextButton(onClick = { viewModel.clearBackground() }) { Text("恢复默认", color = TextAuxiliary()) }
                 }
             }
 

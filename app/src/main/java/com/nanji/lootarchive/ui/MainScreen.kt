@@ -21,6 +21,8 @@ import com.nanji.lootarchive.ui.home.HomeScreen
 import com.nanji.lootarchive.ui.search.SearchScreen
 import com.nanji.lootarchive.ui.settings.SettingsScreen
 import com.nanji.lootarchive.ui.statistics.StatisticsScreen
+import coil.compose.AsyncImage
+import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
 import com.nanji.lootarchive.ui.theme.TextPrimary
@@ -107,8 +109,8 @@ fun MainScreen() {
                             onImportExcel = { navigate(Route.BACKUP) },
                             onBackupData = { navigate(Route.BACKUP) }
                         )
-                        // 悬浮菜单（左上）
-                        IconButton(onClick={}, modifier=Modifier.align(Alignment.TopStart).padding(top=4.dp,start=8.dp).size(40.dp)) {
+                        // 悬浮菜单（左上）→ 分类管理
+                        IconButton(onClick={navigate(Route.CATEGORY)}, modifier=Modifier.align(Alignment.TopStart).padding(top=4.dp,start=8.dp).size(40.dp)) {
                             Icon(Icons.Filled.Menu,"菜单",tint=TextPrimary().copy(alpha=0.30f),modifier=Modifier.size(26.dp))
                         }
                         // 悬浮搜索（右上）

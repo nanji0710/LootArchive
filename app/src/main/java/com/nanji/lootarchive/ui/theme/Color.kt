@@ -1,6 +1,5 @@
 package com.nanji.lootarchive.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -23,14 +22,11 @@ val _TextPrimaryDark = Color(0xFFF5F5F5)
 val _TextSecondaryDark = Color(0xFFD9D9D9)
 val _TextAuxiliaryDark = Color(0xFFAAAAAA)
 
-// ─── @Composable 主题感知色（所有页面统一使用这些） ───
-@Composable fun Primary() = if (isSystemInDarkTheme()) _PrimaryDark else _Primary
-@Composable fun Background() = if (isSystemInDarkTheme()) _BackgroundDark else _BackgroundLight
-@Composable fun TextPrimary() = if (isSystemInDarkTheme()) _TextPrimaryDark else _TextPrimaryLight
-@Composable fun TextSecondary() = if (isSystemInDarkTheme()) _TextSecondaryDark else _TextSecondaryLight
-@Composable fun TextAuxiliary() = if (isSystemInDarkTheme()) _TextAuxiliaryDark else _TextAuxiliaryLight
-@Composable fun GlassBg() = if (isSystemInDarkTheme()) _GlassBgDark else _GlassBgLight
-@Composable fun GlassBorder() = if (isSystemInDarkTheme()) _GlassBorderDark else _GlassBorderLight
+// ─── @Composable 主题感知色（读取 LootArchiveTheme 提供的 LocalDarkTheme） ───
+@Composable fun Primary() = if (LocalDarkTheme.current) _PrimaryDark else _Primary
+@Composable fun TextPrimary() = if (LocalDarkTheme.current) _TextPrimaryDark else _TextPrimaryLight
+@Composable fun TextSecondary() = if (LocalDarkTheme.current) _TextSecondaryDark else _TextSecondaryLight
+@Composable fun TextAuxiliary() = if (LocalDarkTheme.current) _TextAuxiliaryDark else _TextAuxiliaryLight
 fun OnPrimary() = _OnPrimary
 
 // ─── 功能色（不随主题变化） ───

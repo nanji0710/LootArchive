@@ -84,6 +84,14 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setThemeMode(mode) }
     }
 
+    fun setBackgroundUri(uri: String) {
+        viewModelScope.launch { settingsRepository.setCustomBackgroundUri(uri) }
+    }
+
+    fun clearBackground() {
+        viewModelScope.launch { settingsRepository.setCustomBackgroundUri("") }
+    }
+
     fun setAppName(name: String) {
         viewModelScope.launch { settingsRepository.setAppName(name) }
     }
