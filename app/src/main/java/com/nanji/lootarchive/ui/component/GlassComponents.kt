@@ -20,12 +20,11 @@ fun GlassCard(
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
+    // 用 Box 替代 Surface，避免 Material3 的 elevation 渲染白色底层
+    Box(
         modifier = modifier
             .glassEffect(tier = tier)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-        shape = RoundedCornerShape(tier.cornerRadiusDp.dp),
-        color = Color.Transparent
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
     ) {
         Column(modifier = Modifier.padding(12.dp)) { content() }
     }

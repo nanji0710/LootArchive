@@ -52,8 +52,11 @@ fun MainScreen() {
     var showCategorySheet by remember { mutableStateOf(false) }
     val backStack = remember { mutableListOf<String>() }
 
-    fun navigate(route: String) { backStack.add(currentRoute); currentRoute = route }
-    fun goBack() { if (backStack.isNotEmpty()) currentRoute = backStack.removeLast() }
+    fun navigate(route: String, id: Long? = null) {
+        if (id != null) { if (route == Route.ADD) editItemId = id; if (route == Route.DETAIL) detailItemId = id }
+        backStack.add(currentRoute); currentRoute = route
+    }
+    fun goBack() { editItemId = null; if (backStack.isNotEmpty()) currentRoute = backStack.removeLast() }
     fun switchTab(tab: Int) {
         currentTab = tab
         backStack.clear()
@@ -66,6 +69,7 @@ fun MainScreen() {
     BackHandler(enabled = isSubPage) { goBack() }
 
     Scaffold(
+        containerColor = Color.Transparent, // 透明背景，让全局背景图透出
         topBar = {
             // 所有Tab页面取消TopBar，按钮改为悬浮
         },
@@ -108,7 +112,7 @@ fun MainScreen() {
                         HomeScreen(
                             categoryFilter = drawerCategoryFilter,
                             onNavigateToAddItem = { navigate(Route.ADD) },
-                            onNavigateToDetail = { detailItemId = it; navigate(Route.DETAIL) },
+                            onNavigateToDetail = { navigate(Route.DETAIL, it) },
                             onNavigateToSearch = { navigate(Route.SEARCH) },
                             onNavigateToStats = { switchTab(1) },
                             onNavigateToCategory = { navigate(Route.CATEGORY) },
@@ -135,7 +139,7 @@ fun MainScreen() {
                     var showTimeFilter by remember { mutableStateOf(false) }
                     var timeFilterLabel by remember { mutableStateOf("全部时间") }
                     Box(Modifier.fillMaxSize()) {
-                        StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={detailItemId=it;navigate(Route.DETAIL)}, isTabMode=true)
+                        StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)}, isTabMode=true)
                         // 悬浮时间筛选按钮
                         Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
                             Box {
@@ -158,8 +162,8 @@ fun MainScreen() {
                     onNavigateToBackup = { navigate(Route.BACKUP) }
                 )
                 Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()})
-                Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={editItemId=it;navigate(Route.ADD)})
-                Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={detailItemId=it;navigate(Route.DETAIL)})
+                Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
+                Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
                 Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()})
                 Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                 Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
