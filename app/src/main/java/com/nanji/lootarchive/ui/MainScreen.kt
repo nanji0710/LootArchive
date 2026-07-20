@@ -7,10 +7,12 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.theme.TextPrimary
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,6 +53,7 @@ fun MainScreen() {
                     when (MainTab.entries[selectedTab]) {
                         MainTab.HOME -> HomeTopBar(
                             filterLabel = drawerCategoryFilter?.second,
+                            onMenuClick = { /* TODO: 侧边抽屉（待重新实现） */ },
                             onSearchClick = { subNavController.navigate("search") },
                             onClearFilter = { drawerCategoryFilter = null }
                         )
@@ -162,23 +165,27 @@ fun MainScreen() {
 @Composable
 private fun HomeTopBar(
     filterLabel: String?,
+    onMenuClick: () -> Unit,
     onSearchClick: () -> Unit,
     onClearFilter: (() -> Unit)?
 ) {
     TopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("拾物集")
+                Text("拾物集", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 if (filterLabel != null) {
                     Spacer(modifier = Modifier.width(8.dp))
                     AssistChip(
                         onClick = { onClearFilter?.invoke() },
                         label = { Text(filterLabel, style = MaterialTheme.typography.labelSmall) },
-                        trailingIcon = {
-                            Icon(Icons.Filled.Close, null, modifier = Modifier.size(14.dp))
-                        }
+                        trailingIcon = { Icon(Icons.Filled.Close, null, modifier = Modifier.size(14.dp)) }
                     )
                 }
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = onMenuClick) {
+                Icon(Icons.Filled.Menu, contentDescription = "分类抽屉", tint = TextPrimary)
             }
         },
         actions = {

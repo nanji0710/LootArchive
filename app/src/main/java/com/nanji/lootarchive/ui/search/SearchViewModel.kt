@@ -17,8 +17,8 @@ data class SearchUiState(
     val query: String = "",
     val results: List<ItemEntity> = emptyList(),
     val categories: List<CategoryEntity> = emptyList(),
-    val selectedCategoryId: Long? = null,
-    val warrantyFilter: String? = null,  // "active" | "expiring" | "expired" | null
+    val activeFilter: String? = null,   // null=全部, "name", "location", "desc", "warranty"
+    val sort: String = "date_new",      // "price_desc", "date_new", "warranty"
     val isLoading: Boolean = false
 )
 
@@ -58,37 +58,26 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun setCategoryFilter(categoryId: Long?) {
-        val newFilter = if (_uiState.value.selectedCategoryId == categoryId) null else categoryId
-        _uiState.update { it.copy(selectedCategoryId = newFilter) }
-        applyFilters()
+    fun setActiveFilter(filter: String?) {
+        _uiState.update { it.copy(activeFilter = filter) }
+        doSearch()
     }
 
-    fun setWarrantyFilter(filter: String?) {
-        val newFilter = if (_uiState.value.warrantyFilter == filter) null else filter
-        _uiState.update { it.copy(warrantyFilter = newFilter) }
-        applyFilters()
+    fun setSort(sort: String) {
+        _uiState.update { it.copy(sort = sort) }
+        doSearch()
     }
 
-    private fun applyFilters() {
+    private fun doSearch() {
         val state = _uiState.value
+        if (state.query.isBlank() && state.activeFilter == null) {
+            _uiState.update { it.copy(results = emptyList()) }
+            return
+        }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            itemRepository.filterItems(
-                categoryId = state.selectedCategoryId
-            ).catch {}.collect { items ->
-                val filtered = when (state.warrantyFilter) {
-                    "expired" -> items.filter { (it.warrantyExpiryDate ?: Long.MAX_VALUE) < System.currentTimeMillis() }
-                    "expiring" -> {
-                        val threshold = System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000L
-                        items.filter {
-                            val expiry = it.warrantyExpiryDate ?: return@filter false
-                            expiry in (System.currentTimeMillis() + 1)..threshold
-                        }
-                    }
-                    else -> items
-                }
-                _uiState.update { it.copy(results = filtered, isLoading = false) }
+            itemRepository.searchItems(state.query.ifBlank { "" }).catch {}.collect { items ->
+                _uiState.update { it.copy(results = items, isLoading = false) }
             }
         }
     }

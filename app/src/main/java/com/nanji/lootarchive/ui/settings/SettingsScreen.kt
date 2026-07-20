@@ -12,337 +12,146 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
+import com.nanji.lootarchive.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("DEPRECATION")
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
-    isTabMode: Boolean = false,  // true = 嵌入Tab显示，不渲染独立TopBar
+    isTabMode: Boolean = false,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showCurrencyDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+
+    // 弹窗状态
+    var showThemeDialog by remember { mutableStateOf(false) }
     var showReminderDialog by remember { mutableStateOf(false) }
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
-    var showAppNameDialog by remember { mutableStateOf(false) }
-    var editText by remember { mutableStateOf("") }
+    var editReminderDays by remember { mutableStateOf("") }
 
     Scaffold(
-        topBar = {
-            if (!isTabMode) {
-                TopAppBar(
-                    title = { Text("设置") },
-                    navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
-                )
-            }
-        },
+        topBar = { if (!isTabMode) { TopAppBar(title = { Text("设置") }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }) } },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(scrollState).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 通用设置
-            SectionTitle("通用设置")
-
-            GlassCard {
-                SettingItem(
-                    icon = Icons.Filled.Badge,
-                    title = "APP名称",
-                    subtitle = uiState.appName,
-                    onClick = {
-                        editText = uiState.appName
-                        showAppNameDialog = true
-                    }
-                )
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                SettingItem(
-                    icon = Icons.Filled.AttachMoney,
-                    title = "价格单位",
-                    subtitle = when (uiState.currency) {
-                        "CNY" -> "人民币 (¥)"
-                        "USD" -> "美元 ($)"
-                        "EUR" -> "欧元 (€)"
-                        "JPY" -> "日元 (¥)"
-                        else -> uiState.currency
-                    },
-                    onClick = { showCurrencyDialog = true }
-                )
-            }
-
-            // 提醒设置
-            SectionTitle("提醒设置")
-
-            GlassCard {
-                SettingItem(
-                    icon = Icons.Filled.Notifications,
-                    title = "保修到期提醒",
-                    subtitle = "提前 ${uiState.warrantyReminderDays} 天",
-                    onClick = {
-                        editText = uiState.warrantyReminderDays.toString()
-                        showReminderDialog = true
-                    }
-                )
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Filled.Backup, null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("定期备份提醒", fontWeight = FontWeight.Medium)
-                        Text(
-                            if (uiState.backupReminderEnabled) "每月${uiState.backupReminderDay}日提醒" else "已关闭",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = uiState.backupReminderEnabled,
-                        onCheckedChange = { viewModel.setBackupReminder(it) }
-                    )
-                }
-            }
-
-            // 显示设置
-            SectionTitle("显示设置")
-
-            GlassCard {
-                // 主题切换改用弹窗三选一，更直观
-                var showThemeDialog by remember { mutableStateOf(false) }
-                SettingItem(
-                    icon = Icons.Filled.Palette,
-                    title = "主题模式",
-                    subtitle = when (uiState.themeMode) {
-                        "system" -> "跟随系统"
-                        "light" -> "浅色模式"
-                        "dark" -> "深色模式"
-                        else -> uiState.themeMode
-                    },
-                    onClick = { showThemeDialog = true }
-                )
-
-                if (showThemeDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showThemeDialog = false },
-                        title = { Text("选择主题模式") },
-                        text = {
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                listOf(
-                                    "system" to "跟随系统",
-                                    "light" to "浅色模式",
-                                    "dark" to "深色模式"
-                                ).forEach { (mode, label) ->
-                                    Surface(
-                                        onClick = {
-                                            viewModel.setThemeMode(mode)
-                                            showThemeDialog = false
-                                        },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = if (uiState.themeMode == mode)
-                                            MaterialTheme.colorScheme.primaryContainer
-                                        else
-                                            MaterialTheme.colorScheme.surface
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(12.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            if (uiState.themeMode == mode) {
-                                                Icon(
-                                                    Icons.Filled.Check,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            } else {
-                                                Spacer(modifier = Modifier.width(18.dp))
-                                            }
-                                            Spacer(modifier = Modifier.width(12.dp))
-                                            Text(label, style = MaterialTheme.typography.bodyLarge)
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        confirmButton = {
-                            TextButton(onClick = { showThemeDialog = false }) { Text("关闭") }
+            // ─── 卡片1：个性化设置 ───
+            SectionTitle("个性化设置")
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                // 显示模式
+                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("显示模式", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf("system" to "跟随", "light" to "浅色", "dark" to "深色").forEach { (mode, label) ->
+                            FilterChip(
+                                selected = uiState.themeMode == mode,
+                                onClick = { if (uiState.themeMode != mode) { viewModel.setThemeMode(mode); showThemeDialog = false } },
+                                label = { Text(label, fontSize = 13.sp) }
+                            )
                         }
-                    )
+                    }
+                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                // 背景图
+                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("自定义首页背景图", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    TextButton(onClick = { /* TODO: 相册选择 */ }) { Text("上传图片", color = Primary) }
+                    TextButton(onClick = { /* TODO: 恢复默认 */ }) { Text("恢复默认", color = TextAuxiliary) }
                 }
             }
 
-            // 数据管理
+            // ─── 卡片2：数据管理 ───
             SectionTitle("数据管理")
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DataActionButton("导入Excel", Icons.Filled.UploadFile, Modifier.weight(1f)) { /* TODO */ }
+                    DataActionButton("导出Excel", Icons.Filled.FileDownload, Modifier.weight(1f)) { /* TODO */ }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DataActionButton("本地备份", Icons.Filled.Backup, Modifier.weight(1f)) { /* TODO */ }
+                    DataActionButton("恢复备份", Icons.Filled.Restore, Modifier.weight(1f)) { /* TODO */ }
+                }
+                Spacer(Modifier.height(8.dp))
+                TextButton(onClick = { if (uiState.trashItemCount > 0) showEmptyTrashDialog = true }) {
+                    Icon(Icons.Filled.DeleteSweep, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("清理冗余图片 (${uiState.trashItemCount})", fontSize = 14.sp, color = TextAuxiliary)
+                }
+            }
 
-            GlassCard {
-                SettingItem(
-                    icon = Icons.Filled.DeleteSweep,
-                    title = "清空回收站",
-                    subtitle = "回收站中有 ${uiState.trashItemCount} 件物品",
-                    onClick = {
-                        if (uiState.trashItemCount > 0) {
-                            showEmptyTrashDialog = true
+            // ─── 卡片3：快捷工具 ───
+            SectionTitle("快捷工具")
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("分类管理", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary)
+                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("保修提醒", fontSize = 16.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("提前 ${uiState.warrantyReminderDays} 天", fontSize = 13.sp, color = TextAuxiliary)
+                        IconButton(onClick = { editReminderDays = uiState.warrantyReminderDays.toString(); showReminderDialog = true }) {
+                            Icon(Icons.Filled.Edit, null, Modifier.size(16.dp), tint = Primary)
                         }
                     }
-                )
+                }
             }
 
-            // 关于
-            SectionTitle("关于")
-            GlassCard {
-                SettingItem(
-                    icon = Icons.Filled.Info,
-                    title = "拾物集 LootArchive",
-                    subtitle = "v1.1.2 · 纯本地资产管理工具",
-                    onClick = {}
-                )
+            // ─── 卡片4：关于 ───
+            SectionTitle("关于拾物集")
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary)
+                Spacer(Modifier.height(4.dp))
+                Text("当前版本 v2.0.0", fontSize = 13.sp, color = TextAuxiliary)
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
         }
     }
 
-    // 货币选择对话框
-    if (showCurrencyDialog) {
-        AlertDialog(
-            onDismissRequest = { showCurrencyDialog = false },
-            title = { Text("选择货币单位") },
-            text = {
-                Column {
-                    listOf("CNY" to "人民币 (¥)", "USD" to "美元 ($)", "EUR" to "欧元 (€)", "JPY" to "日元 (¥)", "GBP" to "英镑 (£)").forEach { (code, label) ->
-                        Surface(
-                            onClick = {
-                                viewModel.setCurrency(code)
-                                showCurrencyDialog = false
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = if (uiState.currency == code) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-                        ) {
-                            Text(label, modifier = Modifier.padding(12.dp))
-                        }
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { showCurrencyDialog = false }) { Text("取消") } }
-        )
-    }
-
-    // 提醒阈值对话框
+    // 提醒天数弹窗
     if (showReminderDialog) {
         AlertDialog(
             onDismissRequest = { showReminderDialog = false },
             title = { Text("保修提醒阈值") },
-            text = {
-                OutlinedTextField(
-                    value = editText,
-                    onValueChange = { editText = it },
-                    label = { Text("提前天数") },
-                    singleLine = true
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    editText.toIntOrNull()?.let { viewModel.setWarrantyReminderDays(it) }
-                    showReminderDialog = false
-                }) { Text("确认") }
-            },
+            text = { OutlinedTextField(value = editReminderDays, onValueChange = { editReminderDays = it }, label = { Text("提前天数") }, singleLine = true) },
+            confirmButton = { TextButton(onClick = { editReminderDays.toIntOrNull()?.let { viewModel.setWarrantyReminderDays(it) }; showReminderDialog = false }) { Text("确认") } },
             dismissButton = { TextButton(onClick = { showReminderDialog = false }) { Text("取消") } }
         )
     }
 
-    // 清空回收站确认
+    // 清空回收站弹窗
     if (showEmptyTrashDialog) {
         GlassAlertDialog(
-            title = "清空回收站",
-            message = "回收站中的 ${uiState.trashItemCount} 件物品将被永久删除，无法恢复。确定清空？",
-            confirmText = "清空",
-            dismissText = "取消",
-            onConfirm = {
-                viewModel.emptyTrash()
-                showEmptyTrashDialog = false
-            },
+            title = "清空冗余数据",
+            message = "将删除 ${uiState.trashItemCount} 件已删除物品的关联图片，不可恢复。",
+            confirmText = "清空", dismissText = "取消",
+            onConfirm = { viewModel.emptyTrash(); showEmptyTrashDialog = false },
             onDismiss = { showEmptyTrashDialog = false }
-        )
-    }
-
-    // APP名称编辑
-    if (showAppNameDialog) {
-        AlertDialog(
-            onDismissRequest = { showAppNameDialog = false },
-            title = { Text("自定义APP名称") },
-            text = {
-                OutlinedTextField(
-                    value = editText,
-                    onValueChange = { editText = it },
-                    label = { Text("APP名称") },
-                    singleLine = true
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (editText.isNotBlank()) viewModel.setAppName(editText.trim())
-                    showAppNameDialog = false
-                }) { Text("确认") }
-            },
-            dismissButton = { TextButton(onClick = { showAppNameDialog = false }) { Text("取消") } }
         )
     }
 }
 
 @Composable
 private fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-    )
+    Text(title, fontSize = 18.sp, color = TextPrimary, modifier = Modifier.padding(top = 4.dp))
 }
 
 @Composable
-private fun SettingItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        color = androidx.compose.ui.graphics.Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Medium)
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Icon(
-                Icons.Filled.ChevronRight,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-            )
-        }
+private fun DataActionButton(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    OutlinedButton(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(10.dp)) {
+        Icon(icon, null, Modifier.size(16.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(label, fontSize = 13.sp)
     }
 }

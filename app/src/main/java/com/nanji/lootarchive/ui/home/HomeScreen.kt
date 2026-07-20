@@ -3,6 +3,7 @@ package com.nanji.lootarchive.ui.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,10 +16,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.data.local.entity.ItemEntity
@@ -28,8 +31,6 @@ import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
 import java.io.File
 import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,103 +42,63 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val currencySymbol = remember(uiState.currency) { getCurrencySymbol(uiState.currency) }
     val numberFormat = remember { NumberFormat.getNumberInstance() }
-
-    // 应用分类筛选
-    LaunchedEffect(categoryFilter) {
-        // HomeViewModel 通过 flow 自动响应筛选
-    }
 
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
-        onRefresh = { /* Flow 自动刷新 */ },
+        onRefresh = { },
         modifier = Modifier.fillMaxSize()
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ─── 核心数据区（横跨两列） ───
-            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
+            // ─── 数据统计三卡片（横跨两列） ───
+            item(span = { GridItemSpan(2) }) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    GlassStatCard(
-                        title = "物品总数",
-                        value = "${uiState.totalCount}",
-                        modifier = Modifier.weight(1f)
-                    )
-                    GlassStatCard(
-                        title = "总价值",
-                        value = "${currencySymbol}${numberFormat.format(uiState.totalValue)}",
-                        modifier = Modifier.weight(1f)
-                    )
-                    GlassStatCard(
-                        title = "待提醒",
-                        value = "${uiState.warrantyExpiringCount}",
-                        valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring
-                        else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.weight(1f)
-                    )
+                    GlassStatCard("物品总数", "${uiState.totalCount}", Modifier.weight(1f))
+                    GlassStatCard("全部资产", "¥${numberFormat.format(uiState.totalValue)}",
+                        Modifier.weight(1f), onClick = { /* TODO: switch to Tab2 */ })
+                    GlassStatCard("保修待提醒", "${uiState.warrantyExpiringCount}",
+                        Modifier.weight(1f),
+                        valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary)
                 }
             }
 
-            // ─── 快捷功能栏（横跨两列） ───
-            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
+            // ─── 快捷功能横条（横跨两列） ───
+            item(span = { GridItemSpan(2) }) {
                 GlassCard {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        QuickActionChip(
-                            icon = Icons.Filled.Category,
-                            label = "分类管理",
-                            onClick = { /* 打开抽屉 */ }
-                        )
-                        QuickActionChip(
-                            icon = Icons.Filled.FileDownload,
-                            label = "导出Excel",
-                            onClick = { /* TODO */ }
-                        )
-                        QuickActionChip(
-                            icon = Icons.Filled.UploadFile,
-                            label = "导入Excel",
-                            onClick = { /* TODO */ }
-                        )
-                        QuickActionChip(
-                            icon = Icons.Filled.Backup,
-                            label = "备份数据",
-                            onClick = { /* TODO */ }
-                        )
+                        QuickAction("分类管理", Icons.Filled.Category) { /* TODO */ }
+                        QuickAction("导出Excel", Icons.Filled.FileDownload) { /* TODO */ }
+                        QuickAction("导入Excel", Icons.Filled.UploadFile) { /* TODO */ }
+                        QuickAction("备份数据", Icons.Filled.Backup) { /* TODO */ }
                     }
                 }
             }
 
-            // ─── 物品双列卡片 ───
+            // ─── 物品双列网格 ───
             if (uiState.items.isEmpty() && !uiState.isLoading) {
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
+                item(span = { GridItemSpan(2) }) {
                     EmptyState(
-                        icon = {
-                            Icon(
-                                Icons.Outlined.Inventory2, null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                            )
-                        },
+                        icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(120.dp), tint = Color(0xFFBBBBBB)) },
                         title = "还没有物品",
-                        subtitle = "点击右下角 + 按钮开始记录"
+                        subtitle = "点击「新增物品」开始记录你的第一件宝贝吧"
                     )
                 }
             } else {
                 items(uiState.items, key = { it.id }) { item ->
-                    ItemGridCard(
+                    ItemCard(
                         item = item,
-                        currencySymbol = currencySymbol,
                         numberFormat = numberFormat,
                         onClick = { onNavigateToDetail(item.id) }
                     )
@@ -148,106 +109,41 @@ fun HomeScreen(
 }
 
 @Composable
-private fun QuickActionChip(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
+private fun QuickAction(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
-            .padding(6.dp)
+        modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(8.dp)
     ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall)
+        Icon(icon, null, tint = Primary, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.height(4.dp))
+        Text(label, fontSize = 14.sp, color = TextPrimary)
     }
 }
 
 @Composable
-private fun ItemGridCard(
-    item: ItemEntity,
-    currencySymbol: String,
-    numberFormat: NumberFormat,
-    onClick: () -> Unit
-) {
-    val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-
-    GlassCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
-    ) {
-        Column {
-            // 缩略图占位
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Outlined.Image, null,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    )
-                }
+private fun ItemCard(item: ItemEntity, numberFormat: NumberFormat, onClick: () -> Unit) {
+    GlassCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
+        // 缩略图
+        Surface(
+            modifier = Modifier.fillMaxWidth().height(100.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = Color(0xFFBBBBBB))
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                item.name,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                "${currencySymbol}${numberFormat.format(item.purchasePrice)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium
-            )
-
-            // 保修状态标签
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(item.name, fontSize = 18.sp, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(4.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary)
             if (item.warrantyExpiryDate != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                val status = getWarrantyStatus(item.warrantyExpiryDate)
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = status.color.copy(alpha = 0.12f)
-                ) {
-                    Text(
-                        status.text,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = status.color
-                    )
-                }
+                val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)
+                val color = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> TextAuxiliary }
+                val text = when { days < 0 -> "已过期"; days == 0L -> "今天到期"; else -> "${days}天" }
+                Text(text, fontSize = 13.sp, color = color)
             }
         }
     }
-}
-
-private data class WarrantyStatus(val text: String, val color: androidx.compose.ui.graphics.Color)
-
-private fun getWarrantyStatus(expiryDate: Long): WarrantyStatus {
-    val now = System.currentTimeMillis()
-    val sevenDays = 7 * 24 * 60 * 60 * 1000L
-    return when {
-        expiryDate < now -> WarrantyStatus("已过期", WarrantyExpired)
-        expiryDate <= now + sevenDays -> WarrantyStatus("即将到期", WarrantyExpiring)
-        else -> WarrantyStatus("保修中", WarrantyActive)
-    }
-}
-
-private fun getCurrencySymbol(code: String): String = when (code) {
-    "USD" -> "$"; "EUR" -> "€"; "JPY" -> "¥"; "GBP" -> "£"; else -> "¥"
 }

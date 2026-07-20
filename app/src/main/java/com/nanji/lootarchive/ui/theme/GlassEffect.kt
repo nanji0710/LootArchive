@@ -13,83 +13,67 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
 /**
- * 玻璃效果 Modifier 配置
- *
- * 通过半透明背景 + 阴影 + 细边框模拟毛玻璃风格
- * 在主页面和核心页面使用
- * 注：真实背景模糊（frosted glass）需要 RenderEffect（API 31+）或额外库（如 haze），
- * 当前采用半透明方案具有良好的兼容性和性能。
+ * 苹果毛玻璃效果参数 — 4 档规格（文档 Section 1.2）
  */
-object GlassConfig {
-    // 透明度
-    const val ALPHA_LIGHT = 0.88f
-    const val ALPHA_DARK = 0.80f
+enum class GlassTier(
+    val blurRadiusDp: Int,    // 模糊半径（文档标注，实际用透明度模拟）
+    val alphaLight: Float,
+    val alphaDark: Float,
+    val cornerRadiusDp: Int,
+    val shadowElevationDp: Int
+) {
+    /** 顶部导航栏 / 底部 Tab 栏 / 侧边抽屉 */
+    NAV(12, 0.88f, 0.78f, 28, 4),
 
-    // 阴影
-    val SHADOW_ELEVATION = 4.dp
-    val SHADOW_RADIUS = 8.dp
+    /** 数据卡片 / 物品网格卡片 / 功能横条 */
+    CARD(16, 0.86f, 0.76f, 22, 4),
+
+    /** 弹窗 / 图表详情浮层 / 筛选下拉面板 */
+    DIALOG(18, 0.84f, 0.74f, 24, 8),
+
+    /** 悬浮圆形新增按钮 */
+    FAB(14, 0.90f, 0.80f, 50, 10)
 }
 
 /**
  * 获取当前模式下的玻璃背景色
  */
 @Composable
-fun glassBackgroundColor(): Color {
-    return if (isSystemInDarkTheme()) {
-        GlassBackgroundDark
-    } else {
-        GlassBackgroundLight
-    }
+fun glassBackground(tier: GlassTier): Color {
+    val base = if (isSystemInDarkTheme()) GlassBgDark else GlassBgLight
+    val alpha = if (isSystemInDarkTheme()) tier.alphaDark else tier.alphaLight
+    return base.copy(alpha = alpha.coerceIn(0f, 1f))
 }
 
-/**
- * 获取当前模式下的玻璃边框色
- */
 @Composable
-fun glassBorderColor(): Color {
-    return if (isSystemInDarkTheme()) {
-        GlassBorderDark
-    } else {
-        GlassBorderLight
-    }
-}
+fun glassBorderColor(): Color =
+    if (isSystemInDarkTheme()) GlassBorderDark else GlassBorderLight
 
 /**
- * 应用玻璃效果的 Modifier
- *
- * @param shape 组件形状
- * @param withShadow 是否添加阴影
- * @param withBorder 是否添加边框
+ * 应用玻璃效果的 Modifier — 统一使用透明度模拟毛玻璃
  */
 @Composable
 fun Modifier.glassEffect(
-    shape: Shape = RoundedCornerShape(12.dp),
+    tier: GlassTier = GlassTier.CARD,
     withShadow: Boolean = true,
     withBorder: Boolean = true
 ): Modifier {
-    val bgColor = glassBackgroundColor()
-    val borderColor = glassBorderColor()
+    val bg = glassBackground(tier)
+    val corner = if (tier == GlassTier.FAB) 50 else tier.cornerRadiusDp
+    val shape: Shape = if (tier == GlassTier.FAB)
+        RoundedCornerShape(50)
+    else
+        RoundedCornerShape(corner.dp)
 
     return this
         .then(
-            if (withShadow) {
-                Modifier.shadow(
-                    elevation = GlassConfig.SHADOW_ELEVATION,
-                    shape = shape,
-                    ambientColor = bgColor.copy(alpha = 0.2f),
-                    spotColor = bgColor.copy(alpha = 0.25f)
-                )
-            } else Modifier
+            if (withShadow) Modifier.shadow(tier.shadowElevationDp.dp, shape, ambientColor = bg.copy(alpha = 0.22f))
+            else Modifier
         )
         .clip(shape)
-        .background(bgColor)
+        .background(bg)
         .then(
-            if (withBorder) {
-                Modifier.border(
-                    width = 1.dp,
-                    color = borderColor,
-                    shape = shape
-                )
-            } else Modifier
+            if (withBorder) Modifier.border(1.dp, glassBorderColor(), shape)
+            else Modifier
         )
 }
