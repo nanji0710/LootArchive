@@ -156,6 +156,7 @@ fun MainScreen() {
                 Route.STATS -> {
                     var showTimeFilter by remember { mutableStateOf(false) }
                     var timeFilterLabel by remember { mutableStateOf("全部时间") }
+                    val statsViewModel: com.nanji.lootarchive.ui.statistics.StatisticsViewModel = hiltViewModel()
                     Box(Modifier.fillMaxSize()) {
                         StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)}, isTabMode=true)
                         // 悬浮时间筛选按钮
@@ -167,7 +168,11 @@ fun MainScreen() {
                                 }
                                 DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false}) {
                                     listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
-                                        DropdownMenuItem(text={Text(label)}, onClick={timeFilterLabel=label;showTimeFilter=false})
+                                        DropdownMenuItem(text={Text(label)}, onClick={
+                                            timeFilterLabel=label
+                                            statsViewModel.setTimeFilter(key)
+                                            showTimeFilter=false
+                                        })
                                     }
                                 }
                             }

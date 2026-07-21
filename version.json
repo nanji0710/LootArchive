@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.3",
-  "versionCode": 29,
+  "versionName": "2.5.4",
+  "versionCode": 30,
   "updateDate": "2026-07-21",
-  "updateLog": "卡片改为纯色(#FCFAF6/#2A2A2A) + 零阴影去除白色方块和灰框 / 深色玻璃色加深 / 根层级主题背景色修复",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.3/LootArchive-debug-v2.5.3.apk"
+  "updateLog": "下载逻辑简化 / 时间筛选修复 / 折线图优化 / 卡片纯色+零阴影",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.4/LootArchive-debug-v2.5.4.apk"
 }
