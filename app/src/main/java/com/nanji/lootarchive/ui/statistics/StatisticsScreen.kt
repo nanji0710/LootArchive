@@ -45,24 +45,24 @@ fun StatisticsScreen(
         topBar = { if (!isTabMode) { TopAppBar(title = { Text("资产汇总") }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }) } },
         containerColor = Color.Transparent
     ) { padding ->
+        var refreshing by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
+        PullToRefreshBox(
+            isRefreshing = refreshing,
+            onRefresh = { refreshing = true; scope.launch { kotlinx.coroutines.delay(800); refreshing = false } },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
         if (uiState.isLoading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else if (uiState.categorySummaries.isEmpty()) {
             EmptyState(
                 icon = { Icon(Icons.Filled.BarChart, null, Modifier.size(100.dp), tint = Color(0xFFBBBBBB)) },
                 title = "暂无统计数据",
-                subtitle = "添加物品后即可查看统计图表",
-                modifier = Modifier.padding(padding)
+                subtitle = "添加物品后即可查看统计图表"
             )
         } else {
-            var refreshing by remember { mutableStateOf(false) }
-            val scope = rememberCoroutineScope()
-            PullToRefreshBox(
-                isRefreshing = refreshing,
-                onRefresh = { refreshing = true; scope.launch { kotlinx.coroutines.delay(800); refreshing = false } }
-            ) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // ─── 资产总览卡片 ───
