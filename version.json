@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.8",
+  "versionName": "2.5.9",
   "versionCode": 35,
   "updateDate": "2026-07-21",
-  "updateLog": "保修状态实时更新 / 详情栏紧凑 / 分类拆分",
+  "updateLog": "新增物品ViewModel状态残留修复 / 保修实时更新",
   "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.9/LootArchive-debug-v2.5.9.apk"
 }
