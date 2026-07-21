@@ -63,12 +63,12 @@ fun DetailScreen(
                 modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 内联操作栏
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
-                    Text("物品详情", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f))
-                    IconButton(onClick = { uiState.itemWithPhotos?.let { onNavigateToEdit(it.item.id) } }) { Icon(Icons.Filled.Edit, "编辑", tint = Primary()) }
-                    IconButton(onClick = { viewModel.showDeleteConfirm() }) { Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired) }
+                // 内联操作栏（紧凑）
+                Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onNavigateBack, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp)) }
+                    Text("物品详情", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f))
+                    IconButton(onClick = { uiState.itemWithPhotos?.let { onNavigateToEdit(it.item.id) } }, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.Edit, "编辑", tint = Primary(), modifier = Modifier.size(20.dp)) }
+                    IconButton(onClick = { viewModel.showDeleteConfirm() }, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(20.dp)) }
                 }
                 // 照片预览区
                 if (data.photos.isNotEmpty()) {

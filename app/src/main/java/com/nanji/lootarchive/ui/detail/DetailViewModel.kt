@@ -34,11 +34,13 @@ class DetailViewModel @Inject constructor(
         currentItemId = itemId
         viewModelScope.launch {
             combine(
-                settingsRepository.currency,
-                itemRepository.getItemPhotos(itemId)
-            ) { currency, photos ->
-                Pair(currency, photos)
-            }.collect { (currency, photos) ->
+                itemRepository.getItemByIdFlow(itemId),
+                itemRepository.getItemPhotos(itemId),
+                settingsRepository.currency
+            ) { item, photos, currency ->
+                Triple(item, photos, currency)
+            }.collect { (item, photos, currency) ->
+                if (item == null) return@collect
                 val itemWithPhotos = itemRepository.getItemWithPhotos(itemId)
                 _uiState.value = DetailUiState(
                     isLoading = false,
