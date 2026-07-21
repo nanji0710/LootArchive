@@ -1,7 +1,7 @@
 {
   "versionName": "2.5.23",
-  "versionCode": 49,
+  "versionCode": 50,
   "updateDate": "2026-07-21",
   "updateLog": "1. 统计页下拉刷新覆盖全状态\n2. 刷新指示器配色统一",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.23/LootArchive-debug-v2.5.23.apk"
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.23/LootArchive-debug-v2.5.24.apk"
 }
