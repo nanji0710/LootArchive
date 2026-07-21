@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -83,14 +82,6 @@ fun HomeScreen(
             }
         },
         modifier = Modifier.fillMaxSize(),
-        indicator = {
-            PullToRefreshDefaults.Indicator(
-                state = it,
-                isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter),
-                colors = PullToRefreshDefaults.colors(containerColor = Primary().copy(alpha = 0.15f))
-            )
-        }
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
