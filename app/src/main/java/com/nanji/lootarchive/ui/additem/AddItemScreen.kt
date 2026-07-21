@@ -337,7 +337,8 @@ fun AddItemScreen(
                 ) {
                     OutlinedButton(
                         onClick = {
-                            val photoFile = File(PhotoUtil.getPhotoDir(context), PhotoUtil.generatePhotoFileName())
+                            val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+                            photoFile.parentFile?.mkdirs()
                             photoFile.createNewFile()
                             cameraPhotoUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photoFile)
                             cameraLauncher.launch(cameraPhotoUri!!)

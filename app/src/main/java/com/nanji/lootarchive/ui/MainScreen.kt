@@ -73,31 +73,6 @@ fun MainScreen() {
         topBar = {
             // 所有Tab页面取消TopBar，按钮改为悬浮
         },
-        bottomBar = {
-            if (!isSubPage) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier.height(64.dp)
-                ) {
-                    MainTab.entries.forEachIndexed { index, tab ->
-                        val selected = currentTab == index
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = { switchTab(index) },
-                            icon = { Icon(if(selected)tab.selectedIcon else tab.unselectedIcon, tab.label) },
-                            label = { Text(tab.label, fontWeight = if(selected) FontWeight.Bold else FontWeight.Normal) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Primary(),
-                                selectedTextColor = Primary(),
-                                unselectedIconColor = TextAuxiliary(),
-                                unselectedTextColor = TextAuxiliary(),
-                                indicatorColor = Primary().copy(alpha = 0.15f)
-                            )
-                        )
-                    }
-                }
-            }
-        }
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (currentRoute) {
@@ -114,6 +89,33 @@ fun MainScreen() {
                             onImportExcel = { navigate(Route.BACKUP) },
                             onBackupData = { navigate(Route.BACKUP) }
                         )
+                        // 悬浮Tab栏（底部居中）
+                        Row(
+                            Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            MainTab.entries.forEachIndexed { index, tab ->
+                                val selected = currentTab == index
+                                Surface(
+                                    onClick = { switchTab(index) },
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = if (selected) Primary() else Primary().copy(alpha = 0.25f)
+                                ) {
+                                    Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            if (selected) tab.selectedIcon else tab.unselectedIcon,
+                                            tab.label, tint = if (selected) Color.White else TextPrimary().copy(alpha = 0.7f),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        if (selected) {
+                                            Spacer(Modifier.width(6.dp))
+                                            Text(tab.label, fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Medium)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         // 底部悬浮三按钮：分类(左下) / 新增(中) / 搜索(右下)
                         Row(
                             Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 40.dp, start = 16.dp, end = 16.dp),
