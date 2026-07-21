@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.25",
-  "versionCode": 51,
+  "versionName": "2.6.0",
+  "versionCode": 52,
   "updateDate": "2026-07-21",
-  "updateLog": "1. 分类管理/备份恢复去顶部栏\n2. 去重复新增按钮",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.25/LootArchive-debug-v2.5.25.apk"
+  "updateLog": "1. 去玻璃效果换Material3 Card\n2. 底部导航改悬浮胶囊\n3. 全局配色统一\n4. 图标替换+统计/分类/备份优化",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.6.0/LootArchive-debug-v2.6.0.apk"
 }
