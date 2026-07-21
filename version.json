@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.21",
+  "versionName": "2.5.22",
   "versionCode": 48,
   "updateDate": "2026-07-21",
-  "updateLog": "1. 弹窗背景色统一\n2. 分类Chip选中色统一\n3. 刷新指示器配色统一",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.21/LootArchive-debug-v2.5.22.apk"
+  "updateLog": "1. 下拉刷新指示器配色修复\n2. 弹窗/分类Chip配色统一",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.22/LootArchive-debug-v2.5.22.apk"
 }
