@@ -46,6 +46,7 @@ class AddItemViewModel @Inject constructor(
 
     fun resetForm() {
         editingItemId = null
+        warrantyManuallySet = false
         _uiState.value = AddItemUiState(categories = _uiState.value.categories)
     }
 
@@ -102,6 +103,7 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun updateWarrantyExpiryDate(date: Long?) {
+        warrantyManuallySet = true
         _uiState.update { it.copy(warrantyExpiryDate = date) }
     }
 
@@ -110,10 +112,13 @@ class AddItemViewModel @Inject constructor(
         autoCalcWarranty()
     }
 
+    private var warrantyManuallySet = false
+
     private fun autoCalcWarranty() {
+        if (warrantyManuallySet) return  // 用户手动设过到期日，不覆盖
         val state = _uiState.value
         val periodDays = state.warrantyPeriodDays.toIntOrNull()
-        if (periodDays != null && state.purchaseDate != null && state.warrantyExpiryDate == null) {
+        if (periodDays != null && periodDays > 0 && state.purchaseDate != null) {
             val expiry = state.purchaseDate + periodDays * 24L * 60 * 60 * 1000
             _uiState.update { it.copy(warrantyExpiryDate = expiry) }
         }

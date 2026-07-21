@@ -94,7 +94,7 @@ fun SettingsScreen(
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v2.5.11", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v2.5.12", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(16.dp))
