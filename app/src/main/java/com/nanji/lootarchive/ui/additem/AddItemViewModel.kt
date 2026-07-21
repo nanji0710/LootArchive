@@ -44,8 +44,13 @@ class AddItemViewModel @Inject constructor(
 
     private var editingItemId: Long? = null
 
+    fun resetForm() {
+        editingItemId = null
+        _uiState.value = AddItemUiState(categories = _uiState.value.categories)
+    }
+
     fun initEditMode(itemId: Long?) {
-        if (itemId == null) return
+        if (itemId == null) { resetForm(); return }
         editingItemId = itemId
         viewModelScope.launch {
             val itemWithPhotos = itemRepository.getItemWithPhotos(itemId) ?: return@launch
