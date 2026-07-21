@@ -82,36 +82,11 @@ fun SettingsScreen(
                 }
             }
 
-            // ─── 卡片2：数据管理 ───
-            SectionTitle("数据管理")
+            // ─── 保修提醒设置 ───
+            SectionTitle("提醒设置")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    DataActionButton("导入Excel", Icons.Filled.UploadFile, Modifier.weight(1f)) { /* TODO */ }
-                    DataActionButton("导出Excel", Icons.Filled.FileDownload, Modifier.weight(1f)) { /* TODO */ }
-                }
-                Spacer(Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    DataActionButton("本地备份", Icons.Filled.Backup, Modifier.weight(1f)) { /* TODO */ }
-                    DataActionButton("恢复备份", Icons.Filled.Restore, Modifier.weight(1f)) { /* TODO */ }
-                }
-                Spacer(Modifier.height(8.dp))
-                TextButton(onClick = { if (uiState.trashItemCount > 0) showEmptyTrashDialog = true }) {
-                    Icon(Icons.Filled.DeleteSweep, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("清理冗余图片 (${uiState.trashItemCount})", fontSize = 14.sp, color = TextAuxiliary())
-                }
-            }
-
-            // ─── 卡片3：快捷工具 ───
-            SectionTitle("快捷工具")
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.fillMaxWidth().clickable(onClick = onNavigateToCategory).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("分类管理", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
-                    Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
-                }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("保修提醒", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
+                    Text("保修到期提醒", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("提前 ${uiState.warrantyReminderDays} 天", fontSize = 13.sp, color = TextAuxiliary())
                         IconButton(onClick = { editReminderDays = uiState.warrantyReminderDays.toString(); showReminderDialog = true }) {
@@ -121,7 +96,7 @@ fun SettingsScreen(
                 }
             }
 
-            // ─── 卡片4：关于 ───
+            // ─── 关于 ───
             SectionTitle("关于拾物集")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())

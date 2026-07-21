@@ -65,12 +65,10 @@ fun AddItemScreen(
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) {
-            cameraPhotoUri?.let { uri ->
-                PhotoUtil.savePhotoFromUri(context, uri)?.let { path ->
-                    viewModel.addPhotoPath(path)
-                }
-            }
+        if (success && cameraPhotoUri != null) {
+            // 相机已直接将照片写入我们提供的文件
+            val savedPath = PhotoUtil.savePhotoFromUri(context, cameraPhotoUri!!)
+            if (savedPath != null) viewModel.addPhotoPath(savedPath)
         }
     }
 
@@ -343,16 +341,9 @@ fun AddItemScreen(
                 ) {
                     OutlinedButton(
                         onClick = {
-                            // 创建临时文件用于拍照
-                            val photoFile = File(
-                                PhotoUtil.getPhotoDir(context),
-                                PhotoUtil.generatePhotoFileName()
-                            )
-                            cameraPhotoUri = FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.fileprovider",
-                                photoFile
-                            )
+                            val photoFile = File(PhotoUtil.getPhotoDir(context), PhotoUtil.generatePhotoFileName())
+                            photoFile.createNewFile()
+                            cameraPhotoUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photoFile)
                             cameraLauncher.launch(cameraPhotoUri!!)
                         },
                         modifier = Modifier.weight(1f)

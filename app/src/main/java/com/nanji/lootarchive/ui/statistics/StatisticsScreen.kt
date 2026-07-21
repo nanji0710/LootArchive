@@ -117,17 +117,29 @@ fun StatisticsScreen(
                     }
                 }
 
-                // ─── 分类明细表 ───
-                Text("分类明细", fontSize = 18.sp, color = TextPrimary(), modifier = Modifier.padding(top = 4.dp))
-                uiState.categorySummaries.forEach { s ->
-                    GlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(Modifier.width(4.dp).height(32.dp), RoundedCornerShape(2.dp), color = ChartColors[uiState.categorySummaries.indexOf(s) % ChartColors.size]) {}
-                            Spacer(Modifier.width(12.dp))
-                            Text(s.category.name, fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                            Text("${s.itemCount}件", fontSize = 13.sp, color = TextSecondary())
-                            Spacer(Modifier.width(12.dp))
-                            Text("¥${numberFormat.format(s.totalValue)}", fontSize = 14.sp, color = Primary())
+                // ─── 按月购入金额折线图 ───
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Text("按月购入金额趋势", fontSize = 18.sp, color = TextPrimary())
+                    Spacer(Modifier.height(12.dp))
+                    val monthlyData = uiState.items.filter { it.purchaseDate != null }
+                        .groupBy { java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }
+                        .mapValues { it.value.sumOf { item -> item.purchasePrice } }
+                        .toList().sortedBy { it.first }.takeLast(12)
+                    if (monthlyData.isEmpty()) {
+                        Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary())
+                    } else {
+                        val maxVal = monthlyData.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
+                        monthlyData.forEach { (month, total) ->
+                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(month, fontSize = 12.sp, color = TextAuxiliary(), modifier = Modifier.width(60.dp))
+                                Surface(Modifier.weight(1f).height(20.dp), RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                                    Box(Modifier.fillMaxSize()) {
+                                        Surface(Modifier.fillMaxHeight().fillMaxWidth((total / maxVal).toFloat().coerceIn(0f, 1f)), RoundedCornerShape(4.dp), color = Primary()) {}
+                                    }
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Text(formatPrice(total), fontSize = 13.sp, color = TextPrimary())
+                            }
                         }
                     }
                 }
@@ -136,5 +148,14 @@ fun StatisticsScreen(
             }
             } // PullToRefreshBox
         }
+    }
+}
+
+private fun formatPrice(value: Double): String {
+    return when {
+        value >= 1_000_000 -> "¥${"%.1f".format(value / 1_000_000)}M"
+        value >= 10_000 -> "¥${"%.1f".format(value / 10_000)}万"
+        value >= 1_000 -> "¥${"%.2f".format(value / 1_000)}K"
+        else -> "¥${value.toLong()}"
     }
 }

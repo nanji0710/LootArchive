@@ -93,6 +93,7 @@ class AddItemViewModel @Inject constructor(
 
     fun updatePurchaseDate(date: Long?) {
         _uiState.update { it.copy(purchaseDate = date) }
+        autoCalcWarranty()
     }
 
     fun updateWarrantyExpiryDate(date: Long?) {
@@ -101,6 +102,16 @@ class AddItemViewModel @Inject constructor(
 
     fun updateWarrantyPeriodDays(days: String) {
         _uiState.update { it.copy(warrantyPeriodDays = days) }
+        autoCalcWarranty()
+    }
+
+    private fun autoCalcWarranty() {
+        val state = _uiState.value
+        val periodDays = state.warrantyPeriodDays.toIntOrNull()
+        if (periodDays != null && state.purchaseDate != null && state.warrantyExpiryDate == null) {
+            val expiry = state.purchaseDate + periodDays * 24L * 60 * 60 * 1000
+            _uiState.update { it.copy(warrantyExpiryDate = expiry) }
+        }
     }
 
     fun updateDescription(desc: String) {
