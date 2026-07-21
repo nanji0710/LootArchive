@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.10",
+  "versionName": "2.5.11",
   "versionCode": 37,
   "updateDate": "2026-07-21",
-  "updateLog": "1. 左右按钮去背景块改为纯图标\n2. 搜索页输入框背景修复\n3. 底部按钮下移",
+  "updateLog": "1. 三按钮统一FAB样式\n2. 按钮位置下移(bottom 96→70dp)\n3. 搜索页去TopAppBar/白底修复",
   "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.11/LootArchive-debug-v2.5.11.apk"
 }
