@@ -73,13 +73,6 @@ fun SettingsScreen(
                         }
                     }
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                // 背景图
-                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("自定义首页背景图", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
-                    TextButton(onClick = { bgImageLauncher.launch("image/*") }) { Text("上传图片", color = Primary()) }
-                    TextButton(onClick = { viewModel.clearBackground() }) { Text("恢复默认", color = TextAuxiliary()) }
-                }
             }
 
             // ─── 保修提醒设置 ───
@@ -101,7 +94,7 @@ fun SettingsScreen(
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v2.5.0", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v2.5.1", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(16.dp))
