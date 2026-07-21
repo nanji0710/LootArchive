@@ -12,9 +12,9 @@ import java.util.*
 object PhotoUtil {
 
     private const val PHOTO_DIR = "LootArchive/photos"
-    private const val MAX_PHOTO_WIDTH = 1920
-    private const val MAX_PHOTO_HEIGHT = 1920
-    private const val JPEG_QUALITY = 85
+    private const val MAX_PHOTO_WIDTH = 1280
+    private const val MAX_PHOTO_HEIGHT = 1280
+    private const val JPEG_QUALITY = 70
 
     /**
      * 获取照片存储目录

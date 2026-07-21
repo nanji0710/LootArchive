@@ -14,6 +14,13 @@ object ApkDownloader {
         try {
             val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
+            // 清理旧下载的APK文件
+            try {
+                val dir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
+                dir?.listFiles()?.filter { it.name.startsWith("LootArchive-v") && it.name.endsWith(".apk") }
+                    ?.forEach { it.delete() }
+            } catch (_: Exception) {}
+
             // 防重复点击
             if (lastDownloadId > 0) {
                 try { dm.remove(lastDownloadId) } catch (_: Exception) {}
