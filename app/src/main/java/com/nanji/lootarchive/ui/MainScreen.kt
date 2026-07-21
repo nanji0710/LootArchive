@@ -116,7 +116,7 @@ fun MainScreen() {
                         )
                         // 底部悬浮三按钮：分类(左下) / 新增(中) / 搜索(右下)
                         Row(
-                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 70.dp, start = 16.dp, end = 16.dp),
+                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 40.dp, start = 16.dp, end = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.Bottom
                         ) {
