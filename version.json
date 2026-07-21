@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.1",
-  "versionCode": 27,
+  "versionName": "2.5.2",
+  "versionCode": 28,
   "updateDate": "2026-07-21",
-  "updateLog": "17项修复: 白色背景/版本统一/保修自动计算/拍照修复/折线图/金额K后缀",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.1/LootArchive-debug-v2.5.1.apk"
+  "updateLog": "去除玻璃效果换Material3 Card / 深浅色背景修复 / 深色阴影禁用",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.2/LootArchive-debug-v2.5.2.apk"
 }
