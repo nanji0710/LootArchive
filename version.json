@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.24",
-  "versionCode": 50,
+  "versionName": "2.5.25",
+  "versionCode": 51,
   "updateDate": "2026-07-21",
-  "updateLog": "1. 替换APP图标(5密度PNG+自适应)\n2. 统计页下拉刷新修复",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.24/LootArchive-debug-v2.5.24.apk"
+  "updateLog": "1. 分类管理/备份恢复去顶部栏\n2. 去重复新增按钮",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.25/LootArchive-debug-v2.5.25.apk"
 }
