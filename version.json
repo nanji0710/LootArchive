@@ -1,7 +1,7 @@
 {
   "versionName": "2.5.9",
-  "versionCode": 35,
+  "versionCode": 36,
   "updateDate": "2026-07-21",
   "updateLog": "1. 新增物品ViewModel状态残留修复\n2. 保修状态实时更新\n3. 详情栏紧凑化",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.9/LootArchive-debug-v2.5.9.apk"
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.10/LootArchive-debug-v2.5.10.apk"
 }

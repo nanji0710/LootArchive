@@ -54,7 +54,7 @@ fun SearchScreen(
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                         singleLine = true,
                         shape = RoundedCornerShape(18.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = Color(0xFFEEEEEE), unfocusedContainerColor = Color(0xFFEEEEEE)),
+                        colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = MaterialTheme.colorScheme.surface, unfocusedContainerColor = MaterialTheme.colorScheme.surface),
                         leadingIcon = { Icon(Icons.Filled.Search, null, tint = TextAuxiliary()) },
                         trailingIcon = { if (uiState.query.isNotEmpty()) IconButton(onClick = { viewModel.updateQuery("") }) { Icon(Icons.Filled.Close, "清除", Modifier.size(20.dp)) } }
                     )
