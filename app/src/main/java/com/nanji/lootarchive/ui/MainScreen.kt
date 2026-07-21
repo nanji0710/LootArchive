@@ -130,11 +130,10 @@ fun MainScreen() {
                 Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
             }
 
-            // ─── 全局悬浮：Tab胶囊（下方）+ 操作按钮（上方） ───
-            if (!isSubPage) {
-                // 操作按钮：分类(左) / 新增(中) / 搜索(右)
+            // ─── 首页操作按钮（仅首页显示） ───
+            if (currentRoute == Route.HOME) {
                 Row(
-                    Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 105.dp, start = 16.dp, end = 16.dp),
+                    Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 90.dp, start = 16.dp, end = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom
                 ) {
                     FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
@@ -147,22 +146,24 @@ fun MainScreen() {
                         Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
                     }
                 }
-                // Tab胶囊（操作按钮下方）
+            }
+            // ─── 全局Tab胶囊（靠下，更大） ───
+            if (!isSubPage) {
                 Row(
-                    Modifier.align(Alignment.BottomCenter).padding(bottom = 50.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically
+                    Modifier.align(Alignment.BottomCenter).padding(bottom = 30.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     MainTab.entries.forEachIndexed { index, tab ->
                         val selected = currentTab == index
                         Surface(
                             onClick = { switchTab(index) },
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(22.dp),
                             color = if (selected) Primary() else Primary().copy(alpha = 0.2f)
                         ) {
-                            Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(if(selected)tab.selectedIcon else tab.unselectedIcon, tab.label,
-                                    tint = if(selected) Color.White else TextPrimary().copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
-                                if (selected) { Spacer(Modifier.width(4.dp)); Text(tab.label, fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Medium) }
+                                    tint = if(selected) Color.White else TextPrimary().copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
+                                if (selected) { Spacer(Modifier.width(6.dp)); Text(tab.label, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Medium) }
                             }
                         }
                     }
