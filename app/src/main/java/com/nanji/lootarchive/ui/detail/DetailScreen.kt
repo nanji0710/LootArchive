@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
@@ -48,31 +49,10 @@ fun DetailScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("物品详情") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { uiState.itemWithPhotos?.let { onNavigateToEdit(it.item.id) } }) {
-                        Icon(Icons.Filled.Edit, contentDescription = "编辑")
-                    }
-                    IconButton(onClick = { viewModel.showDeleteConfirm() }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "删除", tint = WarrantyExpired)
-                    }
-                }
-            )
-        },
         containerColor = Color.Transparent
     ) { padding ->
         if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
@@ -80,13 +60,16 @@ fun DetailScreen(
             val currencySymbol = remember(uiState.currency) { getCurrencySymbol(uiState.currency) }
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // 内联操作栏
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
+                    Text("物品详情", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f))
+                    IconButton(onClick = { uiState.itemWithPhotos?.let { onNavigateToEdit(it.item.id) } }) { Icon(Icons.Filled.Edit, "编辑", tint = Primary()) }
+                    IconButton(onClick = { viewModel.showDeleteConfirm() }) { Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired) }
+                }
                 // 照片预览区
                 if (data.photos.isNotEmpty()) {
                     GlassCard {

@@ -95,7 +95,7 @@ fun MyLandingScreen(
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v2.4.4", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v2.5.0", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 
@@ -136,7 +136,7 @@ fun MyLandingScreen(
         AlertDialog(
             onDismissRequest = { showNoUpdate = false },
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v2.4.4") },
+            text = { Text("当前已是最新版本 v2.5.0") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }
