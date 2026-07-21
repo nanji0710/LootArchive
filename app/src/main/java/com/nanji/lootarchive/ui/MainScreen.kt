@@ -116,18 +116,17 @@ fun MainScreen() {
                         )
                         // 底部悬浮三按钮：分类(左下) / 新增(中) / 搜索(右下)
                         Row(
-                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 96.dp, start = 24.dp, end = 24.dp),
+                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 70.dp, start = 16.dp, end = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            // 分类筛选（纯图标无背景块）
-                            IconButton(
+                            FloatingActionButton(
                                 onClick = { showCategorySheet = true },
-                                modifier = Modifier.size(44.dp)
+                                containerColor = Primary(),
+                                modifier = Modifier.size(48.dp)
                             ) {
-                                Icon(Icons.Filled.Menu, "分类", tint = TextPrimary().copy(alpha = 0.45f), modifier = Modifier.size(26.dp))
+                                Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
                             }
-                            // 新增物品
                             FloatingActionButton(
                                 onClick = { navigate(Route.ADD) },
                                 containerColor = Primary(),
@@ -135,12 +134,12 @@ fun MainScreen() {
                             ) {
                                 Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(28.dp))
                             }
-                            // 搜索（纯图标无背景块）
-                            IconButton(
+                            FloatingActionButton(
                                 onClick = { navigate(Route.SEARCH) },
-                                modifier = Modifier.size(44.dp)
+                                containerColor = Primary(),
+                                modifier = Modifier.size(48.dp)
                             ) {
-                                Icon(Icons.Filled.Search, "搜索", tint = TextPrimary().copy(alpha = 0.45f), modifier = Modifier.size(26.dp))
+                                Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
                             }
                         }
                         // 分类筛选标签（选中分类时显示在顶部）

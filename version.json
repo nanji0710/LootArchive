@@ -1,7 +1,7 @@
 {
   "versionName": "2.5.10",
-  "versionCode": 36,
+  "versionCode": 37,
   "updateDate": "2026-07-21",
   "updateLog": "1. 左右按钮去背景块改为纯图标\n2. 搜索页输入框背景修复\n3. 底部按钮下移",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.10/LootArchive-debug-v2.5.10.apk"
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.11/LootArchive-debug-v2.5.11.apk"
 }

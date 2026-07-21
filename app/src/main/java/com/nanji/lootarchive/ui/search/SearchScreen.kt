@@ -44,27 +44,29 @@ fun SearchScreen(
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    OutlinedTextField(
-                        value = uiState.query,
-                        onValueChange = viewModel::updateQuery,
-                        placeholder = { Text("搜索物品名称 / 存放位置 / 购入备注", fontSize = 14.sp, color = TextAuxiliary()) },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-                        singleLine = true,
-                        shape = RoundedCornerShape(18.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = MaterialTheme.colorScheme.surface, unfocusedContainerColor = MaterialTheme.colorScheme.surface),
-                        leadingIcon = { Icon(Icons.Filled.Search, null, tint = TextAuxiliary()) },
-                        trailingIcon = { if (uiState.query.isNotEmpty()) IconButton(onClick = { viewModel.updateQuery("") }) { Icon(Icons.Filled.Close, "清除", Modifier.size(20.dp)) } }
-                    )
-                },
-                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
-            )
-        },
         containerColor = Color.Transparent
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
+            // 搜索栏：返回 + 输入框
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.Filled.ArrowBack, "返回", modifier = Modifier.size(22.dp))
+                }
+                OutlinedTextField(
+                    value = uiState.query,
+                    onValueChange = viewModel::updateQuery,
+                    placeholder = { Text("搜索物品名称 / 存放位置...", fontSize = 14.sp, color = TextAuxiliary()) },
+                    modifier = Modifier.weight(1f).focusRequester(focusRequester),
+                    singleLine = true,
+                    shape = RoundedCornerShape(18.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    ),
+                    leadingIcon = { Icon(Icons.Filled.Search, null, tint = TextAuxiliary(), modifier = Modifier.size(20.dp)) },
+                    trailingIcon = { if (uiState.query.isNotEmpty()) IconButton(onClick = { viewModel.updateQuery("") }) { Icon(Icons.Filled.Close, "清除", Modifier.size(18.dp)) } }
+                )
+            }
             // 筛选标签栏
             LazyRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
