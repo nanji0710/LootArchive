@@ -70,39 +70,29 @@ fun DetailScreen(
                     IconButton(onClick = { uiState.itemWithPhotos?.let { onNavigateToEdit(it.item.id) } }, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.Edit, "编辑", tint = Primary(), modifier = Modifier.size(20.dp)) }
                     IconButton(onClick = { viewModel.showDeleteConfirm() }, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(20.dp)) }
                 }
-                // 照片预览区
-                if (data.photos.isNotEmpty()) {
-                    GlassCard {
-                        // TODO: 使用 HorizontalPager 实现照片左右滑动预览
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            data.photos.take(3).forEach { photo ->
-                                AsyncImage(
-                                    model = File(photo.photoPath),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(100.dp)
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 物品名称
+                // 1. 物品名称
                 GlassCard {
                     Text(data.item.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
                 }
 
-                // 分类标签（独立卡片）
+                // 2. 分类
                 if (data.category != null) {
                     GlassCard {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("分类：", fontSize = 14.sp, color = TextSecondary())
                             AssistChip(onClick = {}, label = { Text(data.category!!.name, color = Primary()) })
+                        }
+                    }
+                }
+
+                // 3. 照片
+                if (data.photos.isNotEmpty()) {
+                    GlassCard {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            data.photos.take(3).forEach { photo ->
+                                AsyncImage(model = File(photo.photoPath), contentDescription = null,
+                                    modifier = Modifier.size(100.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
+                            }
                         }
                     }
                 }
