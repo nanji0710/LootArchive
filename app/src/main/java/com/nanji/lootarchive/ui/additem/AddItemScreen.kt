@@ -141,7 +141,10 @@ fun AddItemScreen(
                                     FilterChip(
                                         selected = uiState.categoryId == category.id,
                                         onClick = { viewModel.updateCategoryId(category.id) },
-                                        label = { Text(category.name) }
+                                        label = { Text(category.name) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Primary().copy(alpha = 0.2f)
+                                        )
                                     )
                                 }
                             }

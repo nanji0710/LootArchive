@@ -26,7 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val CURRENT_VERSION_CODE = 46
+private const val CURRENT_VERSION_CODE = 47
 
 @Composable
 fun MyLandingScreen(
@@ -95,7 +95,7 @@ fun MyLandingScreen(
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v2.5.20", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v2.5.21", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 
@@ -103,6 +103,7 @@ fun MyLandingScreen(
     if (showUpdateDialog && updateInfo != null) {
         AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("发现新版本", fontWeight = FontWeight.Bold) },
             text = {
                 Column {
@@ -135,8 +136,9 @@ fun MyLandingScreen(
     if (showNoUpdate) {
         AlertDialog(
             onDismissRequest = { showNoUpdate = false },
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v2.5.20") },
+            text = { Text("当前已是最新版本 v2.5.21") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }
@@ -145,6 +147,7 @@ fun MyLandingScreen(
     if (checkError != null) {
         AlertDialog(
             onDismissRequest = { checkError = null },
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("检查失败") },
             text = { Text("无法连接到更新服务器：${checkError}") },
             confirmButton = { TextButton(onClick = { checkError = null }) { Text("确定") } }
@@ -155,6 +158,7 @@ fun MyLandingScreen(
     if (isChecking) {
         AlertDialog(
             onDismissRequest = {},
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("正在检查更新...") },
             text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator() } },
             confirmButton = { }
