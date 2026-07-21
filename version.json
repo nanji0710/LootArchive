@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.20",
+  "versionName": "2.5.21",
   "versionCode": 47,
   "updateDate": "2026-07-21",
-  "updateLog": "1. 暂时去掉拍照按钮(闪退)\n2. Tab胶囊加大(22dp图标/15sp文字)\n3. 分类弹出框背景色统一",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.20/LootArchive-debug-v2.5.21.apk"
+  "updateLog": "1. 弹窗背景色统一\n2. 分类Chip选中色统一\n3. 刷新指示器配色统一",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.21/LootArchive-debug-v2.5.21.apk"
 }
