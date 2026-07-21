@@ -62,7 +62,7 @@ fun SearchScreen(
                 navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             // 筛选标签栏

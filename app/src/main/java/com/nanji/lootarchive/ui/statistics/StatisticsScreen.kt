@@ -43,7 +43,7 @@ fun StatisticsScreen(
 
     Scaffold(
         topBar = { if (!isTabMode) { TopAppBar(title = { Text("资产汇总") }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }) } },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }

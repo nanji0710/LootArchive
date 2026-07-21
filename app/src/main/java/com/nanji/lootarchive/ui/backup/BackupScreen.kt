@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui.backup
 
+import androidx.compose.ui.graphics.Color
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -56,7 +57,7 @@ fun BackupScreen(
                 navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),

@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui.category
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,7 +42,7 @@ fun CategoryScreen(
                 Icon(Icons.Filled.Add, "新增分类")
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         if (uiState.categories.isEmpty() && !uiState.isLoading) {
             EmptyState(

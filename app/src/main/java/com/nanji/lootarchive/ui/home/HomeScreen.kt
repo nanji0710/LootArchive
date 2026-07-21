@@ -90,34 +90,17 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ─── 数据统计三卡片（横跨两列） ───
+            // ─── 数据统计卡片（两行：全部资产独占一行，物品总数+保修待提醒共占一行） ───
             item(span = { GridItemSpan(2) }) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                GlassStatCard("全部资产", formatPrice(animValue.toDouble()),
+                    Modifier.fillMaxWidth(), onClick = onNavigateToStats)
+            }
+            item(span = { GridItemSpan(2) }) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     GlassStatCard("物品总数", "$animCount", Modifier.weight(1f))
-                    GlassStatCard("全部资产", "¥${numberFormat.format(animValue.toDouble())}",
-                        Modifier.weight(1f), onClick = onNavigateToStats)
-                    GlassStatCard("保修待提醒", "$animWarranty",
-                        Modifier.weight(1f),
+                    GlassStatCard("保修待提醒", "$animWarranty", Modifier.weight(1f),
                         valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary(),
                         onClick = { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true })
-                }
-            }
-
-            // ─── 快捷功能横条（横跨两列） ───
-            item(span = { GridItemSpan(2) }) {
-                GlassCard {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        QuickAction("分类管理", Icons.Filled.Category, onNavigateToCategory)
-                        QuickAction("导出Excel", Icons.Filled.FileDownload, onExportExcel)
-                        QuickAction("导入Excel", Icons.Filled.UploadFile, onImportExcel)
-                        QuickAction("备份数据", Icons.Filled.Backup, onBackupData)
-                    }
                 }
             }
 
@@ -204,5 +187,15 @@ private fun ItemCard(item: ItemEntity, photoPath: String?, numberFormat: NumberF
                 Text(text, fontSize = 13.sp, color = color)
             }
         }
+    }
+}
+
+private fun fmt(v: Double): String = String.format("%.1f", v)
+private fun formatPrice(value: Double): String {
+    return when {
+        value >= 1_000_000 -> "¥${fmt(value / 1_000_000)}M"
+        value >= 10_000 -> "¥${fmt(value / 10_000)}万"
+        value >= 1_000 -> "¥${String.format("%.2f", value / 1_000)}K"
+        else -> "¥${value.toLong()}"
     }
 }

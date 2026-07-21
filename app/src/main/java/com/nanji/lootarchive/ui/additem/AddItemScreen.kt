@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui.additem
 
+import androidx.compose.ui.graphics.Color
 import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -84,7 +85,7 @@ fun AddItemScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
