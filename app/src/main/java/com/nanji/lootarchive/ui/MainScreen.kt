@@ -89,10 +89,10 @@ fun MainScreen() {
                             onImportExcel = { navigate(Route.BACKUP) },
                             onBackupData = { navigate(Route.BACKUP) }
                         )
-                        // 悬浮Tab栏（底部居中）
+                        // 悬浮Tab胶囊（底部居中，上方）
                         Row(
-                            Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            Modifier.align(Alignment.BottomCenter).padding(bottom = 102.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             MainTab.entries.forEachIndexed { index, tab ->
@@ -100,17 +100,17 @@ fun MainScreen() {
                                 Surface(
                                     onClick = { switchTab(index) },
                                     shape = RoundedCornerShape(20.dp),
-                                    color = if (selected) Primary() else Primary().copy(alpha = 0.25f)
+                                    color = if (selected) Primary() else Primary().copy(alpha = 0.2f)
                                 ) {
-                                    Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
                                             if (selected) tab.selectedIcon else tab.unselectedIcon,
-                                            tab.label, tint = if (selected) Color.White else TextPrimary().copy(alpha = 0.7f),
-                                            modifier = Modifier.size(18.dp)
+                                            tab.label, tint = if (selected) Color.White else TextPrimary().copy(alpha = 0.6f),
+                                            modifier = Modifier.size(16.dp)
                                         )
                                         if (selected) {
-                                            Spacer(Modifier.width(6.dp))
-                                            Text(tab.label, fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Medium)
+                                            Spacer(Modifier.width(4.dp))
+                                            Text(tab.label, fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Medium)
                                         }
                                     }
                                 }
@@ -118,7 +118,7 @@ fun MainScreen() {
                         }
                         // 底部悬浮三按钮：分类(左下) / 新增(中) / 搜索(右下)
                         Row(
-                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 40.dp, start = 16.dp, end = 16.dp),
+                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 50.dp, start = 16.dp, end = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.Bottom
                         ) {
