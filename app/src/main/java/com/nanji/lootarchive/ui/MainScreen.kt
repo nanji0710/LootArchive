@@ -77,80 +77,17 @@ fun MainScreen() {
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (currentRoute) {
                 Route.HOME -> {
-                    Box(Modifier.fillMaxSize()) {
-                        HomeScreen(
-                            categoryFilter = drawerCategoryFilter,
-                            onNavigateToAddItem = { navigate(Route.ADD) },
-                            onNavigateToDetail = { navigate(Route.DETAIL, it) },
-                            onNavigateToSearch = { navigate(Route.SEARCH) },
-                            onNavigateToStats = { switchTab(1) },
-                            onNavigateToCategory = { navigate(Route.CATEGORY) },
-                            onExportExcel = { navigate(Route.BACKUP) },
-                            onImportExcel = { navigate(Route.BACKUP) },
-                            onBackupData = { navigate(Route.BACKUP) }
-                        )
-                        // 悬浮Tab胶囊（底部居中，上方）
-                        Row(
-                            Modifier.align(Alignment.BottomCenter).padding(bottom = 102.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            MainTab.entries.forEachIndexed { index, tab ->
-                                val selected = currentTab == index
-                                Surface(
-                                    onClick = { switchTab(index) },
-                                    shape = RoundedCornerShape(20.dp),
-                                    color = if (selected) Primary() else Primary().copy(alpha = 0.2f)
-                                ) {
-                                    Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            if (selected) tab.selectedIcon else tab.unselectedIcon,
-                                            tab.label, tint = if (selected) Color.White else TextPrimary().copy(alpha = 0.6f),
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        if (selected) {
-                                            Spacer(Modifier.width(4.dp))
-                                            Text(tab.label, fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Medium)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        // 底部悬浮三按钮：分类(左下) / 新增(中) / 搜索(右下)
-                        Row(
-                            Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 50.dp, start = 16.dp, end = 16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            FloatingActionButton(
-                                onClick = { showCategorySheet = true },
-                                containerColor = Primary(),
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
-                            }
-                            FloatingActionButton(
-                                onClick = { navigate(Route.ADD) },
-                                containerColor = Primary(),
-                                modifier = Modifier.size(56.dp)
-                            ) {
-                                Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(28.dp))
-                            }
-                            FloatingActionButton(
-                                onClick = { navigate(Route.SEARCH) },
-                                containerColor = Primary(),
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
-                            }
-                        }
-                        // 分类筛选标签（选中分类时显示在顶部）
-                        if (drawerCategoryFilter != null) {
-                            AssistChip(onClick={drawerCategoryFilter=null}, label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
-                                trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))},
-                                modifier=Modifier.align(Alignment.TopCenter).padding(top=4.dp))
-                        }
-                    }
+                    HomeScreen(
+                        categoryFilter = drawerCategoryFilter,
+                        onNavigateToAddItem = { navigate(Route.ADD) },
+                        onNavigateToDetail = { navigate(Route.DETAIL, it) },
+                        onNavigateToSearch = { navigate(Route.SEARCH) },
+                        onNavigateToStats = { switchTab(1) },
+                        onNavigateToCategory = { navigate(Route.CATEGORY) },
+                        onExportExcel = { navigate(Route.BACKUP) },
+                        onImportExcel = { navigate(Route.BACKUP) },
+                        onBackupData = { navigate(Route.BACKUP) }
+                    )
                 }
                 Route.STATS -> {
                     var showTimeFilter by remember { mutableStateOf(false) }
@@ -191,6 +128,50 @@ fun MainScreen() {
                 Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
                 Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                 Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
+            }
+
+            // ─── 全局悬浮：Tab胶囊（下方）+ 操作按钮（上方） ───
+            if (!isSubPage) {
+                // 操作按钮：分类(左) / 新增(中) / 搜索(右)
+                Row(
+                    Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 105.dp, start = 16.dp, end = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom
+                ) {
+                    FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
+                    FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = Primary(), modifier = Modifier.size(56.dp)) {
+                        Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(28.dp))
+                    }
+                    FloatingActionButton(onClick = { navigate(Route.SEARCH) }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
+                }
+                // Tab胶囊（操作按钮下方）
+                Row(
+                    Modifier.align(Alignment.BottomCenter).padding(bottom = 50.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically
+                ) {
+                    MainTab.entries.forEachIndexed { index, tab ->
+                        val selected = currentTab == index
+                        Surface(
+                            onClick = { switchTab(index) },
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (selected) Primary() else Primary().copy(alpha = 0.2f)
+                        ) {
+                            Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(if(selected)tab.selectedIcon else tab.unselectedIcon, tab.label,
+                                    tint = if(selected) Color.White else TextPrimary().copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                                if (selected) { Spacer(Modifier.width(4.dp)); Text(tab.label, fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Medium) }
+                            }
+                        }
+                    }
+                }
+            }
+            // 分类筛选标签
+            if (drawerCategoryFilter != null) {
+                AssistChip(onClick={drawerCategoryFilter=null}, label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
+                    trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))}, modifier=Modifier.align(Alignment.TopCenter).padding(top=4.dp))
             }
         }
     }

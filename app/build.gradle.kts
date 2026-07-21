@@ -14,8 +14,8 @@ android {
         applicationId = "com.nanji.lootarchive"
         minSdk = 31
         targetSdk = 36
-        versionCode = 43
-        versionName = "2.5.17"
+        versionCode = 44
+        versionName = "2.5.18"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
