@@ -92,19 +92,18 @@ fun DetailScreen(
                     }
                 }
 
-                // 基本信息
+                // 物品名称
                 GlassCard {
-                    Text(
-                        text = data.item.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (data.category != null) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(data.category!!.name) }
-                        )
+                    Text(data.item.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
+                }
+
+                // 分类标签（独立卡片）
+                if (data.category != null) {
+                    GlassCard {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("分类：", fontSize = 14.sp, color = TextSecondary())
+                            AssistChip(onClick = {}, label = { Text(data.category!!.name, color = Primary()) })
+                        }
                     }
                 }
 
