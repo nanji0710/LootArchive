@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.16",
+  "versionName": "2.5.17",
   "versionCode": 43,
   "updateDate": "2026-07-21",
-  "updateLog": "1. 底部导航栏改悬浮Tab胶囊\n2. 拍照缓存目录修复",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.16/LootArchive-debug-v2.5.17.apk"
+  "updateLog": "1. 悬浮Tab胶囊位置调整\n2. 操作按钮位置调整",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.17/LootArchive-debug-v2.5.17.apk"
 }
