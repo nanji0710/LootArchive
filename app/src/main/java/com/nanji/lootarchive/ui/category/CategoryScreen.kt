@@ -15,6 +15,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.theme.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,24 +29,15 @@ fun CategoryScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("分类管理") },
-                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } },
-                actions = {
-                    IconButton(onClick = { viewModel.showAddDialog() }) {
-                        Icon(Icons.Filled.Add, "新增分类")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.showAddDialog() }) {
-                Icon(Icons.Filled.Add, "新增分类")
-            }
-        },
         containerColor = Color.Transparent
     ) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
+                Text("分类管理", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f))
+                IconButton(onClick = { viewModel.showAddDialog() }) { Icon(Icons.Filled.Add, "新增", tint = Primary()) }
+            }
+            Spacer(Modifier.height(12.dp))
         if (uiState.categories.isEmpty() && !uiState.isLoading) {
             EmptyState(
                 icon = { Icon(Icons.Filled.Category, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
@@ -67,6 +61,7 @@ fun CategoryScreen(
                 }
             }
         }
+        } // Column close
     }
 
     // 新增/编辑对话框

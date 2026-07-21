@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
 import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.theme.*
+import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import java.text.SimpleDateFormat
@@ -51,12 +53,6 @@ fun BackupScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("备份与恢复") },
-                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }
-            )
-        },
         containerColor = Color.Transparent
     ) { padding ->
         LazyColumn(
@@ -64,6 +60,8 @@ fun BackupScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // 返回按钮
+            item { Row(Modifier.fillMaxWidth()) { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }; Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary()) } }
             // 备份操作区
             item {
                 Text("数据备份", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
