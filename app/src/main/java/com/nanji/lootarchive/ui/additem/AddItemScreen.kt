@@ -215,24 +215,31 @@ fun AddItemScreen(
 
             // 保修信息
             GlassCard {
-                Text("保修信息", style = MaterialTheme.typography.labelLarge)
+                Text("保修信息", fontSize = 16.sp, color = TextPrimary())
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = uiState.warrantyPeriodDays,
-                        onValueChange = viewModel::updateWarrantyPeriodDays,
-                        label = { Text("保修天数") },
-                        placeholder = { Text("365") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // 左：保修天数
+                    Column(Modifier.weight(1f)) {
+                        Text("保修天数", fontSize = 13.sp, color = TextAuxiliary())
+                        Spacer(Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = uiState.warrantyPeriodDays,
+                            onValueChange = viewModel::updateWarrantyPeriodDays,
+                            placeholder = { Text("365") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                    // 右：到期日期
+                    Column(Modifier.weight(1f)) {
+                        Text("到期日期", fontSize = 13.sp, color = TextAuxiliary())
+                        Spacer(Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = uiState.warrantyExpiryDate?.let { dateFormat.format(Date(it)) } ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            placeholder = { Text("自动计算") },
+                            modifier = Modifier.fillMaxWidth().clickable {
                                 val calendar = Calendar.getInstance()
                                 uiState.warrantyExpiryDate?.let { calendar.timeInMillis = it }
                                 DatePickerDialog(
@@ -243,16 +250,10 @@ fun AddItemScreen(
                                     },
                                     calendar.get(Calendar.YEAR),
                                     calendar.get(Calendar.MONTH),
+                                    calendar.get(Calendar.MONTH),
                                     calendar.get(Calendar.DAY_OF_MONTH)
                                 ).show()
-                            },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Filled.DateRange, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            uiState.warrantyExpiryDate?.let { dateFormat.format(Date(it)) } ?: "到期日",
-                            style = MaterialTheme.typography.bodySmall
+                            }
                         )
                     }
                 }
@@ -299,22 +300,18 @@ fun AddItemScreen(
                                         .clip(RoundedCornerShape(8.dp)),
                                     contentScale = ContentScale.Crop
                                 )
-                                // 删除按钮
+                                // 删除按钮（半透明小叉号）
                                 IconButton(
                                     onClick = { viewModel.removePhotoPath(path) },
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
-                                        .size(22.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f),
-                                            RoundedCornerShape(4.dp)
-                                        )
+                                        .size(18.dp)
                                 ) {
                                     Icon(
                                         Icons.Filled.Close,
                                         contentDescription = "删除",
-                                        modifier = Modifier.size(14.dp),
-                                        tint = MaterialTheme.colorScheme.onErrorContainer
+                                        modifier = Modifier.size(12.dp),
+                                        tint = Color.White.copy(alpha = 0.8f)
                                     )
                                 }
                             }

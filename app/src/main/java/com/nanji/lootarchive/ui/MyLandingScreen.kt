@@ -26,7 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val CURRENT_VERSION_CODE = 39
+private const val CURRENT_VERSION_CODE = 40
 
 @Composable
 fun MyLandingScreen(
@@ -95,7 +95,7 @@ fun MyLandingScreen(
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v2.5.13", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v2.5.14", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 
@@ -136,7 +136,7 @@ fun MyLandingScreen(
         AlertDialog(
             onDismissRequest = { showNoUpdate = false },
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v2.5.13") },
+            text = { Text("当前已是最新版本 v2.5.14") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }
