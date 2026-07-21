@@ -3,9 +3,14 @@ package com.nanji.lootarchive
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.ui.Modifier
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.ui.MainScreen
 import com.nanji.lootarchive.ui.theme.LootArchiveTheme
@@ -23,7 +28,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
             LootArchiveTheme(themeMode = themeMode) {
-                key("main") { MainScreen() }
+                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                    key("main") { MainScreen() }
+                }
             }
         }
     }
