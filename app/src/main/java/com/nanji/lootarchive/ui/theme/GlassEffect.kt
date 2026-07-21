@@ -65,9 +65,10 @@ fun Modifier.glassEffect(
     else
         RoundedCornerShape(corner.dp)
 
+    val dark = LocalDarkTheme.current
     return this
         .then(
-            if (withShadow) Modifier.shadow(tier.shadowElevationDp.dp, shape, ambientColor = bg.copy(alpha = 0.22f))
+            if (withShadow && !dark) Modifier.shadow(tier.shadowElevationDp.dp, shape, ambientColor = bg.copy(alpha = 0.22f))
             else Modifier
         )
         .clip(shape)

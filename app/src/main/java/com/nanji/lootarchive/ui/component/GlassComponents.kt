@@ -20,11 +20,12 @@ fun GlassCard(
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    // 用 Box 替代 Surface，避免 Material3 的 elevation 渲染白色底层
-    Box(
-        modifier = modifier
-            .glassEffect(tier = tier)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+    Card(
+        modifier = modifier.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = RoundedCornerShape(tier.cornerRadiusDp.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        onClick = onClick ?: {}
     ) {
         Column(modifier = Modifier.padding(12.dp)) { content() }
     }
@@ -42,7 +43,7 @@ fun GlassStatCard(
         Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = valueColor,
             maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         Spacer(modifier = Modifier.height(6.dp))
-        Text(title, style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(),
+        Text(title, fontSize = 13.sp, color = TextAuxiliary(),
             maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
@@ -54,33 +55,24 @@ fun EmptyState(
     subtitle: String = "",
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth().padding(48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier = modifier.fillMaxWidth().padding(48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         icon()
         Spacer(modifier = Modifier.height(24.dp))
         Text(title, fontSize = 20.sp, color = TextSecondary())
         if (subtitle.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
+            Text(subtitle, fontSize = 14.sp, color = TextAuxiliary())
         }
     }
 }
 
 @Composable
 fun GlassAlertDialog(
-    title: String,
-    message: String,
-    confirmText: String = "确认",
-    dismissText: String = "取消",
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    title: String, message: String, confirmText: String = "确认", dismissText: String = "取消",
+    onConfirm: () -> Unit, onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color.Transparent,
-        modifier = Modifier.glassEffect(tier = GlassTier.DIALOG),
         title = { Text(title, fontWeight = FontWeight.SemiBold) },
         text = { Text(message) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirmText) } },
