@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.12",
+  "versionName": "2.5.13",
   "versionCode": 39,
   "updateDate": "2026-07-21",
-  "updateLog": "1. 保修到期日自动计算修复(移除null判断)\n2. 手动设到期日不覆盖",
+  "updateLog": "1. 详情页布局调整(名称→分类→照片)\n2. 保修到期日自动计算修复",
   "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.13/LootArchive-debug-v2.5.13.apk"
 }
