@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.4",
-  "versionCode": 30,
+  "versionName": "2.5.5",
+  "versionCode": 31,
   "updateDate": "2026-07-21",
-  "updateLog": "下载逻辑简化 / 时间筛选修复 / 折线图优化 / 卡片纯色+零阴影",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.4/LootArchive-debug-v2.5.4.apk"
+  "updateLog": "下拉菜单颜色统一 / 搜索排序下拉颜色统一 / 时间筛选修复 / 折线图优化",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.5/LootArchive-debug-v2.5.5.apk"
 }

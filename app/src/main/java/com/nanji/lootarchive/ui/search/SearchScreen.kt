@@ -90,7 +90,7 @@ fun SearchScreen(
                     Text("找到 ${uiState.results.size} 件物品", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                     var showSort by remember { mutableStateOf(false) }
                     Box { TextButton(onClick = { showSort = true }) { Text("排序", fontSize = 14.sp, color = Primary()) }
-                        DropdownMenu(expanded = showSort, onDismissRequest = { showSort = false }) {
+                        DropdownMenu(expanded = showSort, onDismissRequest = { showSort = false }, containerColor = MaterialTheme.colorScheme.surface) {
                             listOf("price_desc" to "价格从高到低", "date_new" to "购入时间最新", "warranty" to "保修到期优先").forEach { (key, label) ->
                                 DropdownMenuItem(text = { Text(label) }, onClick = { viewModel.setSort(key); showSort = false })
                             }

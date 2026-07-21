@@ -166,7 +166,9 @@ fun MainScreen() {
                                     Text(timeFilterLabel, fontSize=14.sp, color=Primary())
                                     Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
                                 }
-                                DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false}) {
+                                DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false},
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                ) {
                                     listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
                                         DropdownMenuItem(text={Text(label)}, onClick={
                                             timeFilterLabel=label
