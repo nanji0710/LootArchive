@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.6",
+  "versionName": "2.5.7",
   "versionCode": 33,
   "updateDate": "2026-07-21",
-  "updateLog": "下载改用应用私有目录 / 下拉菜单颜色统一 / 时间筛选修复",
+  "updateLog": "详情页分类拆分 / 编辑修复 / 下载目录修复",
   "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.7/LootArchive-debug-v2.5.7.apk"
 }
