@@ -1,7 +1,7 @@
 {
-  "versionName": "2.5.19",
+  "versionName": "2.5.20",
   "versionCode": 46,
   "updateDate": "2026-07-21",
-  "updateLog": "1. Tab胶囊加大(22dp/14sp)靠下(30dp)\n2. 操作按钮仅首页显示",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.19/LootArchive-debug-v2.5.20.apk"
+  "updateLog": "1. 暂时去掉拍照按钮(闪退)\n2. Tab胶囊加大(22dp图标/15sp文字)\n3. 分类弹出框背景色统一",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.5.20/LootArchive-debug-v2.5.20.apk"
 }
