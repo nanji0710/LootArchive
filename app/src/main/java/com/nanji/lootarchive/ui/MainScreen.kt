@@ -157,13 +157,13 @@ fun MainScreen() {
                         val selected = currentTab == index
                         Surface(
                             onClick = { switchTab(index) },
-                            shape = RoundedCornerShape(22.dp),
+                            shape = RoundedCornerShape(24.dp),
                             color = if (selected) Primary() else Primary().copy(alpha = 0.2f)
                         ) {
-                            Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.padding(horizontal = 18.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(if(selected)tab.selectedIcon else tab.unselectedIcon, tab.label,
-                                    tint = if(selected) Color.White else TextPrimary().copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
-                                if (selected) { Spacer(Modifier.width(6.dp)); Text(tab.label, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Medium) }
+                                    tint = if(selected) Color.White else TextPrimary().copy(alpha = 0.6f), modifier = Modifier.size(22.dp))
+                                if (selected) { Spacer(Modifier.width(6.dp)); Text(tab.label, fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Medium) }
                             }
                         }
                     }

@@ -330,33 +330,14 @@ fun AddItemScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 拍照 / 选择按钮
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                // 相册选择按钮（拍照暂屏蔽）
+                OutlinedButton(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    OutlinedButton(
-                        onClick = {
-                            val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
-                            photoFile.parentFile?.mkdirs()
-                            photoFile.createNewFile()
-                            cameraPhotoUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photoFile)
-                            cameraLauncher.launch(cameraPhotoUri!!)
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("拍照")
-                    }
-                    OutlinedButton(
-                        onClick = { galleryLauncher.launch("image/*") },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("相册")
-                    }
+                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("从相册选择照片")
                 }
             }
 
