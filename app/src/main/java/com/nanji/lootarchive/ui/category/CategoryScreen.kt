@@ -29,13 +29,17 @@ fun CategoryScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        floatingActionButton = {
+            FloatingActionButton(onClick = { viewModel.showAddDialog() }, containerColor = Primary()) {
+                Icon(Icons.Filled.Add, "新增", tint = Color.White)
+            }
+        }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
                 Text("分类管理", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f))
-                IconButton(onClick = { viewModel.showAddDialog() }) { Icon(Icons.Filled.Add, "新增", tint = Primary()) }
             }
             Spacer(Modifier.height(12.dp))
         if (uiState.categories.isEmpty() && !uiState.isLoading) {
