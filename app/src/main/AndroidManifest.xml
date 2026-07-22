@@ -52,12 +52,12 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- 备份提醒 Worker -->
+        <!-- 移除 WorkManager 默认初始化器（使用 on-demand 初始化） -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
-            tools:node="merge" />
+            tools:node="remove" />
 
     </application>
 

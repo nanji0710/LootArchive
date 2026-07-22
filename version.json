@@ -2,6 +2,6 @@
   "versionName": "2.6.4",
   "versionCode": 56,
   "updateDate": "2026-07-22",
-  "updateLog": "1. 修复FilterChip/GlasAlertDialog主题色不统一\n2. 缓存计算新增codeCacheDir（ART编译缓存）\n3. 清除缓存同步清理codeCache+刷新大小",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.6.4/LootArchive-debug-v2.6.4.apk"
+  "updateLog": "1. 修复FilterChip/GlasAlertDialog主题色不统一\n2. 缓存计算新增codeCacheDir（ART编译缓存）\n3. R8压缩+ABI过滤,APK从88MB降至16MB",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.6.4/LootArchive-release-v2.6.4.apk"
 }
