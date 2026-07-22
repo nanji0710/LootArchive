@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.0",
-  "versionCode": 57,
+  "versionName": "2.7.1",
+  "versionCode": 58,
   "updateDate": "2026-07-22",
-  "updateLog": "1. 修复FilterChip/GlasAlertDialog主题色不统一\n2. 缓存计算新增codeCacheDir（ART编译缓存）\n3. R8压缩+ABI过滤,APK从88MB降至16MB",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.0/LootArchive-release-v2.7.0.apk"
+  "updateLog": "1. 自定义下载管理器替代系统DownloadManager\n2. 下载进度弹窗（百分比+速度+大小）\n3. 下载完成自动跳转安装页面",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.1/LootArchive-release-v2.7.1.apk"
 }

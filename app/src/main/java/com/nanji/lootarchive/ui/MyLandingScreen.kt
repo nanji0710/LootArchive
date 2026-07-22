@@ -19,14 +19,14 @@ import androidx.compose.ui.unit.sp
 import android.widget.Toast
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.theme.*
-import com.nanji.lootarchive.util.ApkDownloader
+import com.nanji.lootarchive.util.ApkDownloadManager
 import com.nanji.lootarchive.util.UpdateChecker
 import com.nanji.lootarchive.util.UpdateInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val CURRENT_VERSION_CODE = 57
+private const val CURRENT_VERSION_CODE = 58
 
 @Composable
 fun MyLandingScreen(
@@ -41,6 +41,13 @@ fun MyLandingScreen(
     var showUpdateDialog by remember { mutableStateOf(false) }
     var showNoUpdate by remember { mutableStateOf(false) }
     var checkError by remember { mutableStateOf<String?>(null) }
+
+    // 下载进度状态
+    var isDownloading by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableStateOf(ApkDownloadManager.Progress()) }
+    var downloadError by remember { mutableStateOf<String?>(null) }
+
+    val downloader = remember { ApkDownloadManager(context) }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -95,7 +102,7 @@ fun MyLandingScreen(
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v2.7.0", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v2.7.1", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 
@@ -117,10 +124,25 @@ fun MyLandingScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    showUpdateDialog = false
                     val url = updateInfo!!.apkDownloadUrl
+                    val fileName = "LootArchive-v${updateInfo!!.versionName}.apk"
                     if (url.isNotEmpty()) {
-                        ApkDownloader.download(context, url, "LootArchive-v${updateInfo!!.versionName}.apk")
+                        showUpdateDialog = false
+                        isDownloading = true
+                        downloadError = null
+                        downloadProgress = ApkDownloadManager.Progress()
+                        scope.launch {
+                            val result = downloader.download(url, fileName) { progress ->
+                                downloadProgress = progress
+                            }
+                            result.onSuccess { file ->
+                                isDownloading = false
+                                downloader.install(file)
+                            }.onFailure { e ->
+                                isDownloading = false
+                                downloadError = e.message ?: "下载失败"
+                            }
+                        }
                     } else {
                         Toast.makeText(context, "暂无下载地址", Toast.LENGTH_SHORT).show()
                     }
@@ -138,7 +160,7 @@ fun MyLandingScreen(
             onDismissRequest = { showNoUpdate = false },
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v2.7.0") },
+            text = { Text("当前已是最新版本 v2.7.1") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }
@@ -162,6 +184,53 @@ fun MyLandingScreen(
             title = { Text("正在检查更新...") },
             text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator() } },
             confirmButton = { }
+        )
+    }
+
+    // 下载进度弹窗
+    if (isDownloading) {
+        AlertDialog(
+            onDismissRequest = {},
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text("正在下载更新...", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(Modifier.fillMaxWidth()) {
+                    LinearProgressIndicator(
+                        progress = { downloadProgress.percentage / 100f },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Primary(),
+                        trackColor = Primary().copy(alpha = 0.15f)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(downloadProgress.percentText, fontSize = 14.sp, color = Primary(), fontWeight = FontWeight.Bold)
+                        Text(downloadProgress.speedText, fontSize = 12.sp, color = TextAuxiliary())
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(downloadProgress.sizeText, fontSize = 12.sp, color = TextAuxiliary())
+                    if (downloadProgress.percentage == 100) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = Primary())
+                            Spacer(Modifier.width(8.dp))
+                            Text("正在准备安装...", fontSize = 13.sp, color = TextAuxiliary())
+                        }
+                    }
+                }
+            },
+            confirmButton = { },
+            dismissButton = { }
+        )
+    }
+
+    // 下载失败弹窗
+    if (downloadError != null) {
+        AlertDialog(
+            onDismissRequest = { downloadError = null },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text("下载失败") },
+            text = { Text(downloadError!!) },
+            confirmButton = { TextButton(onClick = { downloadError = null }) { Text("确定") } }
         )
     }
 }
