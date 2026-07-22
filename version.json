@@ -1,7 +1,7 @@
 {
-  "versionName": "2.6.3",
-  "versionCode": 55,
+  "versionName": "2.6.4",
+  "versionCode": 56,
   "updateDate": "2026-07-22",
-  "updateLog": "1. 设置页新增缓存管理（显示占用+一键清除）\n2. 修复缓存状态被combine流覆盖导致一直显示计算中的问题\n3. 版本号统一更新至v2.6.3",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.6.3/LootArchive-debug-v2.6.3.apk"
+  "updateLog": "1. 修复FilterChip/GlasAlertDialog主题色不统一\n2. 缓存计算新增codeCacheDir（ART编译缓存）\n3. 清除缓存同步清理codeCache+刷新大小",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.6.4/LootArchive-debug-v2.6.4.apk"
 }

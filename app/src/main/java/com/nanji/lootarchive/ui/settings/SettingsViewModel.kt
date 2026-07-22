@@ -129,16 +129,7 @@ class SettingsViewModel @Inject constructor(
             _uiState.update { it.copy(isCalculatingCache = true) }
             try {
                 val size = withContext(Dispatchers.IO) {
-                    var total = 0L
-                    // Coil image cache
-                    val coilCache = File(app.cacheDir, "coil_cache")
-                    if (coilCache.exists()) total += coilCache.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-                    // App internal cache (exclude coil_cache to avoid double count)
-                    app.cacheDir.listFiles()?.filter { it.name != "coil_cache" }?.forEach { f ->
-                        if (f.isDirectory) total += f.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-                        else total += f.length()
-                    }
-                    total
+                    dirSize(app.cacheDir) + dirSize(app.codeCacheDir)
                 }
                 _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = formatSize(size), isCalculatingCache = false) }
             } catch (e: Exception) {
@@ -152,16 +143,27 @@ class SettingsViewModel @Inject constructor(
             _uiState.update { it.copy(isClearing = true) }
             try {
                 withContext(Dispatchers.IO) {
-                    // 仅清除缓存目录，不清除 app 数据（数据库/preferences 在 filesDir）
-                    app.cacheDir.listFiles()?.forEach { f ->
-                        if (f.isDirectory) f.deleteRecursively() else f.delete()
+                    // 仅清除缓存目录（cacheDir + codeCacheDir），不影响数据库/preferences/filesDir
+                    listOf(app.cacheDir, app.codeCacheDir).forEach { dir ->
+                        dir.listFiles()?.forEach { f ->
+                            if (f.isDirectory) f.deleteRecursively() else f.delete()
+                        }
                     }
                 }
-                _uiState.update { it.copy(cacheSize = 0L, cacheSizeFormatted = "0 B", isClearing = false, message = "缓存已清除") }
+                // 重新计算清除后的缓存大小
+                val size = withContext(Dispatchers.IO) {
+                    dirSize(app.cacheDir) + dirSize(app.codeCacheDir)
+                }
+                _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = formatSize(size), isClearing = false, message = "缓存已清除") }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isClearing = false, message = "清除失败: ${e.message}") }
             }
         }
+    }
+
+    private fun dirSize(dir: java.io.File): Long {
+        if (!dir.exists()) return 0L
+        return dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
     }
 
     fun clearMessage() {

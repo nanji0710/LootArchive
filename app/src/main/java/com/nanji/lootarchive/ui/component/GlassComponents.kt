@@ -74,6 +74,7 @@ fun GlassAlertDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text(title, fontWeight = FontWeight.SemiBold) },
         text = { Text(message) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirmText) } },
