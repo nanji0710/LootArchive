@@ -58,6 +58,7 @@ class SettingsViewModel @Inject constructor(
                     Pair(appName, deletedItems.size)
                 }
             ) { quintet, (appName, trashCount) ->
+                val current = _uiState.value
                 SettingsUiState(
                     currency = quintet.currency,
                     warrantyReminderDays = quintet.reminderDays,
@@ -65,7 +66,13 @@ class SettingsViewModel @Inject constructor(
                     backupReminderDay = quintet.backupDay,
                     themeMode = quintet.theme,
                     appName = appName,
-                    trashItemCount = trashCount
+                    trashItemCount = trashCount,
+                    // 保留缓存相关字段，避免被流覆盖
+                    cacheSize = current.cacheSize,
+                    cacheSizeFormatted = current.cacheSizeFormatted,
+                    isCalculatingCache = current.isCalculatingCache,
+                    isClearing = current.isClearing,
+                    message = current.message
                 )
             }.collect { state ->
                 _uiState.value = state
