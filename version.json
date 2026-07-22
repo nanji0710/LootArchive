@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.3",
-  "versionCode": 60,
+  "versionName": "2.7.4",
+  "versionCode": 61,
   "updateDate": "2026-07-22",
-  "updateLog": "1. 修复Excel导出闪退（存储权限问题）\n2. 备份/导出提示文件保存位置\n3. 导入恢复支持content URI+格式校验\n4. 文件格式不符拒绝导入并提示",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.3/LootArchive-release-v2.7.3.apk"
+  "updateLog": "1. 修复Excel导出闪退+备份路径提示+格式校验\n2. 修复下载完成不跳转安装页问题\n3. APK下载目录改为cacheDir",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.4/LootArchive-release-v2.7.4.apk"
 }

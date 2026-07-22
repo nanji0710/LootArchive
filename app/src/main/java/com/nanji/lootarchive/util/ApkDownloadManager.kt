@@ -3,7 +3,6 @@ package com.nanji.lootarchive.util
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Environment
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,9 +37,8 @@ class ApkDownloadManager(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         try {
-            // 清理旧 APK
-            val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!
-            if (!dir.exists()) dir.mkdirs()
+            // 清理旧 APK（使用缓存目录，FileProvider 已配置 cache-path）
+            val dir = context.cacheDir
             dir.listFiles()?.filter { it.name.startsWith("LootArchive-v") && it.name.endsWith(".apk") }
                 ?.forEach { it.delete() }
 
