@@ -40,6 +40,7 @@ fun SettingsScreen(
     var showThemeDialog by remember { mutableStateOf(false) }
     var showReminderDialog by remember { mutableStateOf(false) }
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
+    var showClearCacheDialog by remember { mutableStateOf(false) }
     var editReminderDays by remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -89,12 +90,41 @@ fun SettingsScreen(
                 }
             }
 
+            // ─── 缓存管理 ───
+            SectionTitle("缓存管理")
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("缓存大小", fontSize = 16.sp, color = TextSecondary())
+                        Spacer(Modifier.height(2.dp))
+                        if (uiState.isCalculatingCache) {
+                            Text("计算中...", fontSize = 13.sp, color = TextAuxiliary())
+                        } else {
+                            Text(uiState.cacheSizeFormatted, fontSize = 13.sp, color = TextAuxiliary())
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = { showClearCacheDialog = true },
+                        enabled = !uiState.isClearing,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        if (uiState.isClearing) {
+                            CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Filled.DeleteSweep, null, Modifier.size(16.dp))
+                        }
+                        Spacer(Modifier.width(6.dp))
+                        Text("清除缓存", fontSize = 13.sp)
+                    }
+                }
+            }
+
             // ─── 关于 ───
             SectionTitle("关于拾物集")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v2.6.1", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v2.6.2", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(16.dp))
@@ -120,6 +150,17 @@ fun SettingsScreen(
             confirmText = "清空", dismissText = "取消",
             onConfirm = { viewModel.emptyTrash(); showEmptyTrashDialog = false },
             onDismiss = { showEmptyTrashDialog = false }
+        )
+    }
+
+    // 清除缓存弹窗
+    if (showClearCacheDialog) {
+        GlassAlertDialog(
+            title = "清除缓存",
+            message = "将清除图片缓存等临时数据（约 ${uiState.cacheSizeFormatted}），不会影响你的物品数据和设置。",
+            confirmText = "清除", dismissText = "取消",
+            onConfirm = { viewModel.clearCache(); showClearCacheDialog = false },
+            onDismiss = { showClearCacheDialog = false }
         )
     }
 }
