@@ -72,6 +72,7 @@ fun CategoryScreen(
     if (uiState.showAddDialog || uiState.showEditDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDialogs() },
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text(if (uiState.showAddDialog) "新增分类" else "编辑分类") },
             text = {
                 OutlinedTextField(
@@ -98,6 +99,7 @@ fun CategoryScreen(
     if (uiState.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDialogs() },
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("删除分类") },
             text = { Text("分类删除后，该分类下的物品将归入「其他」分类。确定删除？") },
             confirmButton = {

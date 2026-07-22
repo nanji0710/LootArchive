@@ -122,14 +122,14 @@ fun SearchScreen(
                     }
                 } else {
                     EmptyState(
-                        icon = { Icon(Icons.Filled.Search, null, Modifier.size(100.dp), tint = Color(0xFFBBBBBB)) },
+                        icon = { Icon(Icons.Filled.Search, null, Modifier.size(100.dp), tint = TextAuxiliary()) },
                         title = "搜索物品",
                         subtitle = "输入关键词查找你的物品"
                     )
                 }
             } else if (uiState.results.isEmpty()) {
                 EmptyState(
-                    icon = { Icon(Icons.Filled.SearchOff, null, Modifier.size(100.dp), tint = Color(0xFFBBBBBB)) },
+                    icon = { Icon(Icons.Filled.SearchOff, null, Modifier.size(100.dp), tint = TextAuxiliary()) },
                     title = "未找到对应物品",
                     subtitle = "换个关键词试试"
                 )
@@ -152,7 +152,7 @@ fun SearchScreen(
 private fun SearchItemCard(item: ItemEntity, numberFormat: NumberFormat, onClick: () -> Unit) {
     GlassCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Surface(Modifier.fillMaxWidth().height(100.dp), RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = Color(0xFFBBBBBB)) }
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = TextAuxiliary()) }
         }
         Spacer(Modifier.height(8.dp))
         Text(item.name, fontSize = 18.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)

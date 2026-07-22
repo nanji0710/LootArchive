@@ -66,7 +66,7 @@ fun BackupScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 返回按钮
-            item { Row(Modifier.fillMaxWidth()) { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }; Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary()) } }
+            item { Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }; Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary()) } }
             // 备份操作区
             item {
                 Text("数据备份", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -161,9 +161,9 @@ fun BackupScreen(
             Snackbar(
                 modifier = Modifier.padding(16.dp),
                 containerColor = if (uiState.isSuccess)
-                    MaterialTheme.colorScheme.primaryContainer
+                    Primary().copy(alpha = 0.15f)
                 else
-                    MaterialTheme.colorScheme.errorContainer
+                    Color(0xFFF44336).copy(alpha = 0.15f)
             ) {
                 Text(uiState.message!!)
             }

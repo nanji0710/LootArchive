@@ -108,7 +108,7 @@ fun HomeScreen(
             if (filteredItems.isEmpty() && !uiState.isLoading) {
                 item(span = { GridItemSpan(2) }) {
                     EmptyState(
-                        icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(120.dp), tint = Color(0xFFBBBBBB)) },
+                        icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(120.dp), tint = TextAuxiliary()) },
                         title = "还没有物品",
                         subtitle = "点击「新增物品」开始记录你的第一件宝贝吧"
                     )
@@ -131,7 +131,7 @@ fun HomeScreen(
         val expiringItems = uiState.items.filter { it.warrantyExpiryDate != null && it.warrantyExpiryDate < System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000 }
         AlertDialog(
             onDismissRequest = { showWarrantyDialog = false },
-            modifier = Modifier.glassEffect(tier = GlassTier.DIALOG),
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("保修待提醒 (${expiringItems.size})", fontWeight = FontWeight.SemiBold) },
             text = {
                 if (expiringItems.isEmpty()) {
@@ -171,7 +171,7 @@ private fun ItemCard(item: ItemEntity, photoPath: String?, numberFormat: NumberF
                     modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = Color(0xFFBBBBBB))
+                    Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = TextAuxiliary())
                 }
             }
         }

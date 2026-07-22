@@ -56,7 +56,7 @@ fun StatisticsScreen(
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else if (uiState.categorySummaries.isEmpty()) {
             EmptyState(
-                icon = { Icon(Icons.Filled.BarChart, null, Modifier.size(100.dp), tint = Color(0xFFBBBBBB)) },
+                icon = { Icon(Icons.Filled.BarChart, null, Modifier.size(100.dp), tint = TextAuxiliary()) },
                 title = "暂无统计数据",
                 subtitle = "添加物品后即可查看统计图表"
             )

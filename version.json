@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.4",
-  "versionCode": 61,
+  "versionName": "2.7.5",
+  "versionCode": 62,
   "updateDate": "2026-07-22",
-  "updateLog": "1. 修复Excel导出闪退+备份路径提示+格式校验\n2. 修复下载完成不跳转安装页问题\n3. APK下载目录改为cacheDir",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.4/LootArchive-release-v2.7.4.apk"
+  "updateLog": "1. 修复5个AlertDialog深色模式背景色缺失\n2. 修复6处硬编码灰色图标改为主题色\n3. 备份页返回按钮文字对齐+Toast背景色\n4. Excel导出放到IO线程防止闪退",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.5/LootArchive-release-v2.7.5.apk"
 }

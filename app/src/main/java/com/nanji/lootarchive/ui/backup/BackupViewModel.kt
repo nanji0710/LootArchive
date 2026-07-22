@@ -87,10 +87,13 @@ class BackupViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
-                val items = itemRepository.getAllItems().first()
-                val dir = backupRepository.exportDir
-                if (!dir.exists()) dir.mkdirs()
-                val file = ExcelUtil.exportItemsToExcel(items, dir)
+                val (items, dir, file) = withContext(Dispatchers.IO) {
+                    val items = itemRepository.getAllItems().first()
+                    val dir = backupRepository.exportDir
+                    if (!dir.exists()) dir.mkdirs()
+                    val file = ExcelUtil.exportItemsToExcel(items, dir)
+                    Triple(items, dir, file)
+                }
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true,
                         message = "Excel导出成功\n文件: ${file.name}\n位置: ${dir.absolutePath}")

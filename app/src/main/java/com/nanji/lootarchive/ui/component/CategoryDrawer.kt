@@ -94,6 +94,7 @@ fun CategoryDrawer(
         if (uiState.showAddDialog) {
             AlertDialog(
                 onDismissRequest = { viewModel.dismissDialog() },
+                containerColor = MaterialTheme.colorScheme.surface,
                 title = { Text("新建分类") },
                 text = {
                     OutlinedTextField(
