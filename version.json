@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.1",
-  "versionCode": 58,
+  "versionName": "2.7.3",
+  "versionCode": 60,
   "updateDate": "2026-07-22",
-  "updateLog": "1. 自定义下载管理器替代系统DownloadManager\n2. 下载进度弹窗（百分比+速度+大小）\n3. 下载完成自动跳转安装页面",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.1/LootArchive-release-v2.7.1.apk"
+  "updateLog": "1. 修复Excel导出闪退（存储权限问题）\n2. 备份/导出提示文件保存位置\n3. 导入恢复支持content URI+格式校验\n4. 文件格式不符拒绝导入并提示",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.3/LootArchive-release-v2.7.3.apk"
 }

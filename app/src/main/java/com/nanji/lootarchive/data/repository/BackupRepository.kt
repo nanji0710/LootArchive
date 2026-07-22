@@ -20,15 +20,15 @@ class BackupRepository @Inject constructor(
     private val backupRecordDao: BackupRecordDao
 ) {
     companion object {
-        const val BACKUP_DIR = "LootArchive/备份"
-        const val EXPORT_DIR = "LootArchive/导出"
+        const val BACKUP_DIR = "备份"
+        const val EXPORT_DIR = "导出"
     }
 
-    val backupDir: File
-        get() = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), BACKUP_DIR).also { it.mkdirs() }
-
     val exportDir: File
-        get() = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), EXPORT_DIR).also { it.mkdirs() }
+        get() = File(context.getExternalFilesDir(null), EXPORT_DIR).also { it.mkdirs() }
+
+    private val backupDir: File
+        get() = File(context.getExternalFilesDir(null), BACKUP_DIR).also { it.mkdirs() }
 
     private val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
 

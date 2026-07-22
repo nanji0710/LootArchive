@@ -139,8 +139,8 @@ fun MainScreen() {
                     FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
                     }
-                    FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = Primary(), modifier = Modifier.size(56.dp)) {
-                        Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(28.dp))
+                    FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(22.dp))
                     }
                     FloatingActionButton(onClick = { navigate(Route.SEARCH) }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))

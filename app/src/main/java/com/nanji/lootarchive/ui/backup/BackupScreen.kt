@@ -44,6 +44,11 @@ fun BackupScreen(
         if (uri != null) viewModel.importFromExcel(uri.toString())
     }
 
+    // 恢复数据库按钮点击
+    fun launchRestore() { restorePicker.launch(arrayOf("application/octet-stream", "application/x-sqlite3")) }
+    // 导入Excel按钮点击
+    fun launchImport() { importPicker.launch(arrayOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel")) }
+
     LaunchedEffect(uiState.message) {
         // 消息显示3秒后自动清除
         if (uiState.message != null) {
@@ -110,7 +115,7 @@ fun BackupScreen(
                             icon = Icons.Filled.Restore,
                             title = "恢复数据库",
                             subtitle = "选择备份文件恢复所有数据（将覆盖现有数据）",
-                            onClick = { restorePicker.launch(arrayOf("*/*")) }
+                            onClick = { launchRestore() }
                         )
                         BackupActionButton(
                             icon = Icons.Filled.UploadFile,

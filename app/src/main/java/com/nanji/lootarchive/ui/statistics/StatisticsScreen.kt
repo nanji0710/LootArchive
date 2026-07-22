@@ -117,7 +117,7 @@ fun StatisticsScreen(
                     }
                 }
 
-                // ─── 按月购入金额折线图 ───
+                // ─── 按月购入金额柱形图 ───
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
                     Text("按月购入金额趋势", fontSize = 18.sp, color = TextPrimary())
                     Spacer(Modifier.height(12.dp))
@@ -129,16 +129,33 @@ fun StatisticsScreen(
                         Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary())
                     } else {
                         val maxVal = monthlyData.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
-                        monthlyData.forEach { (month, total) ->
-                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(month, fontSize = 12.sp, color = TextAuxiliary(), modifier = Modifier.width(60.dp))
-                                Surface(Modifier.weight(1f).height(20.dp), RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
-                                    Box(Modifier.fillMaxSize()) {
-                                        Surface(Modifier.fillMaxHeight().fillMaxWidth((total / maxVal).toFloat().coerceIn(0f, 1f)), RoundedCornerShape(4.dp), color = Primary()) {}
-                                    }
+                        Row(
+                            Modifier.fillMaxWidth().height(180.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            monthlyData.forEachIndexed { index, (month, total) ->
+                                val barHeight = ((total / maxVal) * 130).dp.coerceAtLeast(4.dp)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.Bottom
+                                ) {
+                                    Text(formatPrice(total), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1)
+                                    Spacer(Modifier.height(3.dp))
+                                    Surface(
+                                        Modifier.width(if (monthlyData.size > 6) 18.dp else 24.dp).height(barHeight),
+                                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+                                        color = ChartColors[index % ChartColors.size]
+                                    ) {}
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        month.substring(5) + "月",
+                                        fontSize = 10.sp,
+                                        color = TextAuxiliary(),
+                                        maxLines = 1
+                                    )
                                 }
-                                Spacer(Modifier.width(8.dp))
-                                Text(formatPrice(total), fontSize = 13.sp, color = TextPrimary())
                             }
                         }
                     }
