@@ -83,18 +83,15 @@ fun AddItemScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // 顶部操作栏：返回 + 标题 + 保存
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        topBar = {
+            // 顶部操作栏固定不随内容滚动
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary())
                 }
@@ -107,6 +104,17 @@ fun AddItemScreen(
                     Text("保存", fontWeight = FontWeight.Bold, color = Primary())
                 }
             }
+        },
+        containerColor = Color.Transparent
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
 
             // 物品名称
             GlassCard {
