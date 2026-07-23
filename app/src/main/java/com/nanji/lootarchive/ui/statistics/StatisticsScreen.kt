@@ -150,8 +150,8 @@ fun StatisticsScreen(
                                     ) {}
                                     Spacer(Modifier.height(4.dp))
                                     Text(
-                                        month.substring(5) + "月",
-                                        fontSize = 10.sp,
+                                        month,
+                                        fontSize = if (monthlyData.size > 8) 9.sp else 10.sp,
                                         color = TextAuxiliary(),
                                         maxLines = 1
                                     )
