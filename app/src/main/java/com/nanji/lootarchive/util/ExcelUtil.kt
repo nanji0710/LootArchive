@@ -52,9 +52,10 @@ object ExcelUtil {
             row.createCell(6).setCellValue(item.description)
         }
 
-        // 自动调整列宽
+        // 手动设置列宽（避免 autoSizeColumn 调用 AWT 字体导致 Android 闪退）
+        val colWidths = intArrayOf(20, 8, 12, 14, 14, 16, 40)
         headers.indices.forEach { colIndex ->
-            sheet.autoSizeColumn(colIndex)
+            sheet.setColumnWidth(colIndex, colWidths.getOrElse(colIndex) { 12 } * 256)
         }
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())

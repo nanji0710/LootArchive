@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.6",
-  "versionCode": 63,
+  "versionName": "2.7.7",
+  "versionCode": 64,
   "updateDate": "2026-07-23",
-  "updateLog": "1. APK 体积优化 88MB→11MB（-87%）\n2. 修复下载更新完成后无法跳转到安装页面\n3. 新增 staging 构建变体（21MB，日常测试用）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.6/LootArchive-release-v2.7.6.apk"
+  "updateLog": "1. 修复导出 Excel 闪退\n2. 新增物品页顶栏上滑固定\n3. 按月购入趋势横轴显示完整年月\n4. 修复下载更新后无法跳转安装页面\n5. APK 体积优化 88MB→11MB（-87%）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.7/LootArchive-release-v2.7.7.apk"
 }

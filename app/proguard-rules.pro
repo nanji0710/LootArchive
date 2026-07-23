@@ -2,6 +2,9 @@
 -keep class org.apache.poi.ss.usermodel.** { *; }
 -keep class org.apache.poi.xssf.** { *; }
 -keep class org.apache.poi.openxml4j.** { *; }
+-keep class org.apache.poi.ooxml.** { *; }
+-keep class org.apache.poi.util.** { *; }
+-keep class org.apache.poi.common.** { *; }
 -dontwarn org.apache.poi.**
 -keep class org.openxmlformats.schemas.spreadsheetml.** { *; }
 -keep class org.openxmlformats.schemas.officeDocument.** { *; }
