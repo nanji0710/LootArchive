@@ -37,8 +37,9 @@ class ApkDownloadManager(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         try {
-            // 清理旧 APK（使用缓存目录，FileProvider 已配置 cache-path）
-            val dir = context.cacheDir
+            // 清理旧 APK（使用外部文件目录，系统安装器可直接读取）
+            val dir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
+                ?: context.cacheDir // 兜底
             dir.listFiles()?.filter { it.name.startsWith("LootArchive-v") && it.name.endsWith(".apk") }
                 ?.forEach { it.delete() }
 
@@ -88,18 +89,29 @@ class ApkDownloadManager(private val context: Context) {
         }
     }
 
-    fun install(file: File) {
-        val uri: Uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    fun install(file: File): Boolean {
+        return try {
+            val uri: Uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            // 检查是否有能处理安装 intent 的应用
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ApkDownloadManager", "Install failed", e)
+            false
         }
-        context.startActivity(intent)
     }
 
     companion object {

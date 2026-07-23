@@ -18,6 +18,9 @@
     <!-- 通知权限（保修提醒） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- 安装 APK 权限（应用内更新） -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- 前台服务（备份操作） -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 

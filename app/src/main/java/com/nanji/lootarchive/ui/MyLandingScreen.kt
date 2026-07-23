@@ -136,9 +136,11 @@ fun MyLandingScreen(
                                 downloadProgress = progress
                             }
                             result.onSuccess { file ->
-                                downloader.install(file)
-                                kotlinx.coroutines.delay(1500)
                                 isDownloading = false
+                                val installed = downloader.install(file)
+                                if (!installed) {
+                                    downloadError = "无法启动安装器，请检查系统设置"
+                                }
                             }.onFailure { e ->
                                 isDownloading = false
                                 downloadError = e.message ?: "下载失败"
