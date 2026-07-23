@@ -22,7 +22,8 @@ object UpdateChecker {
     suspend fun check(currentVersionCode: Int): Result<UpdateInfo?> {
         return withContext(Dispatchers.IO) {
             try {
-                val url = URL(VERSION_URL)
+                // 加时间戳绕过 GitHub CDN 缓存
+                val url = URL("$VERSION_URL?t=${System.currentTimeMillis()}")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.connectTimeout = 8000
                 conn.readTimeout = 8000

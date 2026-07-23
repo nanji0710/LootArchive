@@ -143,7 +143,7 @@ fun MyLandingScreen(
                                 }
                             }.onFailure { e ->
                                 isDownloading = false
-                                downloadError = e.message ?: "下载失败"
+                                downloadError = "下载失败: ${e.message ?: "未知错误"}"
                             }
                         }
                     } else {

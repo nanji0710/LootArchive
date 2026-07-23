@@ -46,9 +46,15 @@ class ApkDownloadManager(private val context: Context) {
             val file = File(dir, fileName)
 
             connection = URL(url).openConnection() as HttpURLConnection
+            connection.instanceFollowRedirects = true
             connection.connectTimeout = 15000
-            connection.readTimeout = 30000
+            connection.readTimeout = 60000
             connection.requestMethod = "GET"
+
+            val responseCode = connection.responseCode
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw Exception("服务器返回 $responseCode，请检查下载链接是否正确")
+            }
 
             val totalSize = connection.contentLength.toLong()
             var downloaded = 0L
