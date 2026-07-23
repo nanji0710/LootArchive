@@ -1,7 +1,11 @@
-# Apache POI
--keep class org.apache.poi.** { *; }
+# Apache POI — 仅保留 XSSF（Excel .xlsx），剥离 Word/PPT/Visio/HSSF
+-keep class org.apache.poi.ss.usermodel.** { *; }
+-keep class org.apache.poi.xssf.** { *; }
+-keep class org.apache.poi.openxml4j.** { *; }
 -dontwarn org.apache.poi.**
--keep class org.openxmlformats.** { *; }
+-keep class org.openxmlformats.schemas.spreadsheetml.** { *; }
+-keep class org.openxmlformats.schemas.officeDocument.** { *; }
+-keep class org.openxmlformats.schemas.drawingml.** { *; }
 -dontwarn org.openxmlformats.**
 
 # POI transitive dependencies - not available on Android
