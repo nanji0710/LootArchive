@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.5",
-  "versionCode": 62,
-  "updateDate": "2026-07-22",
-  "updateLog": "1. 修复5个AlertDialog深色模式背景色缺失\n2. 修复6处硬编码灰色图标改为主题色\n3. 备份页返回按钮文字对齐+Toast背景色\n4. Excel导出放到IO线程防止闪退",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.5/LootArchive-release-v2.7.5.apk"
+  "versionName": "2.7.6",
+  "versionCode": 63,
+  "updateDate": "2026-07-23",
+  "updateLog": "1. APK 体积优化 88MB→11MB（-87%）\n2. 修复下载更新完成后无法跳转到安装页面\n3. 新增 staging 构建变体（21MB，日常测试用）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.6/LootArchive-release-v2.7.6.apk"
 }
