@@ -46,18 +46,6 @@ android {
         debug {
             isMinifyEnabled = false
         }
-
-        // 日常测试用：启用 R8 压缩 + 资源缩减，体积接近 release
-        create("staging") {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            isDebuggable = true
-            signingConfig = signingConfigs.getByName("debug")
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
     }
 
     compileOptions {

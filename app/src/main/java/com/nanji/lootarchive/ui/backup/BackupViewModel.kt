@@ -88,6 +88,8 @@ class BackupViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
                 val (items, dir, file) = withContext(Dispatchers.IO) {
+                    // Android 后台线程 ClassLoader 为空，XmlBeans 初始化需要它加载 schema 资源
+                    Thread.currentThread().contextClassLoader = this@BackupViewModel::class.java.classLoader
                     val items = itemRepository.getAllItems().first()
                     val dir = backupRepository.exportDir
                     if (!dir.exists()) dir.mkdirs()
@@ -98,7 +100,7 @@ class BackupViewModel @Inject constructor(
                     it.copy(isLoading = false, isSuccess = true,
                         message = "Excel导出成功\n文件: ${file.name}\n位置: ${dir.absolutePath}")
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = false, message = "导出失败: ${e.message}")
                 }
@@ -117,13 +119,19 @@ class BackupViewModel @Inject constructor(
                     return@launch
                 }
                 val tempFile = copyUriToTemp(uri, "import_${System.currentTimeMillis()}.xlsx")
-                val items = ExcelUtil.importItemsFromExcel(tempFile)
-                tempFile.delete()
+                val items = withContext(Dispatchers.IO) {
+                    Thread.currentThread().contextClassLoader = this@BackupViewModel::class.java.classLoader
+                    try {
+                        ExcelUtil.importItemsFromExcel(tempFile)
+                    } finally {
+                        tempFile.delete()
+                    }
+                }
                 items.forEach { itemRepository.insertItem(it) }
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true, message = "成功导入 ${items.size} 件物品")
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = false, message = "导入失败: ${e.message}")
                 }
