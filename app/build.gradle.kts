@@ -23,8 +23,8 @@ android {
         applicationId = "com.nanji.lootarchive"
         minSdk = 31
         targetSdk = 36
-        versionCode = 69
-        versionName = "2.7.12"
+        versionCode = 70
+        versionName = "2.7.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -134,9 +134,6 @@ dependencies {
 
     // Vico (Charts)
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
-
-    // Excel (Apache POI)
-    implementation("org.apache.poi:poi-ooxml:5.3.0")
 
     // DataStore (Settings)
     implementation("androidx.datastore:datastore-preferences:1.1.1")

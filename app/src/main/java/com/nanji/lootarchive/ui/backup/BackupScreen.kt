@@ -156,17 +156,17 @@ fun BackupScreen(
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
 
-        // 错误提示对话框（可滚动完整展示异常信息）
+        // 错误提示对话框
         if (uiState.message != null && !uiState.isSuccess) {
             AlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
                 containerColor = MaterialTheme.colorScheme.surface,
-                title = { Text("操作失败", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) },
+                icon = { Icon(Icons.Filled.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
+                title = { Text("操作失败", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
                 text = {
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        val lines = uiState.message!!.split("\n")
-                        lines.forEach { line ->
-                            Text(line, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                        uiState.message!!.split("\n").forEach { line ->
+                            Text(line, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
                     }
                 },
@@ -181,14 +181,22 @@ fun BackupScreen(
             }
         }
 
-        // 成功提示 Snackbar
+        // 成功提示对话框
         if (uiState.message != null && uiState.isSuccess) {
-            Snackbar(
-                modifier = Modifier.padding(16.dp),
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                Text(uiState.message!!, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            AlertDialog(
+                onDismissRequest = { viewModel.clearMessage() },
+                containerColor = MaterialTheme.colorScheme.surface,
+                icon = { Icon(Icons.Filled.CheckCircle, null, tint = Primary()) },
+                title = { Text("操作成功", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+                text = {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        uiState.message!!.split("\n").forEach { line ->
+                            Text(line, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的") } }
+            )
         }
     }
 }

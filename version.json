@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.12",
-  "versionCode": 69,
+  "versionName": "2.7.13",
+  "versionCode": 70,
   "updateDate": "2026-07-24",
-  "updateLog": "1. 修复导出 Excel 闪退（关闭 R8 激进优化）\n2. 错误提示对话框可完整显示异常信息",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.12/LootArchive-release-v2.7.12.apk"
+  "updateLog": "1. 修复导出/导入 Excel 闪退 — 完全去掉 POI，改用 Android 原生 ZIP+XML\n2. 提示框背景色跟随主题\n3. APK 体积大幅缩减",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.13/LootArchive-release-v2.7.13.apk"
 }
