@@ -1,7 +1,7 @@
 {
-  "versionName": "2.8.1",
-  "versionCode": 81,
+  "versionName": "2.8.2",
+  "versionCode": 82,
   "updateDate": "2026-07-24",
-  "updateLog": "1. 一键导出/一键导入：ZIP 完整备份（物品数据 + 照片）\n2. Excel 导出改到 ZIP 内部，电脑可直接打开查看\n3. APK 体积 88MB→5.8MB（-93%）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.1/LootArchive-release-v2.8.1.apk"
+  "updateLog": "1. 移除独立备份照片功能，已整合到一键导出",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.2/LootArchive-release-v2.8.2.apk"
 }
