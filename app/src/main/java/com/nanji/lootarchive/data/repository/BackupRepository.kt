@@ -114,6 +114,17 @@ class BackupRepository @Inject constructor(
 
     fun getAllRecords(): Flow<List<BackupRecordEntity>> = backupRecordDao.getAllRecords()
 
+    suspend fun saveExcelExportRecord(fileName: String, filePath: String, itemCount: Int): BackupRecordEntity {
+        val record = BackupRecordEntity(
+            fileName = fileName,
+            backupType = "excel",
+            filePath = filePath,
+            itemCount = itemCount
+        )
+        val id = backupRecordDao.insertRecord(record)
+        return record.copy(id = id)
+    }
+
     suspend fun deleteRecord(record: BackupRecordEntity) {
         File(record.filePath).delete()
         backupRecordDao.deleteRecord(record)

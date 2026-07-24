@@ -11,10 +11,6 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-/**
- * 纯 Android 原生 .xlsx 读写，不依赖 Apache POI / XmlBeans。
- * .xlsx = ZIP 包内多个 XML 文件，Android 自带 ZIP + XmlPullParser 即可完全处理。
- */
 object ExcelUtil {
 
     private const val TAG = "ExcelUtil"
@@ -26,9 +22,7 @@ object ExcelUtil {
         SimpleDateFormat("yyyyMMdd", Locale.getDefault())
     )
 
-    // ──────────────────────────────────────────
-    //  导出
-    // ──────────────────────────────────────────
+    // ─── 导出 ───
 
     fun exportItemsToExcel(items: List<ItemEntity>, exportDir: File): File {
         Log.d(TAG, "导出 ${items.size} 件物品...")
@@ -37,7 +31,8 @@ object ExcelUtil {
 
         ZipOutputStream(FileOutputStream(file)).use { zip ->
 
-            zipEntry(zip, "[Content_Types].xml", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            add(zip, "[Content_Types].xml",
+"""<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
@@ -47,72 +42,81 @@ object ExcelUtil {
   <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
 </Types>""")
 
-            zipEntry(zip, "_rels/.rels", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            add(zip, "_rels/.rels",
+"""<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
 </Relationships>""")
 
-            zipEntry(zip, "xl/_rels/workbook.xml.rels", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            add(zip, "xl/_rels/workbook.xml.rels",
+"""<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
   <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>
   <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 </Relationships>""")
 
-            zipEntry(zip, "xl/workbook.xml", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            add(zip, "xl/workbook.xml",
+"""<?xml version="1.0" encoding="UTF-8"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <sheets><sheet name="物品清单" sheetId="1" r:id="rId1"/></sheets>
 </workbook>""")
 
-            zipEntry(zip, "xl/styles.xml", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            add(zip, "xl/styles.xml",
+"""<?xml version="1.0" encoding="UTF-8"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"/>""")
 
-            // shared strings
+            // Build shared strings
             val ss = mutableListOf<String>()
             val headers = arrayOf("物品名称", "分类ID", "购入价格", "购入日期", "保修到期日", "存放位置", "物品描述")
-            headers.forEach { ss.add(it) }
-            // 表头占前 7 个索引，数据从索引 7 开始
 
-            val rows = items.map { item ->
-                val indices = IntArray(7)
-                indices[0] = addString(ss, item.name)
-                indices[1] = addString(ss, item.categoryId.toString())
-                indices[2] = addString(ss, formatPrice(item.purchasePrice))
-                indices[3] = addString(ss, item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "")
-                indices[4] = addString(ss, item.warrantyExpiryDate?.let { dateFormat.format(Date(it)) } ?: "")
-                indices[5] = addString(ss, item.storageLocation)
-                indices[6] = addString(ss, item.description)
-                indices
+            data class RowRefs(val refs: IntArray) // shared string indices per column
+
+            // Add headers to shared strings (indices 0-6)
+            headers.forEach { ss.add(it) }
+
+            // Add item data to shared strings, remembering indices
+            val dataRefs = items.map { item ->
+                RowRefs(IntArray(7).also { a ->
+                    a[0] = store(ss, item.name)
+                    a[1] = store(ss, item.categoryId.toString())
+                    a[2] = store(ss, formatPrice(item.purchasePrice))
+                    a[3] = store(ss, item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "")
+                    a[4] = store(ss, item.warrantyExpiryDate?.let { dateFormat.format(Date(it)) } ?: "")
+                    a[5] = store(ss, item.storageLocation)
+                    a[6] = store(ss, item.description)
+                })
             }
 
-            zipEntry(zip, "xl/sharedStrings.xml", buildString {
-                append("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""")
-                append("""<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${ss.size}" uniqueCount="${ss.size}">""")
-                for (s in ss) append("<si><t>${esc(s)}</t></si>")
+            // totalRefs = each unique string counted once per cell it appears in
+            val totalRefs = headers.size + dataRefs.size * headers.size
+
+            add(zip, "xl/sharedStrings.xml", buildString {
+                append("""<?xml version="1.0" encoding="UTF-8"?>""")
+                append("""<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="$totalRefs" uniqueCount="${ss.size}">""")
+                for (s in ss) append("<si><t xml:space=\"preserve\">${esc(s)}</t></si>")
                 append("</sst>")
             })
 
-            zipEntry(zip, "xl/worksheets/sheet1.xml", buildString {
-                append("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""")
+            add(zip, "xl/worksheets/sheet1.xml", buildString {
+                append("""<?xml version="1.0" encoding="UTF-8"?>""")
                 append("""<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>""")
                 val widths = intArrayOf(20, 8, 14, 14, 14, 16, 40)
                 for ((i, w) in widths.withIndex())
-                    append("""<col min="${i + 1}" max="${i + 1}" width="$w" customWidth="1"/>""")
+                    append("""<col min="${i+1}" max="${i+1}" width="$w" customWidth="1"/>""")
                 append("</cols><sheetData>")
-
-                // 表头 row=1
+                // header row
                 append("""<row r="1">""")
-                for ((ci, _) in headers.withIndex())
-                    append("""<c r="${col(ci)}1" t="s"><v>$ci</v></c>""")
+                for (ci in headers.indices)
+                    append("""<c r="${cellRef(ci, 1)}" t="s"><v>$ci</v></c>""")
                 append("</row>")
-
-                // 数据行
-                for ((ri, row) in rows.withIndex()) {
+                // data rows
+                for ((ri, row) in dataRefs.withIndex()) {
                     val rn = ri + 2
                     append("""<row r="$rn">""")
-                    for ((ci, si) in row.withIndex())
-                        append("""<c r="${col(ci)}$rn" t="s"><v>$si</v></c>""")
+                    for ((ci, si) in row.refs.withIndex())
+                        append("""<c r="${cellRef(ci, rn)}" t="s"><v>$si</v></c>""")
                     append("</row>")
                 }
                 append("</sheetData></worksheet>")
@@ -125,38 +129,32 @@ object ExcelUtil {
         return file
     }
 
-    // ──────────────────────────────────────────
-    //  导入（读取自己导出的 .xlsx）
-    // ──────────────────────────────────────────
+    // ─── 导入 ───
 
     fun importItemsFromExcel(file: File): List<ItemEntity> {
         Log.d(TAG, "导入: ${file.name}")
         val sharedStrings = mutableListOf<String>()
-        val rows = mutableListOf<List<String>>()
         var sheetBytes: ByteArray? = null
 
         ZipInputStream(FileInputStream(file)).use { zip ->
             var entry: ZipEntry?
             while (zip.nextEntry.also { entry = it } != null) {
-                val name = entry!!.name
-                when {
-                    name == "xl/sharedStrings.xml" -> parseSharedStrings(zip, sharedStrings)
-                    name.startsWith("xl/worksheets/sheet") -> sheetBytes = zip.readBytes()
+                when (entry!!.name) {
+                    "xl/sharedStrings.xml" -> parseSharedStrings(zip, sharedStrings)
+                    "xl/worksheets/sheet1.xml" -> sheetBytes = zip.readBytes()
                 }
                 zip.closeEntry()
             }
         }
 
-        // 必须等 shared strings 解析完再解析 sheet（ZIP 条目顺序不确定）
+        val rows = mutableListOf<List<String>>()
         sheetBytes?.let { parseSheet(it.inputStream(), sharedStrings, rows) }
-        if (sheetBytes == null) throw Exception("Excel 文件中未找到工作表")
-
+            ?: throw Exception("Excel 文件中未找到工作表")
         if (rows.isEmpty()) throw Exception("未找到数据行")
 
-        // 跳过表头（第一行），从第二行开始解析
         val items = mutableListOf<ItemEntity>()
         for ((i, row) in rows.withIndex()) {
-            if (i == 0) continue // 跳过表头
+            if (i == 0) continue // skip header
             try {
                 val item = ItemEntity(
                     name = row.getOrElse(0) { "" },
@@ -169,28 +167,25 @@ object ExcelUtil {
                 )
                 if (item.name.isNotBlank()) items.add(item)
             } catch (e: Exception) {
-                Log.w(TAG, "跳过第 ${i + 1} 行", e)
+                Log.w(TAG, "跳过第 ${i+1} 行", e)
             }
         }
-
         Log.d(TAG, "导入成功: ${items.size} 件")
         return items
     }
 
-    // ──────────────────────────────────────────
-    //  内部工具
-    // ──────────────────────────────────────────
+    // ─── helpers ───
 
-    private fun zipEntry(zip: ZipOutputStream, name: String, xml: String) {
+    private fun add(zip: ZipOutputStream, name: String, xml: String) {
         zip.putNextEntry(ZipEntry(name))
         zip.write(xml.toByteArray(Charsets.UTF_8))
         zip.closeEntry()
     }
 
-    private fun addString(list: MutableList<String>, s: String): Int {
-        val idx = list.size
+    private fun store(list: MutableList<String>, s: String): Int {
+        val i = list.size
         list.add(s)
-        return idx
+        return i
     }
 
     private fun esc(s: String) = s
@@ -198,102 +193,108 @@ object ExcelUtil {
         .replace("<", "&lt;")
         .replace(">", "&gt;")
         .replace("\"", "&quot;")
+        .replace("\n", "&#10;")
+        .replace("\r", "")
 
-    private fun col(c: Int) = ('A' + c).toString()
+    private fun cellRef(col: Int, row: Int): String {
+        var c = col
+        val sb = StringBuilder()
+        while (c >= 0) {
+            sb.insert(0, ('A' + (c % 26)).toChar())
+            c = c / 26 - 1
+        }
+        return "$sb$row"
+    }
 
     private fun formatPrice(value: Double): String =
         if (value == value.toLong().toDouble()) value.toLong().toString()
         else value.toString()
 
-    private fun parsePrice(s: String): Double {
-        val cleaned = s.replace(Regex("[^0-9.]"), "")
-        return cleaned.toDoubleOrNull() ?: 0.0
-    }
+    private fun parsePrice(s: String): Double =
+        s.replace(Regex("[^0-9.]"), "").toDoubleOrNull() ?: 0.0
 
     private fun parseDateAny(s: String): Long? {
         if (s.isBlank()) return null
         for (df in dateFormats) {
             try { return df.parse(s)?.time } catch (_: Exception) {}
         }
-        // 尝试纯数字：毫秒时间戳 或 Excel 序列号（天数，基准 1899-12-30）
         s.toLongOrNull()?.let {
-            return if (it > 1_000_000_000_000L) it
-            else (it - 25569) * 86_400_000L
+            return if (it > 1_000_000_000_000L) it else (it - 25569) * 86_400_000L
         }
         return null
     }
 
+    // ─── XML parsers ───
+
     private fun parseSharedStrings(input: InputStream, out: MutableList<String>) {
-        val parser = Xml.newPullParser()
-        parser.setInput(input, "UTF-8")
-        var event = parser.eventType
+        val p = Xml.newPullParser()
+        p.setInput(input, "UTF-8")
+        var e = p.eventType
         var text = ""
-        while (event != XmlPullParser.END_DOCUMENT) {
-            when (event) {
-                XmlPullParser.START_TAG -> { if (parser.name == "t") text = "" }
-                XmlPullParser.TEXT -> { if (!parser.isWhitespace) text = parser.text }
-                XmlPullParser.END_TAG -> { if (parser.name == "t") out.add(text) }
+        while (e != XmlPullParser.END_DOCUMENT) {
+            when (e) {
+                XmlPullParser.START_TAG -> if (p.name == "t") text = ""
+                XmlPullParser.TEXT -> if (!p.isWhitespace) text = p.text
+                XmlPullParser.END_TAG -> if (p.name == "t") out.add(text)
             }
-            event = parser.next()
+            e = p.next()
         }
     }
 
-    private fun parseSheet(input: InputStream, sharedStrings: List<String>, rows: MutableList<List<String>>) {
-        val parser = Xml.newPullParser()
-        parser.setInput(input, "UTF-8")
-        var event = parser.eventType
-        var cellType = ""  // "s" = shared string, else inline number
-        var cellValue = ""
-        var cellRef = ""   // 必须在 START_TAG 上读取，END_TAG 取不到属性
-        val colValues = mutableMapOf<Int, String>()
+    private fun parseSheet(input: InputStream, ss: List<String>, rows: MutableList<List<String>>) {
+        val p = Xml.newPullParser()
+        p.setInput(input, "UTF-8")
+        var e = p.eventType
+        var cellType = ""; var cellRef = ""
+        var inT = false; var inV = false
+        var text = StringBuilder()
+        val cv = mutableMapOf<Int, String>()
 
-        while (event != XmlPullParser.END_DOCUMENT) {
-            when (event) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "row" -> {
-                            colValues.clear()
-                            cellValue = ""
-                            cellType = ""
-                        }
-                        "c" -> {
-                            cellType = parser.getAttributeValue(null, "t") ?: ""
-                            cellRef = parser.getAttributeValue(null, "r") ?: ""  // ⚠️ 必须在 START_TAG 读
-                            cellValue = ""
-                        }
+        while (e != XmlPullParser.END_DOCUMENT) {
+            when (e) {
+                XmlPullParser.START_TAG -> when (p.name) {
+                    "row" -> { cv.clear(); cellType = "" }
+                    "c" -> {
+                        cellType = p.getAttributeValue(null, "t") ?: ""
+                        cellRef = p.getAttributeValue(null, "r") ?: ""
                     }
+                    "t" -> { text.clear(); inT = true }
+                    "v" -> { text.clear(); inV = true }
                 }
                 XmlPullParser.TEXT -> {
-                    if (!parser.isWhitespace) cellValue = parser.text
+                    if (inT || inV) text.append(p.text)
                 }
-                XmlPullParser.END_TAG -> {
-                    when (parser.name) {
-                        "c" -> {
-                            val colIdx = parseCol(cellRef)
-                            val v = if (cellType == "s") {
-                                cellValue.toIntOrNull()?.let { sharedStrings.getOrElse(it) { cellValue } } ?: cellValue
-                            } else cellValue
-                            if (colIdx >= 0) colValues[colIdx] = v
-                            cellRef = ""
-                        }
-                        "row" -> {
-                            if (colValues.isNotEmpty()) {
-                                val maxCol = colValues.keys.maxOrNull() ?: -1
-                                rows.add((0..maxCol).map { colValues[it] ?: "" })
+                XmlPullParser.END_TAG -> when (p.name) {
+                    "t" -> inT = false
+                    "v" -> { inV = false }
+                    "c" -> {
+                        val ci = parseCol(cellRef)
+                        if (ci >= 0) {
+                            cv[ci] = when (cellType) {
+                                "s" -> text.toString().toIntOrNull()
+                                    ?.let { ss.getOrElse(it) { text.toString() } }
+                                    ?: text.toString()
+                                else -> text.toString()
                             }
+                        }
+                    }
+                    "row" -> {
+                        if (cv.isNotEmpty()) {
+                            val max = cv.keys.maxOrNull() ?: -1
+                            rows.add((0..max).map { cv[it] ?: "" })
                         }
                     }
                 }
             }
-            event = parser.next()
+            e = p.next()
         }
     }
 
     private fun parseCol(ref: String): Int {
-        // "A1" -> 0, "B2" -> 1, "AA3" -> 26
         val letters = ref.takeWhile { it.isLetter() }
-        var col = 0
-        for (c in letters) col = col * 26 + (c.uppercaseChar() - 'A' + 1)
-        return col - 1
+        if (letters.isEmpty()) return -1
+        var c = 0
+        for (ch in letters) c = c * 26 + (ch.uppercaseChar() - 'A' + 1)
+        return c - 1
     }
 }

@@ -87,15 +87,14 @@ class BackupViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
-                // 先在当前协程获取数据
                 val items = itemRepository.getAllItems().first()
                 val dir = backupRepository.exportDir
                 val file = withContext(Dispatchers.IO) {
                     if (!dir.exists()) dir.mkdirs()
-                    // ⚠️ 关键：IO 线程 ClassLoader 为空，XmlBeans 需要它
-                    Thread.currentThread().contextClassLoader = javaClass.classLoader
                     ExcelUtil.exportItemsToExcel(items, dir)
                 }
+                // 写入备份记录
+                backupRepository.saveExcelExportRecord(file.name, file.absolutePath, items.size)
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true,
                         message = "Excel导出成功\n文件: ${file.name}\n位置: ${dir.absolutePath}")
@@ -128,12 +127,8 @@ class BackupViewModel @Inject constructor(
                 }
                 val tempFile = copyUriToTemp(uri, "import_${System.currentTimeMillis()}.xlsx")
                 val items = withContext(Dispatchers.IO) {
-                    Thread.currentThread().contextClassLoader = this@BackupViewModel::class.java.classLoader
-                    try {
-                        ExcelUtil.importItemsFromExcel(tempFile)
-                    } finally {
-                        tempFile.delete()
-                    }
+                    try { ExcelUtil.importItemsFromExcel(tempFile) }
+                    finally { tempFile.delete() }
                 }
                 items.forEach { itemRepository.insertItem(it) }
                 _uiState.update {

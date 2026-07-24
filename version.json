@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.13",
-  "versionCode": 70,
+  "versionName": "2.8.0",
+  "versionCode": 80,
   "updateDate": "2026-07-24",
-  "updateLog": "1. 修复导出/导入 Excel 闪退 — 完全去掉 POI，改用 Android 原生 ZIP+XML\n2. 提示框背景色跟随主题\n3. APK 体积大幅缩减",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.13/LootArchive-release-v2.7.13.apk"
+  "updateLog": "1. 彻底修复 Excel 导出/导入闪退（用原生 ZIP+XML 替代 POI）\n2. 导出 Excel 自动记录备份历史\n3. 提示框背景色跟随主题\n4. APK 体积 88MB→5.8MB（-93%）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.0/LootArchive-release-v2.8.0.apk"
 }
