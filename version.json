@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.10",
-  "versionCode": 67,
+  "versionName": "2.7.11",
+  "versionCode": 68,
   "updateDate": "2026-07-24",
-  "updateLog": "1. 修复导出 Excel 闪退（ClassLoader + 错误提示增强)",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.10/LootArchive-release-v2.7.10.apk"
+  "updateLog": "1. 修复导出 Excel 闪退（POI 完整保留 + 去混淆 + 错误提示增强）\n2. 修复提示框背景色不跟随主题",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.11/LootArchive-release-v2.7.11.apk"
 }

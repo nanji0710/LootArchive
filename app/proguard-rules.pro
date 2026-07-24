@@ -1,45 +1,37 @@
-# Apache POI — 仅保留 XSSF（Excel .xlsx），剥离 Word/PPT/Visio/HSSF
--keep class org.apache.poi.ss.usermodel.** { *; }
--keep class org.apache.poi.xssf.** { *; }
--keep class org.apache.poi.openxml4j.** { *; }
--keep class org.apache.poi.ooxml.** { *; }
--keep class org.apache.poi.util.** { *; }
--keep class org.apache.poi.common.** { *; }
+# ===== 基础：保留注解、签名、反射元数据 =====
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions
+-keepattributes SourceFile,LineNumberTable
+
+# ===== Apache POI — 完整保留 XSSF 链路（反射密集，绝对不能混淆） =====
+-keep class org.apache.poi.** { *; }
 -dontwarn org.apache.poi.**
 
-# XmlBeans — POI XSSF 的核心 XML 绑定框架，大量反射调用必须保留
+# XmlBeans — POI XSSF 的核心 XML 绑定框架
 -keep class org.apache.xmlbeans.** { *; }
 -dontwarn org.apache.xmlbeans.**
 
-# OOXML Schema 类型（XSSF 运行时动态加载）
--keep class org.openxmlformats.schemas.spreadsheetml.** { *; }
--keep class org.openxmlformats.schemas.officeDocument.** { *; }
--keep class org.openxmlformats.schemas.drawingml.** { *; }
--dontwarn org.openxmlformats.**
+# OOXML Schema 类型（XSSF 运行时通过反射按需加载）
 -keep class org.openxmlformats.schemas.** { *; }
+-dontwarn org.openxmlformats.schemas.**
 
 # XmlBeans 内置 schema 类型系统
 -keep class schemaorg_apache_xmlbeans.** { *; }
--keep class org.apache.xmlbeans.metadata.** { *; }
 -dontwarn schemaorg_apache_xmlbeans.**
 
-# POI 用到的 Apache Commons 子集
+# Apache Commons（POI 依赖）
 -keep class org.apache.commons.compress.** { *; }
 -keep class org.apache.commons.collections4.** { *; }
--keep class org.apache.commons.math3.util.** { *; }
 -dontwarn org.apache.commons.compress.**
 -dontwarn org.apache.commons.collections4.**
 
-# POI transitive dependencies - not available on Android
+# POI / Commons 无关依赖（Android 上不可用）
 -dontwarn aQute.bnd.**
 -dontwarn edu.umd.cs.findbugs.**
 -dontwarn java.awt.**
 -dontwarn javax.xml.stream.**
 -dontwarn net.sf.saxon.**
 -dontwarn org.apache.logging.log4j.**
--dontwarn org.apache.xmlbeans.**
 -dontwarn org.osgi.framework.**
--dontwarn org.openxmlformats.schemas.**
 -dontwarn com.graphbuilder.**
 -dontwarn com.microsoft.schemas.**
 -dontwarn org.etsi.**
@@ -52,6 +44,8 @@
 -dontwarn org.apache.avalon.**
 -dontwarn org.apache.batik.**
 -dontwarn org.apache.commons.logging.**
+-dontwarn org.apache.commons.codec.**
+-dontwarn org.apache.commons.math3.**
 
 # Room
 -keep class * extends androidx.room.RoomDatabase

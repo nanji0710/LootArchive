@@ -156,23 +156,31 @@ fun BackupScreen(
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
 
-        // 消息提示
-        if (uiState.message != null) {
-            Snackbar(
-                modifier = Modifier.padding(16.dp),
-                containerColor = if (uiState.isSuccess)
-                    Primary().copy(alpha = 0.15f)
-                else
-                    Color(0xFFF44336).copy(alpha = 0.15f)
-            ) {
-                Text(uiState.message!!)
-            }
+        // 错误提示对话框
+        if (uiState.message != null && !uiState.isSuccess) {
+            AlertDialog(
+                onDismissRequest = { viewModel.clearMessage() },
+                containerColor = MaterialTheme.colorScheme.surface,
+                title = { Text("操作失败", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) },
+                text = { Text(uiState.message!!, fontSize = 14.sp) },
+                confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定") } }
+            )
         }
 
         // Loading
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
+            }
+        }
+
+        // 成功提示 Snackbar
+        if (uiState.message != null && uiState.isSuccess) {
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Text(uiState.message!!, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
