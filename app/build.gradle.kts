@@ -23,8 +23,8 @@ android {
         applicationId = "com.nanji.lootarchive"
         minSdk = 31
         targetSdk = 36
-        versionCode = 68
-        versionName = "2.7.11"
+        versionCode = 69
+        versionName = "2.7.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -39,7 +39,7 @@ android {
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
+                getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
         }

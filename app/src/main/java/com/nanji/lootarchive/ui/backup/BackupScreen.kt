@@ -156,13 +156,20 @@ fun BackupScreen(
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
 
-        // 错误提示对话框
+        // 错误提示对话框（可滚动完整展示异常信息）
         if (uiState.message != null && !uiState.isSuccess) {
             AlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
                 containerColor = MaterialTheme.colorScheme.surface,
                 title = { Text("操作失败", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) },
-                text = { Text(uiState.message!!, fontSize = 14.sp) },
+                text = {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        val lines = uiState.message!!.split("\n")
+                        lines.forEach { line ->
+                            Text(line, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+                },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定") } }
             )
         }
