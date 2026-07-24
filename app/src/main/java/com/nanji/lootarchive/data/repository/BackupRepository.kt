@@ -66,36 +66,6 @@ class BackupRepository @Inject constructor(
         }
     }
 
-    // ========== 照片打包备份 ==========
-
-    suspend fun backupPhotos(photoPaths: List<String>): File {
-        val timestamp = dateFormat.format(Date())
-        val zipFileName = "LootArchive_photos_$timestamp.zip"
-        val zipFile = File(backupDir, zipFileName)
-
-        java.util.zip.ZipOutputStream(FileOutputStream(zipFile)).use { zos ->
-            photoPaths.forEach { path ->
-                val file = File(path)
-                if (file.exists()) {
-                    val entry = java.util.zip.ZipEntry(file.name)
-                    zos.putNextEntry(entry)
-                    FileInputStream(file).use { it.copyTo(zos) }
-                    zos.closeEntry()
-                }
-            }
-        }
-
-        val record = BackupRecordEntity(
-            fileName = zipFileName,
-            backupType = "photos",
-            filePath = zipFile.absolutePath,
-            itemCount = photoPaths.size
-        )
-        backupRecordDao.insertRecord(record)
-
-        return zipFile
-    }
-
     suspend fun restorePhotos(zipFilePath: String, targetDir: File) {
         java.util.zip.ZipInputStream(FileInputStream(File(zipFilePath))).use { zis ->
             var entry = zis.nextEntry

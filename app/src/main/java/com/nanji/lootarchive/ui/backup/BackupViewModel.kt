@@ -59,30 +59,6 @@ class BackupViewModel @Inject constructor(
         }
     }
 
-    fun backupPhotos() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, message = null) }
-            try {
-                val photoPaths = itemRepository.getAllPhotoPaths()
-                if (photoPaths.isEmpty()) {
-                    _uiState.update {
-                        it.copy(isLoading = false, message = "没有照片需要备份")
-                    }
-                    return@launch
-                }
-                val zipFile = backupRepository.backupPhotos(photoPaths)
-                _uiState.update {
-                    it.copy(isLoading = false, isSuccess = true,
-                        message = "照片备份成功\n文件: ${zipFile.name}\n位置: ${backupRepository.exportDir.absolutePath}")
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, isSuccess = false, message = "照片备份失败: ${e.message}")
-                }
-            }
-        }
-    }
-
     fun fullExport() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }

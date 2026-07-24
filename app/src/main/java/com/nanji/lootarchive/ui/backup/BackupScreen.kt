@@ -85,12 +85,6 @@ fun BackupScreen(
                             onClick = { viewModel.backupDatabase() }
                         )
                         BackupActionButton(
-                            icon = Icons.Filled.PhotoLibrary,
-                            title = "备份照片",
-                            subtitle = "将所有物品照片打包为 ZIP 文件",
-                            onClick = { viewModel.backupPhotos() }
-                        )
-                        BackupActionButton(
                             icon = Icons.Filled.FileDownload,
                             title = "一键导出",
                             subtitle = "完整备份：物品数据 + 照片，打包为一个 ZIP 文件",
