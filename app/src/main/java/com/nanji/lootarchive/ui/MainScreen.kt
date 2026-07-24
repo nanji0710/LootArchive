@@ -48,6 +48,9 @@ fun MainScreen() {
     var currentRoute by remember { mutableStateOf(Route.HOME) }
     var detailItemId by remember { mutableStateOf(0L) }
     var editItemId by remember { mutableStateOf<Long?>(null) }
+
+    val settingsVM: com.nanji.lootarchive.ui.settings.SettingsViewModel = hiltViewModel()
+    val avatarUri by settingsVM.uiState.collectAsState()
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var showCategorySheet by remember { mutableStateOf(false) }
     val backStack = remember { mutableListOf<String>() }
@@ -118,6 +121,7 @@ fun MainScreen() {
                     }
                 }
                 Route.MY -> MyLandingScreen(
+                    avatarUri = avatarUri.avatarUri,
                     onNavigateToSettings = { navigate(Route.SETTINGS) },
                     onNavigateToCategory = { navigate(Route.CATEGORY) },
                     onNavigateToBackup = { navigate(Route.BACKUP) }

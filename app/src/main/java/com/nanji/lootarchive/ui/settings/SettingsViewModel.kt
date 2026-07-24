@@ -19,6 +19,8 @@ data class SettingsUiState(
     val backupReminderEnabled: Boolean = false,
     val backupReminderDay: Int = 1,
     val themeMode: String = "system",
+    val primaryColor: Int = 0xFFD4A574.toInt(),
+    val avatarUri: String = "",
     val appName: String = "拾物集",
     val trashItemCount: Int = 0,
     val cacheSize: Long = 0L,
@@ -49,22 +51,26 @@ class SettingsViewModel @Inject constructor(
                     settingsRepository.backupReminderDay,
                     settingsRepository.themeMode
                 ) { currency, reminderDays, backupEnabled, backupDay, theme ->
-                    Quintet(currency, reminderDays, backupEnabled, backupDay, theme)
+                    Sextet(currency, reminderDays, backupEnabled, backupDay, theme)
                 },
                 combine(
                     settingsRepository.appName,
-                    itemRepository.getDeletedItems()
-                ) { appName, deletedItems ->
-                    Pair(appName, deletedItems.size)
+                    itemRepository.getDeletedItems(),
+                    settingsRepository.primaryColor,
+                    settingsRepository.avatarUri
+                ) { appName, deletedItems, primaryColor, avatarUri ->
+                    Quad(appName, deletedItems.size, primaryColor, avatarUri)
                 }
-            ) { quintet, (appName, trashCount) ->
+            ) { sextet, (appName, trashCount, primaryColor, avatarUri) ->
                 val current = _uiState.value
                 SettingsUiState(
-                    currency = quintet.currency,
-                    warrantyReminderDays = quintet.reminderDays,
-                    backupReminderEnabled = quintet.backupEnabled,
-                    backupReminderDay = quintet.backupDay,
-                    themeMode = quintet.theme,
+                    currency = sextet.currency,
+                    warrantyReminderDays = sextet.reminderDays,
+                    backupReminderEnabled = sextet.backupEnabled,
+                    backupReminderDay = sextet.backupDay,
+                    themeMode = sextet.theme,
+                    primaryColor = primaryColor,
+                    avatarUri = avatarUri,
                     appName = appName,
                     trashItemCount = trashCount,
                     // 保留缓存相关字段，避免被流覆盖
@@ -98,6 +104,16 @@ class SettingsViewModel @Inject constructor(
 
     fun setThemeMode(mode: String) {
         viewModelScope.launch { settingsRepository.setThemeMode(mode) }
+    }
+
+    fun setPrimaryColor(color: Int) {
+        _uiState.update { it.copy(primaryColor = color) }
+        viewModelScope.launch { settingsRepository.setPrimaryColor(color) }
+    }
+
+    fun setAvatarUri(uri: String) {
+        _uiState.update { it.copy(avatarUri = uri) }
+        viewModelScope.launch { settingsRepository.setAvatarUri(uri) }
     }
 
     fun setBackgroundUri(uri: String) {
@@ -179,11 +195,13 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private data class Quintet(
+    private data class Sextet(
         val currency: String,
         val reminderDays: Int,
         val backupEnabled: Boolean,
         val backupDay: Int,
         val theme: String
     )
+
+    private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 }

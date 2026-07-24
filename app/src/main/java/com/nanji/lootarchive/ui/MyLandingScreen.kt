@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.widget.Toast
+import coil.compose.AsyncImage
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.ApkDownloadManager
@@ -26,10 +27,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val CURRENT_VERSION_CODE = 82
+private const val CURRENT_VERSION_CODE = 83
 
 @Composable
 fun MyLandingScreen(
+    avatarUri: String = "",
     onNavigateToSettings: () -> Unit,
     onNavigateToCategory: () -> Unit,
     onNavigateToBackup: () -> Unit
@@ -62,7 +64,15 @@ fun MyLandingScreen(
                     color = Primary().copy(alpha = 0.15f)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Filled.Person, null, Modifier.size(36.dp), tint = Primary())
+                        if (avatarUri.isNotEmpty()) {
+                            AsyncImage(
+                                model = Uri.parse(avatarUri),
+                                contentDescription = "头像",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Icon(Icons.Filled.Person, null, Modifier.size(36.dp), tint = Primary())
+                        }
                     }
                 }
                 Spacer(Modifier.width(16.dp))
@@ -102,7 +112,7 @@ fun MyLandingScreen(
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v2.8.2", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v2.8.3", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 
@@ -163,7 +173,7 @@ fun MyLandingScreen(
             onDismissRequest = { showNoUpdate = false },
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v2.8.2") },
+            text = { Text("当前已是最新版本 v2.8.3") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }

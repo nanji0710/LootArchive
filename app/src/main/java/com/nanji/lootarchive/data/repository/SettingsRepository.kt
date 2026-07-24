@@ -18,7 +18,9 @@ class SettingsRepository @Inject constructor(
         val KEY_BACKUP_REMINDER_DAY = intPreferencesKey("backup_reminder_day")
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode") // "system" | "light" | "dark"
         val KEY_CUSTOM_BACKGROUND_URI = stringPreferencesKey("custom_background_uri")
+        val KEY_AVATAR_URI = stringPreferencesKey("avatar_uri")
         val KEY_APP_NAME = stringPreferencesKey("app_name")
+        val KEY_PRIMARY_COLOR = intPreferencesKey("primary_color") // ARGB int
     }
 
     // ========== 价格单位 ==========
@@ -54,6 +56,18 @@ class SettingsRepository @Inject constructor(
     val customBackgroundUri: Flow<String> = dataStore.data.map { it[KEY_CUSTOM_BACKGROUND_URI] ?: "" }
     suspend fun setCustomBackgroundUri(uri: String) {
         dataStore.edit { it[KEY_CUSTOM_BACKGROUND_URI] = uri }
+    }
+
+    // ========== 头像 ==========
+    val avatarUri: Flow<String> = dataStore.data.map { it[KEY_AVATAR_URI] ?: "" }
+    suspend fun setAvatarUri(uri: String) {
+        dataStore.edit { it[KEY_AVATAR_URI] = uri }
+    }
+
+    // ========== 主色调 ==========
+    val primaryColor: Flow<Int> = dataStore.data.map { it[KEY_PRIMARY_COLOR] ?: 0xFFD4A574.toInt() }
+    suspend fun setPrimaryColor(color: Int) {
+        dataStore.edit { it[KEY_PRIMARY_COLOR] = color }
     }
 
     // ========== APP名称 ==========

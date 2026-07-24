@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -81,7 +82,7 @@ fun HomeScreen(
                 isRefreshing = false
             }
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color.Transparent),
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),

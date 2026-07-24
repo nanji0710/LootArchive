@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui.statistics
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,7 +51,7 @@ fun StatisticsScreen(
         PullToRefreshBox(
             isRefreshing = refreshing,
             onRefresh = { refreshing = true; scope.launch { kotlinx.coroutines.delay(800); refreshing = false } },
-            modifier = Modifier.fillMaxSize().padding(padding)
+            modifier = Modifier.fillMaxSize().padding(padding).background(Color.Transparent)
         ) {
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }

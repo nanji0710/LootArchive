@@ -1,7 +1,7 @@
 {
-  "versionName": "2.8.2",
-  "versionCode": 82,
+  "versionName": "2.8.3",
+  "versionCode": 83,
   "updateDate": "2026-07-24",
-  "updateLog": "1. 移除独立备份照片功能，已整合到一键导出",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.2/LootArchive-release-v2.8.2.apk"
+  "updateLog": "1. 新增主题色选择器，无极调节\n2. 支持自定义头像\n3. 下拉刷新/统计筛选框背景色跟随主题",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.3/LootArchive-release-v2.8.3.apk"
 }

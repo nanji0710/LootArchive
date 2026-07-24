@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -23,7 +24,7 @@ val _TextSecondaryDark = Color(0xFFD9D9D9)
 val _TextAuxiliaryDark = Color(0xFFAAAAAA)
 
 // ─── @Composable 主题感知色（读取 LootArchiveTheme 提供的 LocalDarkTheme） ───
-@Composable fun Primary() = if (LocalDarkTheme.current) _PrimaryDark else _Primary
+@Composable fun Primary() = MaterialTheme.colorScheme.primary // 动态跟随用户设置的主色
 @Composable fun TextPrimary() = if (LocalDarkTheme.current) _TextPrimaryDark else _TextPrimaryLight
 @Composable fun TextSecondary() = if (LocalDarkTheme.current) _TextSecondaryDark else _TextSecondaryLight
 @Composable fun TextAuxiliary() = if (LocalDarkTheme.current) _TextAuxiliaryDark else _TextAuxiliaryLight
