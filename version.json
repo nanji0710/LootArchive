@@ -1,7 +1,7 @@
 {
-  "versionName": "2.7.9",
-  "versionCode": 66,
-  "updateDate": "2026-07-23",
-  "updateLog": "1. 修复导出 Excel 闪退（去掉样式引用 AWT）\n2. 修复下载更新后无法跳转安装页面\n3. 新增物品页顶栏上滑固定\n4. 按月购入趋势横轴显示完整年月",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.9/LootArchive-release-v2.7.9.apk"
+  "versionName": "2.7.10",
+  "versionCode": 67,
+  "updateDate": "2026-07-24",
+  "updateLog": "1. 修复导出 Excel 闪退（ClassLoader + 错误提示增强)",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.7.10/LootArchive-release-v2.7.10.apk"
 }

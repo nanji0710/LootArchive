@@ -87,22 +87,30 @@ class BackupViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
-                val (items, dir, file) = withContext(Dispatchers.IO) {
-                    // Android 后台线程 ClassLoader 为空，XmlBeans 初始化需要它加载 schema 资源
-                    Thread.currentThread().contextClassLoader = this@BackupViewModel::class.java.classLoader
-                    val items = itemRepository.getAllItems().first()
-                    val dir = backupRepository.exportDir
+                // 先在当前协程获取数据
+                val items = itemRepository.getAllItems().first()
+                val dir = backupRepository.exportDir
+                val file = withContext(Dispatchers.IO) {
                     if (!dir.exists()) dir.mkdirs()
-                    val file = ExcelUtil.exportItemsToExcel(items, dir)
-                    Triple(items, dir, file)
+                    // ⚠️ 关键：IO 线程 ClassLoader 为空，XmlBeans 需要它
+                    Thread.currentThread().contextClassLoader = javaClass.classLoader
+                    ExcelUtil.exportItemsToExcel(items, dir)
                 }
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true,
                         message = "Excel导出成功\n文件: ${file.name}\n位置: ${dir.absolutePath}")
                 }
             } catch (e: Throwable) {
+                android.util.Log.e("BackupVM", "Excel导出失败", e)
+                val msg = when {
+                    e.message != null -> e.message!!
+                    e is NoClassDefFoundError -> "缺少类: ${e.message ?: "未知"}"
+                    e is ExceptionInInitializerError -> "初始化失败，请重启APP"
+                    e is OutOfMemoryError -> "内存不足"
+                    else -> "${e.javaClass.simpleName}: ${e.message}"
+                }
                 _uiState.update {
-                    it.copy(isLoading = false, isSuccess = false, message = "导出失败: ${e.message}")
+                    it.copy(isLoading = false, isSuccess = false, message = "导出失败: $msg")
                 }
             }
         }
