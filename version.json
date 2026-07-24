@@ -1,7 +1,7 @@
 {
-  "versionName": "2.8.0",
-  "versionCode": 80,
+  "versionName": "2.8.1",
+  "versionCode": 81,
   "updateDate": "2026-07-24",
-  "updateLog": "1. 彻底修复 Excel 导出/导入闪退（用原生 ZIP+XML 替代 POI）\n2. 导出 Excel 自动记录备份历史\n3. 提示框背景色跟随主题\n4. APK 体积 88MB→5.8MB（-93%）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.0/LootArchive-release-v2.8.0.apk"
+  "updateLog": "1. 一键导出/一键导入：ZIP 完整备份（物品数据 + 照片）\n2. Excel 导出改到 ZIP 内部，电脑可直接打开查看\n3. APK 体积 88MB→5.8MB（-93%）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.1/LootArchive-release-v2.8.1.apk"
 }

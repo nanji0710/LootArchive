@@ -122,6 +122,19 @@ class ItemRepository @Inject constructor(
 
     suspend fun getAllPhotoPaths(): List<String> = itemPhotoDao.getAllPhotoPaths()
 
+    suspend fun getAllPhotos(): List<ItemPhotoEntity> = itemPhotoDao.getAllPhotos()
+
+    suspend fun addPhotosForItem(itemId: Long, photoFiles: List<java.io.File>) {
+        val photos = photoFiles.mapIndexed { index, file ->
+            ItemPhotoEntity(
+                itemId = itemId,
+                photoPath = file.absolutePath,
+                sortOrder = index
+            )
+        }
+        addPhotos(photos)
+    }
+
     // ========== 回收站 ==========
 
     fun getDeletedItems(): Flow<List<ItemEntity>> = itemDao.getDeletedItems()

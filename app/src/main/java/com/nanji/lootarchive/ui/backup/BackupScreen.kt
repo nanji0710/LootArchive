@@ -41,13 +41,13 @@ fun BackupScreen(
         if (uri != null) viewModel.restoreDatabase(uri.toString())
     }
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) viewModel.importFromExcel(uri.toString())
+        if (uri != null) viewModel.fullImport(uri.toString())
     }
 
     // 恢复数据库按钮点击
     fun launchRestore() { restorePicker.launch(arrayOf("application/octet-stream", "application/x-sqlite3")) }
-    // 导入Excel按钮点击
-    fun launchImport() { importPicker.launch(arrayOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel")) }
+    // 导入备份按钮点击
+    fun launchImport() { importPicker.launch(arrayOf("application/zip", "application/x-zip-compressed")) }
 
     LaunchedEffect(uiState.message) {
         // 消息显示3秒后自动清除
@@ -92,9 +92,9 @@ fun BackupScreen(
                         )
                         BackupActionButton(
                             icon = Icons.Filled.FileDownload,
-                            title = "导出为 Excel",
-                            subtitle = "导出所有物品数据为 Excel 表格，便于查看和编辑",
-                            onClick = { viewModel.exportToExcel() }
+                            title = "一键导出",
+                            subtitle = "完整备份：物品数据 + 照片，打包为一个 ZIP 文件",
+                            onClick = { viewModel.fullExport() }
                         )
                     }
                 }
@@ -119,9 +119,9 @@ fun BackupScreen(
                         )
                         BackupActionButton(
                             icon = Icons.Filled.UploadFile,
-                            title = "从 Excel 导入",
-                            subtitle = "选择 Excel 文件导入物品数据",
-                            onClick = { importPicker.launch(arrayOf("*/*")) }
+                            title = "一键导入",
+                            subtitle = "选择备份 ZIP 文件，恢复全部物品数据和照片",
+                            onClick = { launchImport() }
                         )
                     }
                 }
@@ -238,7 +238,11 @@ private fun BackupRecordItem(
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                if (record.backupType == "database") Icons.Filled.Storage else Icons.Filled.Image,
+                when (record.backupType) {
+                    "database" -> Icons.Filled.Storage
+                    "excel" -> Icons.Filled.Archive
+                    else -> Icons.Filled.Image
+                },
                 null,
                 tint = MaterialTheme.colorScheme.primary
             )

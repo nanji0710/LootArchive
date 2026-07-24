@@ -33,4 +33,7 @@ interface ItemPhotoDao {
 
     @Query("SELECT photoPath FROM item_photos")
     suspend fun getAllPhotoPaths(): List<String>
+
+    @Query("SELECT * FROM item_photos")
+    suspend fun getAllPhotos(): List<ItemPhotoEntity>
 }

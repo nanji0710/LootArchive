@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
 import com.nanji.lootarchive.data.repository.BackupRepository
 import com.nanji.lootarchive.data.repository.ItemRepository
-import com.nanji.lootarchive.util.ExcelUtil
+import com.nanji.lootarchive.util.BackupUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -83,28 +83,27 @@ class BackupViewModel @Inject constructor(
         }
     }
 
-    fun exportToExcel() {
+    fun fullExport() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
-                val items = itemRepository.getAllItems().first()
-                val dir = backupRepository.exportDir
-                val file = withContext(Dispatchers.IO) {
+                val (items, photos, dir, file) = withContext(Dispatchers.IO) {
+                    val items = itemRepository.getAllItems().first()
+                    val photos = itemRepository.getAllPhotos()
+                    val dir = backupRepository.exportDir
                     if (!dir.exists()) dir.mkdirs()
-                    ExcelUtil.exportItemsToExcel(items, dir)
+                    val file = BackupUtil.fullExport(context, items, photos, dir)
+                    Quad(items, photos, dir, file)
                 }
-                // 写入备份记录
                 backupRepository.saveExcelExportRecord(file.name, file.absolutePath, items.size)
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true,
-                        message = "Excel导出成功\n文件: ${file.name}\n位置: ${dir.absolutePath}")
+                        message = "导出成功\n物品: ${items.size} 件\n照片: ${photos.size} 张\n文件: ${file.name}")
                 }
             } catch (e: Throwable) {
-                android.util.Log.e("BackupVM", "Excel导出失败", e)
+                android.util.Log.e("BackupVM", "导出失败", e)
                 val msg = when {
                     e.message != null -> e.message!!
-                    e is NoClassDefFoundError -> "缺少类: ${e.message ?: "未知"}"
-                    e is ExceptionInInitializerError -> "初始化失败，请重启APP"
                     e is OutOfMemoryError -> "内存不足"
                     else -> "${e.javaClass.simpleName}: ${e.message}"
                 }
@@ -115,32 +114,39 @@ class BackupViewModel @Inject constructor(
         }
     }
 
-    fun importFromExcel(uriString: String) {
+    fun fullImport(uriString: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
                 val uri = Uri.parse(uriString)
-                val fileName = getFileName(uri) ?: ""
-                if (!fileName.endsWith(".xlsx", ignoreCase = true) && !fileName.endsWith(".xls", ignoreCase = true)) {
-                    _uiState.update { it.copy(isLoading = false, isSuccess = false, message = "文件格式不符合，请选择 .xlsx 或 .xls 文件") }
-                    return@launch
+                val importItems = withContext(Dispatchers.IO) {
+                    BackupUtil.fullImport(context, uri)
                 }
-                val tempFile = copyUriToTemp(uri, "import_${System.currentTimeMillis()}.xlsx")
-                val items = withContext(Dispatchers.IO) {
-                    try { ExcelUtil.importItemsFromExcel(tempFile) }
-                    finally { tempFile.delete() }
+                var itemCount = 0
+                var photoCount = 0
+                for (ii in importItems) {
+                    val itemId = itemRepository.insertItem(ii.item)
+                    if (ii.photoFiles.isNotEmpty()) {
+                        itemRepository.addPhotosForItem(itemId, ii.photoFiles)
+                        photoCount += ii.photoFiles.size
+                    }
+                    itemCount++
                 }
-                items.forEach { itemRepository.insertItem(it) }
                 _uiState.update {
-                    it.copy(isLoading = false, isSuccess = true, message = "成功导入 ${items.size} 件物品")
+                    it.copy(isLoading = false, isSuccess = true,
+                        message = "导入成功\n物品: $itemCount 件\n照片: $photoCount 张\n请退出重进以刷新数据")
                 }
             } catch (e: Throwable) {
+                android.util.Log.e("BackupVM", "导入失败", e)
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = false, message = "导入失败: ${e.message}")
                 }
             }
         }
     }
+
+    // 用于 withContext 返回多值的临时数据类
+    private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
     fun restoreDatabase(uriString: String) {
         viewModelScope.launch {
