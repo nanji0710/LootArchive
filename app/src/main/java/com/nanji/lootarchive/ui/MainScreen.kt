@@ -166,7 +166,7 @@ fun MainScreen() {
                 Surface(
                     Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
                     shape = RoundedCornerShape(28.dp),
-                    color = if (LocalDarkTheme.current) Color(0xCC1A1A1A) else Color(0xDDFFFFFF),
+                    color = if (LocalDarkTheme.current) Color(0xE61A1A1A) else Color(0xDDFFFFFF),
                     border = if (!LocalDarkTheme.current) androidx.compose.foundation.BorderStroke(0.5.dp, Color(0x1A000000)) else null,
                     shadowElevation = 8.dp
                 ) {

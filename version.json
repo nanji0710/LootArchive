@@ -1,7 +1,7 @@
 {
-  "versionName": "3.0.1",
-  "versionCode": 85,
+  "versionName": "3.0.2",
+  "versionCode": 86,
   "updateDate": "2026-07-25",
-  "updateLog": "新增：\n1. 一键导出/导入ZIP包含分类数据\n2. 移除独立数据库备份/恢复功能（已不必要）\n\n修改：\n1. 修复深色模式FAB按钮过亮\n2. 修复底部导航栏过亮+浅色白线\n3. 修复资产汇总导入后不刷新\n4. 修复统计ViewModel Flow收集冲突\n5. 版本号统一更新至v3.0.1",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.1/LootArchive-release-v3.0.1.apk"
+  "updateLog": "新增：\n1. 一键导出/导入ZIP包含分类数据\n\n修改：\n1. 移除无法点击的主题色选择器\n2. 修复备份页和分类页深色模式文字颜色\n3. 调暗深色模式底部导航栏\n4. 版本号更新至v3.0.2",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.2/LootArchive-release-v3.0.2.apk"
 }

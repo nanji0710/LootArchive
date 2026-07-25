@@ -138,11 +138,11 @@ fun BackupScreen(
                 onDismissRequest = { viewModel.clearMessage() },
                 containerColor = MaterialTheme.colorScheme.surface,
                 icon = { Icon(Icons.Filled.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
-                title = { Text("操作失败", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+                title = { Text("操作失败", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         uiState.message!!.split("\n").forEach { line ->
-                            Text(line, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                            Text(line, fontSize = 13.sp, color = TextSecondary())
                         }
                     }
                 },
@@ -163,11 +163,11 @@ fun BackupScreen(
                 onDismissRequest = { viewModel.clearMessage() },
                 containerColor = MaterialTheme.colorScheme.surface,
                 icon = { Icon(Icons.Filled.CheckCircle, null, tint = Primary()) },
-                title = { Text("操作成功", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+                title = { Text("操作成功", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         uiState.message!!.split("\n").forEach { line ->
-                            Text(line, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                            Text(line, fontSize = 14.sp, color = TextSecondary())
                         }
                     }
                 },
@@ -198,7 +198,7 @@ private fun BackupActionButton(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary())
             }
             Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
         }

@@ -20,8 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.graphics.toArgb
-import com.nanji.lootarchive.ui.component.ColorWheel
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.theme.*
@@ -43,7 +41,6 @@ fun SettingsScreen(
     var showReminderDialog by remember { mutableStateOf(false) }
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
     var showClearCacheDialog by remember { mutableStateOf(false) }
-    var showColorPicker by remember { mutableStateOf(false) }
     var editReminderDays by remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -87,24 +84,6 @@ fun SettingsScreen(
                             )
                         }
                     }
-                }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
-                // 主题色
-                Row(
-                    Modifier.fillMaxWidth().clickable { showColorPicker = true }.padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("主题色", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
-                    Box(
-                        Modifier.size(28.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Surface(
-                            Modifier.size(24.dp), RoundedCornerShape(50),
-                            color = Color(uiState.primaryColor)
-                        ) {}
-                    }
-                    Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
                 // 自定义头像
@@ -168,7 +147,7 @@ fun SettingsScreen(
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v3.0.1", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v3.0.2", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(16.dp))
@@ -209,45 +188,6 @@ fun SettingsScreen(
         )
     }
 
-    // 主题色选择弹窗
-    if (showColorPicker) {
-        var pickerColor by remember { mutableStateOf(Color(uiState.primaryColor)) }
-
-        AlertDialog(
-            onDismissRequest = { showColorPicker = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("选择主题色", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                    IconButton(onClick = { showColorPicker = false }) {
-                        Icon(Icons.Filled.Close, "关闭")
-                    }
-                }
-            },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    ColorWheel(
-                        currentColor = pickerColor,
-                        onColorChanged = { pickerColor = it },
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-            },
-            confirmButton = {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    TextButton(onClick = {
-                        viewModel.setPrimaryColor(0xFFD4A574.toInt())
-                        showColorPicker = false
-                    }) { Text("恢复默认", color = TextAuxiliary()) }
-                    TextButton(onClick = {
-                        viewModel.setPrimaryColor(pickerColor.toArgb())
-                        showColorPicker = false
-                    }) { Text("确定", fontWeight = FontWeight.Bold, color = Primary()) }
-                }
-            },
-            dismissButton = {}
-        )
-    }
 }
 
 @Composable
