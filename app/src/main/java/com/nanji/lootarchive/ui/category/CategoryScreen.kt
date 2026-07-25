@@ -44,7 +44,7 @@ fun CategoryScreen(
             Spacer(Modifier.height(12.dp))
         if (uiState.categories.isEmpty() && !uiState.isLoading) {
             EmptyState(
-                icon = { Icon(Icons.Filled.Category, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                icon = { Icon(Icons.Filled.Category, null, modifier = Modifier.size(64.dp), tint = TextAuxiliary()) },
                 title = "暂无分类",
                 subtitle = "点击右下角按钮新增分类",
                 modifier = Modifier.padding(padding)
@@ -73,23 +73,29 @@ fun CategoryScreen(
         AlertDialog(
             onDismissRequest = { viewModel.dismissDialogs() },
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text(if (uiState.showAddDialog) "新增分类" else "编辑分类") },
+            title = { Text(if (uiState.showAddDialog) "新增分类" else "编辑分类", color = TextPrimary(), fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = uiState.dialogName,
                     onValueChange = viewModel::updateDialogName,
                     label = { Text("分类名称") },
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary(),
+                        unfocusedTextColor = TextPrimary(),
+                        focusedLabelColor = Primary(),
+                        unfocusedLabelColor = TextSecondary()
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = { if (uiState.showAddDialog) viewModel.addCategory() else viewModel.updateCategory() }) {
-                    Text("确认")
+                    Text("确认", color = Primary())
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissDialogs() }) {
-                    Text("取消")
+                    Text("取消", color = TextSecondary())
                 }
             }
         )
@@ -100,15 +106,15 @@ fun CategoryScreen(
         AlertDialog(
             onDismissRequest = { viewModel.dismissDialogs() },
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("删除分类") },
-            text = { Text("分类删除后，该分类下的物品将归入「其他」分类。确定删除？") },
+            title = { Text("删除分类", color = TextPrimary(), fontWeight = FontWeight.Bold) },
+            text = { Text("分类删除后，该分类下的物品将归入「其他」分类。确定删除？", color = TextSecondary()) },
             confirmButton = {
                 TextButton(onClick = { viewModel.deleteCategory() }) {
                     Text("删除", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissDialogs() }) { Text("取消") }
+                TextButton(onClick = { viewModel.dismissDialogs() }) { Text("取消", color = TextSecondary()) }
             }
         )
     }
@@ -126,8 +132,8 @@ private fun CategoryListItem(
             Icon(Icons.Filled.Folder, null, tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(category.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                Text("$itemCount 件物品", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(category.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = TextPrimary())
+                Text("$itemCount 件物品", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
             }
             IconButton(onClick = onEdit) { Icon(Icons.Filled.Edit, "编辑") }
             IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, "删除", tint = MaterialTheme.colorScheme.error) }
