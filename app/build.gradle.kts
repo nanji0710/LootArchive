@@ -23,8 +23,8 @@ android {
         applicationId = "com.nanji.lootarchive"
         minSdk = 31
         targetSdk = 36
-        versionCode = 83
-        versionName = "2.8.3"
+        versionCode = 84
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -59,6 +59,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -132,8 +133,7 @@ dependencies {
     // Coil (Image Loading)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // Vico (Charts)
-    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
+    // Vico removed - using manual Compose charts (saves ~2MB)
 
     // DataStore (Settings)
     implementation("androidx.datastore:datastore-preferences:1.1.1")

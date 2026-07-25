@@ -23,9 +23,9 @@ fun GlassCard(
     val cardColor = if (LocalDarkTheme.current) Color(0xFF2A2A2A) else Color(0xFFFCFAF6)
     Card(
         modifier = modifier.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-        shape = RoundedCornerShape(tier.cornerRadiusDp.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (LocalDarkTheme.current) 0.dp else 2.dp),
         onClick = onClick ?: {}
     ) {
         Column(modifier = Modifier.padding(12.dp)) { content() }
@@ -54,15 +54,23 @@ fun EmptyState(
     icon: @Composable () -> Unit,
     title: String,
     subtitle: String = "",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         icon()
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(title, fontSize = 20.sp, color = TextSecondary())
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(title, fontSize = 18.sp, color = TextSecondary())
         if (subtitle.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(subtitle, fontSize = 14.sp, color = TextAuxiliary())
+        }
+        if (actionLabel != null && onAction != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedButton(onClick = onAction, shape = RoundedCornerShape(12.dp)) {
+                Text(actionLabel, fontSize = 14.sp)
+            }
         }
     }
 }

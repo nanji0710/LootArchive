@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
+import com.nanji.lootarchive.util.FormatUtil
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -21,8 +22,8 @@ class ApkDownloadManager(private val context: Context) {
     ) {
         val sizeText: String
             get() {
-                if (total <= 0) return "${formatSize(downloaded)} / ???"
-                return "${formatSize(downloaded)} / ${formatSize(total)}"
+                if (total <= 0) return "${FormatUtil.formatSize(downloaded)} / ???"
+                return "${FormatUtil.formatSize(downloaded)} / ${FormatUtil.formatSize(total)}"
             }
         val speedText: String
             get() = "${"%.1f".format(speedKBps)} KB/s"
@@ -120,11 +121,4 @@ class ApkDownloadManager(private val context: Context) {
         }
     }
 
-    companion object {
-        private fun formatSize(bytes: Long): String = when {
-            bytes < 1024 -> "$bytes B"
-            bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-            else -> "${"%.1f".format(bytes.toDouble() / (1024 * 1024))} MB"
-        }
-    }
 }

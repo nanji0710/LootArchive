@@ -6,6 +6,7 @@ import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
+import com.nanji.lootarchive.util.Quintet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -52,23 +53,21 @@ class HomeViewModel @Inject constructor(
             ) { quintet, appName ->
                 // 加载每件物品的第一张照片
                 val paths = mutableMapOf<Long, String>()
-                quintet.items.forEach { item ->
+                quintet.first.forEach { item ->
                     try {
                         val photos = itemRepository.getItemPhotos(item.id).first()
                         if (photos.isNotEmpty()) paths[item.id] = photos.first().photoPath
                     } catch (_: Exception) {}
                 }
                 HomeUiState(
-                    isLoading = false, items = quintet.items, photoPaths = paths,
-                    totalCount = quintet.count, totalValue = quintet.value,
-                    warrantyExpiringCount = quintet.expiringCount, currency = quintet.currency, appName = appName
+                    isLoading = false, items = quintet.first, photoPaths = paths,
+                    totalCount = quintet.second, totalValue = quintet.third,
+                    warrantyExpiringCount = quintet.fourth, currency = quintet.fifth, appName = appName
                 )
             }.catch { e -> _uiState.value = _uiState.value.copy(isLoading = false) }
              .collect { state -> _uiState.value = state }
         }
     }
-
-    private data class Quintet(val items: List<ItemEntity>, val count: Int, val value: Double, val expiringCount: Int, val currency: String)
 
     fun deleteItem(itemId: Long) { viewModelScope.launch { itemRepository.softDeleteItem(itemId) } }
 }

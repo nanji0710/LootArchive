@@ -22,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.util.FormatUtil
 import java.text.NumberFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,7 +143,7 @@ fun StatisticsScreen(
                                     modifier = Modifier.weight(1f),
                                     verticalArrangement = Arrangement.Bottom
                                 ) {
-                                    Text(formatPrice(total), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1)
+                                    Text(FormatUtil.formatPriceShort(total), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1)
                                     Spacer(Modifier.height(3.dp))
                                     Surface(
                                         Modifier.width(if (monthlyData.size > 6) 18.dp else 24.dp).height(barHeight),
@@ -166,14 +167,5 @@ fun StatisticsScreen(
             }
             } // PullToRefreshBox
         }
-    }
-}
-
-private fun formatPrice(value: Double): String {
-    return when {
-        value >= 1_000_000 -> "¥${"%.1f".format(value / 1_000_000)}M"
-        value >= 10_000 -> "¥${"%.1f".format(value / 10_000)}万"
-        value >= 1_000 -> "¥${"%.2f".format(value / 1_000)}K"
-        else -> "¥${value.toLong()}"
     }
 }

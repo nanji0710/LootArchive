@@ -8,6 +8,7 @@ import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
 import com.nanji.lootarchive.data.repository.BackupRepository
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.util.BackupUtil
+import com.nanji.lootarchive.util.Quad
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -120,9 +121,6 @@ class BackupViewModel @Inject constructor(
             }
         }
     }
-
-    // 用于 withContext 返回多值的临时数据类
-    private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
     fun restoreDatabase(uriString: String) {
         viewModelScope.launch {

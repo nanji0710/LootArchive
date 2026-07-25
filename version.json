@@ -1,7 +1,7 @@
 {
-  "versionName": "2.8.3",
-  "versionCode": 83,
-  "updateDate": "2026-07-24",
-  "updateLog": "1. 新增主题色选择器，无极调节\n2. 支持自定义头像\n3. 下拉刷新/统计筛选框背景色跟随主题",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V2.8.3/LootArchive-release-v2.8.3.apk"
+  "versionName": "3.0.0",
+  "versionCode": 84,
+  "updateDate": "2026-07-25",
+  "updateLog": "新增：\n1. 全新UI设计，悬浮毛玻璃底部导航栏\n2. 物品卡片重新设计，图片更大更直观\n3. 统计图表全面优化，竖柱形图每月不同颜色\n4. 页面切换动画效果\n5. 骨架屏加载效果\n6. 设置页分组展示，带图标标题\n7. 空状态支持操作按钮引导\n\n修改：\n1. 修复分类物品数量一直显示为0的问题\n2. 统一定价和文件大小显示格式\n3. 底部三个操作按钮大小统一\n4. 版本号改用BuildConfig自动获取\n\n减少：\n1. 移除未使用的旧导航和侧边栏代码\n2. 移除未使用的图表库，安装包更小",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.0/LootArchive-release-v3.0.0.apk"
 }

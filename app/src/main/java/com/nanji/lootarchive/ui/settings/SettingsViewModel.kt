@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
+import com.nanji.lootarchive.util.FormatUtil
+import com.nanji.lootarchive.util.Quad
+import com.nanji.lootarchive.util.Sextet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -51,7 +54,7 @@ class SettingsViewModel @Inject constructor(
                     settingsRepository.backupReminderDay,
                     settingsRepository.themeMode
                 ) { currency, reminderDays, backupEnabled, backupDay, theme ->
-                    Sextet(currency, reminderDays, backupEnabled, backupDay, theme)
+                    Sextet(currency, reminderDays, backupEnabled, backupDay, theme, Unit)
                 },
                 combine(
                     settingsRepository.appName,
@@ -64,11 +67,11 @@ class SettingsViewModel @Inject constructor(
             ) { sextet, (appName, trashCount, primaryColor, avatarUri) ->
                 val current = _uiState.value
                 SettingsUiState(
-                    currency = sextet.currency,
-                    warrantyReminderDays = sextet.reminderDays,
-                    backupReminderEnabled = sextet.backupEnabled,
-                    backupReminderDay = sextet.backupDay,
-                    themeMode = sextet.theme,
+                    currency = sextet.first,
+                    warrantyReminderDays = sextet.second,
+                    backupReminderEnabled = sextet.third,
+                    backupReminderDay = sextet.fourth,
+                    themeMode = sextet.fifth,
                     primaryColor = primaryColor,
                     avatarUri = avatarUri,
                     appName = appName,
@@ -147,7 +150,7 @@ class SettingsViewModel @Inject constructor(
                 val size = withContext(Dispatchers.IO) {
                     dirSize(app.cacheDir) + dirSize(app.codeCacheDir)
                 }
-                _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = formatSize(size), isCalculatingCache = false) }
+                _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = FormatUtil.formatSize(size), isCalculatingCache = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(cacheSizeFormatted = "无法获取", isCalculatingCache = false) }
             }
@@ -170,7 +173,7 @@ class SettingsViewModel @Inject constructor(
                 val size = withContext(Dispatchers.IO) {
                     dirSize(app.cacheDir) + dirSize(app.codeCacheDir)
                 }
-                _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = formatSize(size), isClearing = false, message = "缓存已清除") }
+                _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = FormatUtil.formatSize(size), isClearing = false, message = "缓存已清除") }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isClearing = false, message = "清除失败: ${e.message}") }
             }
@@ -186,22 +189,4 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(message = null) }
     }
 
-    private fun formatSize(bytes: Long): String {
-        return when {
-            bytes < 1024 -> "$bytes B"
-            bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-            bytes < 1024 * 1024 * 1024 -> "${"%.1f".format(bytes.toDouble() / (1024 * 1024))} MB"
-            else -> "${"%.2f".format(bytes.toDouble() / (1024 * 1024 * 1024))} GB"
-        }
-    }
-
-    private data class Sextet(
-        val currency: String,
-        val reminderDays: Int,
-        val backupEnabled: Boolean,
-        val backupDay: Int,
-        val theme: String
-    )
-
-    private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 }

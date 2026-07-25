@@ -33,17 +33,17 @@ class CategoryDrawerViewModel @Inject constructor(
                 categoryRepository.getAllCategories(),
                 itemRepository.getTotalCount()
             ) { categories, total ->
+                Pair(categories, total)
+            }.collect { (categories, total) ->
                 val counts = mutableMapOf<Long, Int>()
                 categories.forEach { cat ->
-                    // 实际应该批量查询，简化处理
+                    counts[cat.id] = itemRepository.getCategoryItemCount(cat.id).first()
                 }
-                CategoryDrawerUiState(
+                _uiState.value = CategoryDrawerUiState(
                     totalItemCount = total,
                     categories = categories,
                     categoryCounts = counts
                 )
-            }.collect { state ->
-                _uiState.value = state
             }
         }
     }

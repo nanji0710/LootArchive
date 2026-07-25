@@ -69,7 +69,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // ─── 卡片1：个性化设置 ───
-            SectionTitle("个性化设置")
+            SectionHeader(Icons.Filled.Palette, "个性化")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 // 显示模式
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -121,7 +121,7 @@ fun SettingsScreen(
             }
 
             // ─── 保修提醒设置 ───
-            SectionTitle("提醒设置")
+            SectionHeader(Icons.Filled.Notifications, "提醒")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("保修到期提醒", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
@@ -135,7 +135,7 @@ fun SettingsScreen(
             }
 
             // ─── 缓存管理 ───
-            SectionTitle("缓存管理")
+            SectionHeader(Icons.Filled.Storage, "存储")
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
@@ -161,6 +161,14 @@ fun SettingsScreen(
                         Text("清除缓存", fontSize = 13.sp)
                     }
                 }
+            }
+
+            // ─── 关于 ───
+            SectionHeader(Icons.Filled.Info, "关于")
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
+                Spacer(Modifier.height(4.dp))
+                Text("当前版本 v3.0.0", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(16.dp))
@@ -243,8 +251,12 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SectionTitle(title: String) {
-    Text(title, fontSize = 18.sp, color = TextPrimary(), modifier = Modifier.padding(top = 4.dp))
+private fun SectionHeader(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) {
+        Icon(icon, null, tint = Primary(), modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+    }
 }
 
 @Composable

@@ -1,6 +1,7 @@
 package com.nanji.lootarchive.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
@@ -28,6 +29,7 @@ import com.nanji.lootarchive.data.repository.SettingsRepository
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
 import com.nanji.lootarchive.ui.theme.ChartColors
+import com.nanji.lootarchive.ui.theme.LocalDarkTheme
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
 import com.nanji.lootarchive.ui.theme.TextPrimary
@@ -78,60 +80,69 @@ fun MainScreen() {
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
-            when (currentRoute) {
-                Route.HOME -> {
-                    HomeScreen(
-                        categoryFilter = drawerCategoryFilter,
-                        onNavigateToAddItem = { navigate(Route.ADD) },
-                        onNavigateToDetail = { navigate(Route.DETAIL, it) },
-                        onNavigateToSearch = { navigate(Route.SEARCH) },
-                        onNavigateToStats = { switchTab(1) },
-                        onNavigateToCategory = { navigate(Route.CATEGORY) },
-                        onExportExcel = { navigate(Route.BACKUP) },
-                        onImportExcel = { navigate(Route.BACKUP) },
-                        onBackupData = { navigate(Route.BACKUP) }
-                    )
-                }
-                Route.STATS -> {
-                    var showTimeFilter by remember { mutableStateOf(false) }
-                    var timeFilterLabel by remember { mutableStateOf("全部时间") }
-                    val statsViewModel: com.nanji.lootarchive.ui.statistics.StatisticsViewModel = hiltViewModel()
-                    Box(Modifier.fillMaxSize()) {
-                        StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)}, isTabMode=true)
-                        // 悬浮时间筛选按钮
-                        Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
-                            Box {
-                                TextButton(onClick={showTimeFilter=true}) {
-                                    Text(timeFilterLabel, fontSize=14.sp, color=Primary())
-                                    Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
-                                }
-                                DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false},
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                ) {
-                                    listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
-                                        DropdownMenuItem(text={Text(label)}, onClick={
-                                            timeFilterLabel=label
-                                            statsViewModel.setTimeFilter(key)
-                                            showTimeFilter=false
-                                        })
+            AnimatedContent(
+                targetState = currentRoute,
+                transitionSpec = {
+                    (fadeIn() + slideInHorizontally { it / 8 }) togetherWith
+                    (fadeOut() + slideOutHorizontally { -it / 8 })
+                },
+                label = "page"
+            ) { route ->
+                when (route) {
+                    Route.HOME -> {
+                        HomeScreen(
+                            categoryFilter = drawerCategoryFilter,
+                            onNavigateToAddItem = { navigate(Route.ADD) },
+                            onNavigateToDetail = { navigate(Route.DETAIL, it) },
+                            onNavigateToSearch = { navigate(Route.SEARCH) },
+                            onNavigateToStats = { switchTab(1) },
+                            onNavigateToCategory = { navigate(Route.CATEGORY) },
+                            onExportExcel = { navigate(Route.BACKUP) },
+                            onImportExcel = { navigate(Route.BACKUP) },
+                            onBackupData = { navigate(Route.BACKUP) }
+                        )
+                    }
+                    Route.STATS -> {
+                        var showTimeFilter by remember { mutableStateOf(false) }
+                        var timeFilterLabel by remember { mutableStateOf("全部时间") }
+                        val statsViewModel: com.nanji.lootarchive.ui.statistics.StatisticsViewModel = hiltViewModel()
+                        Box(Modifier.fillMaxSize()) {
+                            StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)}, isTabMode=true)
+                            // 悬浮时间筛选按钮
+                            Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
+                                Box {
+                                    TextButton(onClick={showTimeFilter=true}) {
+                                        Text(timeFilterLabel, fontSize=14.sp, color=Primary())
+                                        Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
+                                    }
+                                    DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false},
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    ) {
+                                        listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
+                                            DropdownMenuItem(text={Text(label)}, onClick={
+                                                timeFilterLabel=label
+                                                statsViewModel.setTimeFilter(key)
+                                                showTimeFilter=false
+                                            })
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    Route.MY -> MyLandingScreen(
+                        avatarUri = avatarUri.avatarUri,
+                        onNavigateToSettings = { navigate(Route.SETTINGS) },
+                        onNavigateToCategory = { navigate(Route.CATEGORY) },
+                        onNavigateToBackup = { navigate(Route.BACKUP) }
+                    )
+                    Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()})
+                    Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
+                    Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
+                    Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
+                    Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
+                    Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
                 }
-                Route.MY -> MyLandingScreen(
-                    avatarUri = avatarUri.avatarUri,
-                    onNavigateToSettings = { navigate(Route.SETTINGS) },
-                    onNavigateToCategory = { navigate(Route.CATEGORY) },
-                    onNavigateToBackup = { navigate(Route.BACKUP) }
-                )
-                Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()})
-                Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
-                Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
-                Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
-                Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
-                Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
             }
 
             // ─── 首页操作按钮（仅首页显示） ───
@@ -151,23 +162,39 @@ fun MainScreen() {
                     }
                 }
             }
-            // ─── 全局Tab胶囊（靠下，更大） ───
             if (!isSubPage) {
-                Row(
-                    Modifier.align(Alignment.BottomCenter).padding(bottom = 30.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    color = if (LocalDarkTheme.current) Color(0xD5222222) else Color(0xCCFFFFFF),
+                    shadowElevation = 8.dp
                 ) {
-                    MainTab.entries.forEachIndexed { index, tab ->
-                        val selected = currentTab == index
-                        Surface(
-                            onClick = { switchTab(index) },
-                            shape = RoundedCornerShape(24.dp),
-                            color = if (selected) Primary() else Primary().copy(alpha = 0.2f)
-                        ) {
-                            Row(Modifier.padding(horizontal = 18.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(if(selected)tab.selectedIcon else tab.unselectedIcon, tab.label,
-                                    tint = if(selected) Color.White else TextPrimary().copy(alpha = 0.6f), modifier = Modifier.size(22.dp))
-                                if (selected) { Spacer(Modifier.width(6.dp)); Text(tab.label, fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Medium) }
+                    Row(
+                        Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        MainTab.entries.forEachIndexed { index, tab ->
+                            val selected = currentTab == index
+                            if (selected) {
+                                Surface(
+                                    onClick = { switchTab(index) },
+                                    shape = RoundedCornerShape(22.dp),
+                                    color = Primary()
+                                ) {
+                                    Row(
+                                        Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(tab.selectedIcon, tab.label, tint = Color.White, modifier = Modifier.size(22.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(tab.label, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Medium)
+                                    }
+                                }
+                            } else {
+                                IconButton(onClick = { switchTab(index) }, modifier = Modifier.size(44.dp)) {
+                                    Icon(tab.unselectedIcon, tab.label, tint = TextAuxiliary(), modifier = Modifier.size(22.dp))
+                                }
                             }
                         }
                     }

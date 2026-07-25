@@ -33,10 +33,9 @@ class CategoryViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             categoryRepository.getAllCategories().collect { categories ->
-                // 获取每个分类下的物品数量
                 val counts = mutableMapOf<Long, Int>()
                 categories.forEach { cat ->
-                    // 用一次性的 suspend 查询
+                    counts[cat.id] = itemRepository.getCategoryItemCount(cat.id).first()
                 }
                 _uiState.update {
                     it.copy(isLoading = false, categories = categories, categoryItemCounts = counts)

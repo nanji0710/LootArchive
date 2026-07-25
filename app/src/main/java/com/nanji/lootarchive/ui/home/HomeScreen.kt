@@ -37,6 +37,7 @@ import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.component.GlassStatCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.util.FormatUtil
 import java.io.File
 import java.text.NumberFormat
 
@@ -93,7 +94,7 @@ fun HomeScreen(
         ) {
             // ─── 数据统计卡片（两行：全部资产独占一行，物品总数+保修待提醒共占一行） ───
             item(span = { GridItemSpan(2) }) {
-                GlassStatCard("全部资产", formatPrice(animValue.toDouble()),
+                GlassStatCard("全部资产", FormatUtil.formatPriceShort(animValue.toDouble()),
                     Modifier.fillMaxWidth(), onClick = onNavigateToStats)
             }
             item(span = { GridItemSpan(2) }) {
@@ -106,6 +107,24 @@ fun HomeScreen(
             }
 
             // ─── 物品双列网格 ───
+            if (uiState.isLoading && filteredItems.isEmpty()) {
+                for (i in 1..6) {
+                    item {
+                        Card(
+                            Modifier.fillMaxWidth().height(200.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                        ) {
+                            Box(Modifier.fillMaxWidth().height(120.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)))
+                            Column(Modifier.padding(12.dp)) {
+                                Box(Modifier.fillMaxWidth(0.7f).height(16.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(4.dp)))
+                                Spacer(Modifier.height(8.dp))
+                                Box(Modifier.fillMaxWidth(0.4f).height(14.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(4.dp)))
+                            }
+                        }
+                    }
+                }
+            }
             if (filteredItems.isEmpty() && !uiState.isLoading) {
                 item(span = { GridItemSpan(2) }) {
                     EmptyState(
@@ -160,43 +179,65 @@ private fun QuickAction(label: String, icon: androidx.compose.ui.graphics.vector
 
 @Composable
 private fun ItemCard(item: ItemEntity, photoPath: String?, numberFormat: NumberFormat, onClick: () -> Unit) {
-    GlassCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        // 缩略图（真实照片或占位）
-        Surface(
-            modifier = Modifier.fillMaxWidth().height(100.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        ) {
-            if (photoPath != null) {
-                AsyncImage(model = File(photoPath), contentDescription = null,
-                    modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            } else {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = TextAuxiliary())
+    Card(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) Color(0xFF2A2A2A) else Color(0xFFFCFAF6)),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (LocalDarkTheme.current) 0.dp else 2.dp)
+    ) {
+        Column {
+            // Image area
+            Box(modifier = Modifier.fillMaxWidth().height(120.dp)) {
+                if (photoPath != null) {
+                    AsyncImage(model = File(photoPath), contentDescription = null,
+                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                } else {
+                    Box(
+                        Modifier.fillMaxSize()
+                            .background(ChartColors[(item.categoryId % ChartColors.size).toInt()].copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Outlined.Image, null, Modifier.size(40.dp), tint = TextAuxiliary())
+                    }
+                }
+                // Category color dot top-left
+                Surface(
+                    Modifier.padding(8.dp).size(8.dp).align(Alignment.TopStart),
+                    RoundedCornerShape(4.dp),
+                    color = ChartColors[(item.categoryId % ChartColors.size).toInt()]
+                ) {}
+                // Warranty badge top-right
+                if (item.warrantyExpiryDate != null) {
+                    val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)
+                    val badgeColor = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> WarrantyActive }
+                    Surface(
+                        Modifier.padding(8.dp).align(Alignment.TopEnd),
+                        RoundedCornerShape(4.dp),
+                        color = badgeColor.copy(alpha = 0.85f)
+                    ) {
+                        Text(
+                            when { days < 0 -> "过期"; days == 0L -> "今天"; else -> "${days}天" },
+                            fontSize = 10.sp, color = Color.White,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+                // Price overlay at bottom
+                Surface(
+                    Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+                    color = Color.Black.copy(alpha = 0.5f)
+                ) {
+                    Text(
+                        "¥${numberFormat.format(item.purchasePrice)}",
+                        fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    )
                 }
             }
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(item.name, fontSize = 18.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(4.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary())
-            if (item.warrantyExpiryDate != null) {
-                val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)
-                val color = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> TextAuxiliary() }
-                val text = when { days < 0 -> "已过期"; days == 0L -> "今天到期"; else -> "${days}天" }
-                Text(text, fontSize = 13.sp, color = color)
+            // Text info
+            Column(Modifier.padding(12.dp)) {
+                Text(item.name, fontSize = 16.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-    }
-}
-
-private fun fmt(v: Double): String = String.format("%.1f", v)
-private fun formatPrice(value: Double): String {
-    return when {
-        value >= 1_000_000 -> "¥${fmt(value / 1_000_000)}M"
-        value >= 10_000 -> "¥${fmt(value / 10_000)}万"
-        value >= 1_000 -> "¥${String.format("%.2f", value / 1_000)}K"
-        else -> "¥${value.toLong()}"
     }
 }
