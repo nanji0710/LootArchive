@@ -37,16 +37,10 @@ fun BackupScreen(
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
     val context = LocalContext.current
 
-    val restorePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) viewModel.restoreDatabase(uri.toString())
-    }
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) viewModel.fullImport(uri.toString())
     }
 
-    // 恢复数据库按钮点击
-    fun launchRestore() { restorePicker.launch(arrayOf("application/octet-stream", "application/x-sqlite3")) }
-    // 导入备份按钮点击
     fun launchImport() { importPicker.launch(arrayOf("application/zip", "application/x-zip-compressed")) }
 
     LaunchedEffect(uiState.message) {
@@ -79,15 +73,9 @@ fun BackupScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         BackupActionButton(
-                            icon = Icons.Filled.Backup,
-                            title = "备份数据库",
-                            subtitle = "导出 SQLite 数据库文件，包含所有物品和分类数据",
-                            onClick = { viewModel.backupDatabase() }
-                        )
-                        BackupActionButton(
                             icon = Icons.Filled.FileDownload,
                             title = "一键导出",
-                            subtitle = "完整备份：物品数据 + 照片，打包为一个 ZIP 文件",
+                            subtitle = "完整备份：物品数据 + 照片 + 分类，打包为一个 ZIP 文件",
                             onClick = { viewModel.fullExport() }
                         )
                     }
@@ -106,15 +94,9 @@ fun BackupScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         BackupActionButton(
-                            icon = Icons.Filled.Restore,
-                            title = "恢复数据库",
-                            subtitle = "选择备份文件恢复所有数据（将覆盖现有数据）",
-                            onClick = { launchRestore() }
-                        )
-                        BackupActionButton(
                             icon = Icons.Filled.UploadFile,
                             title = "一键导入",
-                            subtitle = "选择备份 ZIP 文件，恢复全部物品数据和照片",
+                            subtitle = "选择备份 ZIP 文件，恢复全部物品数据、照片和分类",
                             onClick = { launchImport() }
                         )
                     }

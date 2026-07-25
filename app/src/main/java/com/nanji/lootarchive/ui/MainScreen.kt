@@ -151,13 +151,13 @@ fun MainScreen() {
                     Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 90.dp, start = 16.dp, end = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom
                 ) {
-                    FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
+                    FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
                     }
-                    FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
+                    FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(22.dp))
                     }
-                    FloatingActionButton(onClick = { navigate(Route.SEARCH) }, containerColor = Primary(), modifier = Modifier.size(48.dp)) {
+                    FloatingActionButton(onClick = { navigate(Route.SEARCH) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
                     }
                 }
@@ -166,7 +166,8 @@ fun MainScreen() {
                 Surface(
                     Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
                     shape = RoundedCornerShape(28.dp),
-                    color = if (LocalDarkTheme.current) Color(0xD5222222) else Color(0xCCFFFFFF),
+                    color = if (LocalDarkTheme.current) Color(0xCC1A1A1A) else Color(0xDDFFFFFF),
+                    border = if (!LocalDarkTheme.current) androidx.compose.foundation.BorderStroke(0.5.dp, Color(0x1A000000)) else null,
                     shadowElevation = 8.dp
                 ) {
                     Row(

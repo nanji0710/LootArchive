@@ -41,36 +41,47 @@ class StatisticsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
     private var collectJob: Job? = null
+    private var filterJob: Job? = null
 
     init { loadStatistics() }
 
-    fun refresh() { loadStatistics() }
+    fun refresh() {
+        _uiState.update { it.copy(isLoading = true) }
+        loadStatistics()
+    }
 
     private fun loadStatistics() {
         collectJob?.cancel()
+        filterJob?.cancel()
         collectJob = viewModelScope.launch {
+            val filter = _uiState.value.timeFilter
+            val now = System.currentTimeMillis()
+            val cutoff = when (filter) {
+                "3months" -> now - 90L * 24 * 60 * 60 * 1000
+                "6months" -> now - 180L * 24 * 60 * 60 * 1000
+                "1year" -> now - 365L * 24 * 60 * 60 * 1000
+                else -> 0L
+            }
             combine(
                 itemRepository.getAllItems(),
                 itemRepository.getTotalCount(),
                 itemRepository.getTotalValue(),
                 categoryRepository.getAllCategories(),
                 settingsRepository.currency
-            ) { items, count, value, categories, currency ->
+            ) { allItems, count, value, categories, currency ->
+                val items = if (cutoff == 0L) allItems else allItems.filter { (it.purchaseDate ?: 0) >= cutoff }
                 val summaries = categories.map { cat ->
                     val catItems = items.filter { it.categoryId == cat.id }
-                    CategorySummary(
-                        category = cat,
-                        itemCount = catItems.size,
-                        totalValue = catItems.sumOf { it.purchasePrice }
-                    )
+                    CategorySummary(category = cat, itemCount = catItems.size, totalValue = catItems.sumOf { it.purchasePrice })
                 }
                 StatisticsUiState(
                     isLoading = false,
-                    totalCount = count,
-                    totalValue = value,
+                    totalCount = items.size,
+                    totalValue = items.sumOf { it.purchasePrice },
                     currency = currency,
                     categorySummaries = summaries,
-                    items = items
+                    items = items,
+                    timeFilter = filter
                 )
             }.collect { state ->
                 _uiState.value = state
@@ -79,8 +90,10 @@ class StatisticsViewModel @Inject constructor(
     }
 
     fun setTimeFilter(filter: String) {
-        _uiState.update { it.copy(timeFilter = filter) }
-        viewModelScope.launch {
+        _uiState.update { it.copy(timeFilter = filter, isLoading = true) }
+        filterJob?.cancel()
+        collectJob?.cancel()
+        collectJob = viewModelScope.launch {
             val now = System.currentTimeMillis()
             val cutoff = when (filter) {
                 "3months" -> now - 90L * 24 * 60 * 60 * 1000
@@ -88,21 +101,29 @@ class StatisticsViewModel @Inject constructor(
                 "1year" -> now - 365L * 24 * 60 * 60 * 1000
                 else -> 0L
             }
-            itemRepository.getAllItems().collect { allItems ->
-                val filtered = if (cutoff == 0L) allItems else allItems.filter { (it.purchaseDate ?: 0) >= cutoff }
-                val categories = categoryRepository.getAllCategories().first()
+            combine(
+                itemRepository.getAllItems(),
+                itemRepository.getTotalCount(),
+                itemRepository.getTotalValue(),
+                categoryRepository.getAllCategories(),
+                settingsRepository.currency
+            ) { allItems, count, value, categories, currency ->
+                val items = if (cutoff == 0L) allItems else allItems.filter { (it.purchaseDate ?: 0) >= cutoff }
                 val summaries = categories.map { cat ->
-                    val catItems = filtered.filter { it.categoryId == cat.id }
+                    val catItems = items.filter { it.categoryId == cat.id }
                     CategorySummary(category = cat, itemCount = catItems.size, totalValue = catItems.sumOf { it.purchasePrice })
                 }
-                _uiState.update { it.copy(
+                StatisticsUiState(
                     isLoading = false,
-                    totalCount = filtered.size,
-                    totalValue = filtered.sumOf { it.purchasePrice },
+                    totalCount = items.size,
+                    totalValue = items.sumOf { it.purchasePrice },
+                    currency = currency,
                     categorySummaries = summaries,
-                    items = filtered,
+                    items = items,
                     timeFilter = filter
-                )}
+                )
+            }.collect { state ->
+                _uiState.value = state
             }
         }
     }

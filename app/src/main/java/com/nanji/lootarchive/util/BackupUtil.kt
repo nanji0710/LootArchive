@@ -19,6 +19,13 @@ object BackupUtil {
     private const val TAG = "BackupUtil"
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
+    data class ExportCategory(
+        val id: Long,
+        val name: String,
+        val sortOrder: Int,
+        val iconName: String
+    )
+
     data class ExportItem(
         val item: ItemEntity,
         val photos: List<ItemPhotoEntity>
@@ -29,12 +36,18 @@ object BackupUtil {
         val photoFiles: List<File>  // temporary extracted photo files
     )
 
+    data class ImportResult(
+        val items: List<ImportItem>,
+        val categories: List<com.nanji.lootarchive.data.local.entity.CategoryEntity>
+    )
+
     // ─── 一键导出 ───
 
     fun fullExport(
         context: Context,
         items: List<ItemEntity>,
         allPhotos: List<ItemPhotoEntity>,
+        categories: List<com.nanji.lootarchive.data.local.entity.CategoryEntity>,
         exportDir: File
     ): File {
         Log.d(TAG, "一键导出 ${items.size} 件物品...")
@@ -99,12 +112,24 @@ object BackupUtil {
                 manifestItems.put(itemJson)
             }
 
-            // 3. manifest.json
+            // 3. Categories
+            val manifestCategories = JSONArray()
+            for (cat in categories) {
+                manifestCategories.put(JSONObject().apply {
+                    put("name", cat.name)
+                    put("sortOrder", cat.sortOrder)
+                    put("iconName", cat.iconName)
+                })
+            }
+
+            // 4. manifest.json
             val manifest = JSONObject().apply {
-                put("version", 1)
+                put("version", 2)
                 put("exportDate", dateFormat.format(Date()))
-                put("appVersion", "2.8.0")
+                put("appVersion", "3.0.0")
                 put("itemCount", items.size)
+                put("categoryCount", categories.size)
+                put("categories", manifestCategories)
                 put("items", manifestItems)
             }
             zip.putNextEntry(ZipEntry("manifest.json"))
@@ -123,7 +148,7 @@ object BackupUtil {
     fun fullImport(
         context: Context,
         uri: Uri
-    ): List<ImportItem> {
+    ): ImportResult {
         Log.d(TAG, "一键导入...")
 
         // Step 1: Extract manifest.json and photos from the ZIP
@@ -150,6 +175,20 @@ object BackupUtil {
         val manifest = manifestJson ?: throw Exception("备份文件中未找到 manifest.json")
         val itemsArray = manifest.getJSONArray("items")
         if (itemsArray.length() == 0) throw Exception("备份文件中没有物品数据")
+
+        // Parse categories
+        val categoriesArray = manifest.optJSONArray("categories") ?: JSONArray()
+        val categories = mutableListOf<com.nanji.lootarchive.data.local.entity.CategoryEntity>()
+        for (i in 0 until categoriesArray.length()) {
+            val catObj = categoriesArray.getJSONObject(i)
+            categories.add(
+                com.nanji.lootarchive.data.local.entity.CategoryEntity(
+                    name = catObj.getString("name"),
+                    sortOrder = catObj.optInt("sortOrder", i),
+                    iconName = catObj.optString("iconName", "")
+                )
+            )
+        }
 
         val photoDir = PhotoUtil.getPhotoDir(context)
 
@@ -184,7 +223,7 @@ object BackupUtil {
             result.add(ImportItem(item, photoFiles))
         }
 
-        Log.d(TAG, "导入成功: ${result.size} 件物品")
-        return result
+        Log.d(TAG, "导入成功: ${result.size} 件物品, ${categories.size} 个分类")
+        return ImportResult(items = result, categories = categories)
     }
 }

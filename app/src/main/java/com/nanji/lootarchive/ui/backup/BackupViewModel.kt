@@ -6,9 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
 import com.nanji.lootarchive.data.repository.BackupRepository
+import com.nanji.lootarchive.data.repository.CategoryRepository
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.util.BackupUtil
-import com.nanji.lootarchive.util.Quad
+import com.nanji.lootarchive.util.Quintet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +30,8 @@ data class BackupUiState(
 class BackupViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val backupRepository: BackupRepository,
-    private val itemRepository: ItemRepository
+    private val itemRepository: ItemRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BackupUiState())
@@ -43,39 +45,23 @@ class BackupViewModel @Inject constructor(
         }
     }
 
-    fun backupDatabase() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, message = null) }
-            try {
-                val record = backupRepository.backupDatabase()
-                _uiState.update {
-                    it.copy(isLoading = false, isSuccess = true,
-                        message = "数据库备份成功\n文件: ${record.fileName}\n位置: ${backupRepository.exportDir.absolutePath}")
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, isSuccess = false, message = "备份失败: ${e.message}")
-                }
-            }
-        }
-    }
-
     fun fullExport() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
-                val (items, photos, dir, file) = withContext(Dispatchers.IO) {
+                val (items, photos, categories, dir, file) = withContext(Dispatchers.IO) {
                     val items = itemRepository.getAllItems().first()
                     val photos = itemRepository.getAllPhotos()
+                    val categories = categoryRepository.getAllCategories().first()
                     val dir = backupRepository.exportDir
                     if (!dir.exists()) dir.mkdirs()
-                    val file = BackupUtil.fullExport(context, items, photos, dir)
-                    Quad(items, photos, dir, file)
+                    val file = BackupUtil.fullExport(context, items, photos, categories, dir)
+                    Quintet(items, photos, categories, dir, file)
                 }
                 backupRepository.saveExcelExportRecord(file.name, file.absolutePath, items.size)
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true,
-                        message = "导出成功\n物品: ${items.size} 件\n照片: ${photos.size} 张\n文件: ${file.name}")
+                        message = "导出成功\n物品: ${items.size} 件\n照片: ${photos.size} 张\n分类: ${categories.size} 个\n文件: ${file.name}")
                 }
             } catch (e: Throwable) {
                 android.util.Log.e("BackupVM", "导出失败", e)
@@ -96,12 +82,25 @@ class BackupViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
                 val uri = Uri.parse(uriString)
-                val importItems = withContext(Dispatchers.IO) {
+                val importResult = withContext(Dispatchers.IO) {
                     BackupUtil.fullImport(context, uri)
                 }
+                // Import categories first
+                var catCount = 0
+                for (cat in importResult.categories) {
+                    try {
+                        // Skip if category with same name already exists
+                        val existing = categoryRepository.getAllCategories().first()
+                        if (existing.none { it.name == cat.name }) {
+                            categoryRepository.createCategory(cat.name)
+                            catCount++
+                        }
+                    } catch (_: Exception) {}
+                }
+                // Import items
                 var itemCount = 0
                 var photoCount = 0
-                for (ii in importItems) {
+                for (ii in importResult.items) {
                     val itemId = itemRepository.insertItem(ii.item)
                     if (ii.photoFiles.isNotEmpty()) {
                         itemRepository.addPhotosForItem(itemId, ii.photoFiles)
@@ -111,7 +110,7 @@ class BackupViewModel @Inject constructor(
                 }
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true,
-                        message = "导入成功\n物品: $itemCount 件\n照片: $photoCount 张\n请退出重进以刷新数据")
+                        message = "导入成功\n分类: $catCount 个\n物品: $itemCount 件\n照片: $photoCount 张\n请退出重进以刷新数据")
                 }
             } catch (e: Throwable) {
                 android.util.Log.e("BackupVM", "导入失败", e)
@@ -120,53 +119,6 @@ class BackupViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun restoreDatabase(uriString: String) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, message = null) }
-            try {
-                val uri = Uri.parse(uriString)
-                val fileName = getFileName(uri) ?: ""
-                if (!fileName.endsWith(".db", ignoreCase = true)) {
-                    _uiState.update { it.copy(isLoading = false, isSuccess = false, message = "文件格式不符合，请选择 .db 数据库文件") }
-                    return@launch
-                }
-                val tempFile = copyUriToTemp(uri, "restore_${System.currentTimeMillis()}.db")
-                backupRepository.restoreDatabase(tempFile.absolutePath)
-                tempFile.delete()
-                _uiState.update {
-                    it.copy(isLoading = false, isSuccess = true, message = "数据库恢复成功，请重启APP")
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, isSuccess = false, message = "恢复失败: ${e.message}")
-                }
-            }
-        }
-    }
-
-    // 从 content URI 获取文件名
-    private fun getFileName(uri: Uri): String? {
-        return try {
-            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                    if (idx >= 0) cursor.getString(idx) else null
-                } else null
-            }
-        } catch (_: Exception) { null }
-    }
-
-    // 将 content URI 复制到临时文件
-    private suspend fun copyUriToTemp(uri: Uri, tempName: String): File = withContext(Dispatchers.IO) {
-        val tempFile = File(context.cacheDir, tempName)
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            java.io.FileOutputStream(tempFile).use { output ->
-                input.copyTo(output)
-            }
-        } ?: throw Exception("无法读取文件")
-        tempFile
     }
 
     fun deleteRecord(record: BackupRecordEntity) {
