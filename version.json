@@ -1,7 +1,7 @@
 {
-  "versionName": "3.1.4",
-  "versionCode": 93,
+  "versionName": "3.1.5",
+  "versionCode": 94,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 搜索页分类筛选（物品名称/存放位置/备注/保修）生效\n2. 浅色模式备份按钮白底去除\n3. 修复编辑照片时旧照片变空白占位符",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.4/LootArchive-release-v3.1.4.apk"
+  "updateLog": "1. 修复拍照闪退（imageCapture初始化时序+快门双重校验）\n2. 修复编辑保存后首页缩略图不显示（照片操作先于物品更新）\n3. 新增 README 项目文档",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.5/LootArchive-release-v3.1.5.apk"
 }

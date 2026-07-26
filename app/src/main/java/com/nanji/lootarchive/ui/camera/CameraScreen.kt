@@ -96,16 +96,19 @@ fun CameraScreen(
                             val capture = ImageCapture.Builder()
                                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                                 .build()
-                            imageCapture = capture
                             try {
-                                provider.unbindAll(); cameraReady = true
+                                provider.unbindAll()
                                 camera = provider.bindToLifecycle(
                                     lifecycleOwner,
                                     CameraSelector.DEFAULT_BACK_CAMERA,
                                     preview,
                                     capture
                                 )
-                            } catch (_: Exception) {}
+                                imageCapture = capture // 绑定成功后才设置
+                                cameraReady = true
+                            } catch (e: Exception) {
+                                imageCapture = null // 绑定失败则置空，快门不可用
+                            }
                         }, ContextCompat.getMainExecutor(ctx))
                     }
                 },
@@ -135,7 +138,7 @@ fun CameraScreen(
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
             // Shutter button
-            val canCapture = imageCapture != null
+            val canCapture = cameraReady && imageCapture != null
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Box(Modifier.size(80.dp).clip(CircleShape)
                     .background(if (canCapture) Color.White.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.08f))

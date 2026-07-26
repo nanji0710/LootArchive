@@ -187,8 +187,8 @@ class AddItemViewModel @Inject constructor(
 
                 val savedId: Long
                 if (editingItemId != null) {
-                    itemRepository.updateItem(item)
-                    // 编辑模式：先获取旧照片列表，仅删除被移除的照片文件
+                    // 先处理照片（删除旧记录、移除被删文件），再更新物品 ——
+                    // 否则 updateItem 先触发首页 combine 刷新，此时照片还是旧的
                     val oldPhotoPaths = itemRepository.getPhotosByItemId(editingItemId!!)
                         .map { it.photoPath }
                     val newPaths = state.photoPaths.toSet()
@@ -197,22 +197,23 @@ class AddItemViewModel @Inject constructor(
                             java.io.File(oldPath).delete()
                         }
                     }
-                    // 清空旧照片记录（不删文件），再重建
                     itemRepository.deletePhotoRecordsByItemId(editingItemId!!)
+                    state.photoPaths.forEachIndexed { index, path ->
+                        itemRepository.addPhoto(
+                            ItemPhotoEntity(itemId = editingItemId!!, photoPath = path, sortOrder = index)
+                        )
+                    }
+                    // 物品更新放在最后 —— 此时照片已就绪，触发首页刷新拿到的就是正确数据
+                    itemRepository.updateItem(item)
                     savedId = editingItemId!!
                 } else {
                     savedId = itemRepository.insertItem(item)
-                }
-
-                // 保存照片引用
-                state.photoPaths.forEachIndexed { index, path ->
-                    itemRepository.addPhoto(
-                        ItemPhotoEntity(
-                            itemId = savedId,
-                            photoPath = path,
-                            sortOrder = index
+                    // 新建模式下同步保存照片
+                    state.photoPaths.forEachIndexed { index, path ->
+                        itemRepository.addPhoto(
+                            ItemPhotoEntity(itemId = savedId, photoPath = path, sortOrder = index)
                         )
-                    )
+                    }
                 }
 
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
