@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.component.WheelDatePickerDialog
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.PhotoUtil
 import androidx.compose.ui.unit.sp
@@ -364,77 +365,30 @@ fun AddItemScreen(
         }
     }
 
-    // ─── Material3 购入日期选择器 ───
+    // ─── 购入日期选择器（自定义滚轮） ───
     if (showPurchaseDatePicker) {
-        val now = System.currentTimeMillis()
-        val initialMillis = uiState.purchaseDate ?: now
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialMillis,
-            initialDisplayMode = DisplayMode.Picker,
-            selectableDates = object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= now
+        WheelDatePickerDialog(
+            title = "选择购入日期",
+            initialDateMillis = uiState.purchaseDate ?: System.currentTimeMillis(),
+            maxDateMillis = System.currentTimeMillis(), // 不能超过今天
+            onDismiss = { showPurchaseDatePicker = false },
+            onConfirm = { millis ->
+                viewModel.updatePurchaseDate(millis)
+                showPurchaseDatePicker = false
             }
         )
-        DatePickerDialog(
-            onDismissRequest = { showPurchaseDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { viewModel.updatePurchaseDate(it) }
-                    showPurchaseDatePicker = false
-                }) { Text("确定", color = Primary()) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPurchaseDatePicker = false }) { Text("取消") }
-            }
-        ) {
-            DatePicker(
-                state = datePickerState,
-                title = { Text("购入日期", style = MaterialTheme.typography.titleMedium, color = TextPrimary(), maxLines = 1) },
-                headline = {
-                    Text(
-                        datePickerState.selectedDateMillis?.let {
-                            SimpleDateFormat("yyyy年M月d日", Locale.getDefault()).format(Date(it))
-                        } ?: "选择日期",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = TextPrimary()
-                    )
-                }
-            )
-        }
     }
 
-    // ─── Material3 保修到期日期选择器 ───
+    // ─── 保修到期日期选择器（自定义滚轮） ───
     if (showWarrantyDatePicker) {
-        val initialMillis = uiState.warrantyExpiryDate ?: System.currentTimeMillis()
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialMillis,
-            initialDisplayMode = DisplayMode.Picker
-        )
-        DatePickerDialog(
-            onDismissRequest = { showWarrantyDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { viewModel.updateWarrantyExpiryDate(it) }
-                    showWarrantyDatePicker = false
-                }) { Text("确定", color = Primary()) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showWarrantyDatePicker = false }) { Text("取消") }
+        WheelDatePickerDialog(
+            title = "选择保修到期日",
+            initialDateMillis = uiState.warrantyExpiryDate ?: System.currentTimeMillis(),
+            onDismiss = { showWarrantyDatePicker = false },
+            onConfirm = { millis ->
+                viewModel.updateWarrantyExpiryDate(millis)
+                showWarrantyDatePicker = false
             }
-        ) {
-            DatePicker(
-                state = datePickerState,
-                title = { Text("保修到期日", style = MaterialTheme.typography.titleMedium, color = TextPrimary(), maxLines = 1) },
-                headline = {
-                    Text(
-                        datePickerState.selectedDateMillis?.let {
-                            SimpleDateFormat("yyyy年M月d日", Locale.getDefault()).format(Date(it))
-                        } ?: "选择日期",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = TextPrimary()
-                    )
-                }
-            )
-        }
+        )
     }
 }

@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.3",
-  "versionCode": 103,
+  "versionName": "3.2.4",
+  "versionCode": 104,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 日期选择器优化：标题缩短/headline显示选中日期/购入日期禁止未来日期\n2. 相机修复：预览黑屏（factory回调绑定）+拍照闪退（专用线程池+防抖）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.3/LootArchive-release-v3.2.3.apk"
+  "updateLog": "1. 日期选择器替换为自定义三列滚轮（年月日）——无动画拖影、主题统一、购入日期不超今天\n2. 相机回归最简实现（post延迟绑定+COMPATIBLE模式+主线程回调）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.4/LootArchive-release-v3.2.4.apk"
 }

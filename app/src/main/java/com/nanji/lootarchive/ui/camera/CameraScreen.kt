@@ -33,10 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import java.io.File
-import java.util.concurrent.Executors
 
 @Composable
 fun CameraScreen(
@@ -44,19 +42,12 @@ fun CameraScreen(
     onPhotoTaken: (List<Uri>) -> Unit
 ) {
     val context = LocalContext.current
-    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     var hasCameraPermission by remember { mutableStateOf(false) }
-    var cameraReady by remember { mutableStateOf(false) }
-    var flashEnabled by remember { mutableStateOf(false) }
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var isTakingPhoto by remember { mutableStateOf(false) }
     val capturedUris = remember { mutableStateListOf<Uri>() }
-
-    // 用 ref 存 ImageCapture，避免 Compose state 更新时序问题
-    val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
-
-    // PreviewView 引用，由 AndroidView factory 赋值
-    var previewViewRef by remember { mutableStateOf<PreviewView?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -71,21 +62,6 @@ fun CameraScreen(
 
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
-    // ─── 相机生命周期 ───
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-
-    // ─── 退出时清理 ───
-    DisposableEffect(Unit) {
-        onDispose {
-            try {
-                val provider = ProcessCameraProvider.getInstance(context).get()
-                provider.unbindAll()
-            } catch (_: Exception) {}
-            imageCapture.value = null
-            cameraExecutor.shutdown()
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         if (hasCameraPermission) {
             AndroidView(
@@ -93,32 +69,30 @@ fun CameraScreen(
                     PreviewView(ctx).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_CENTER
-                    }.also { pv ->
-                        previewViewRef = pv
-                        val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                        cameraProviderFuture.addListener({
-                            try {
-                                val provider = cameraProviderFuture.get()
-                                val preview = Preview.Builder().build()
-                                preview.setSurfaceProvider(pv.surfaceProvider)
-                                val capture = ImageCapture.Builder()
-                                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                                    .build()
-                                provider.unbindAll()
-                                provider.bindToLifecycle(
-                                    lifecycleOwner,
-                                    CameraSelector.DEFAULT_BACK_CAMERA,
-                                    preview,
-                                    capture
-                                )
-                                imageCapture.value = capture
-                                cameraReady = true
-                            } catch (e: Exception) {
-                                Log.e("CameraScreen", "相机绑定失败", e)
-                                imageCapture.value = null
-                                cameraReady = false
-                            }
-                        }, ContextCompat.getMainExecutor(ctx))
+                        post {
+                            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                            cameraProviderFuture.addListener({
+                                try {
+                                    val provider = cameraProviderFuture.get()
+                                    val preview = Preview.Builder().build().also {
+                                        it.setSurfaceProvider(this.surfaceProvider)
+                                    }
+                                    val capture = ImageCapture.Builder()
+                                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                                        .build()
+                                    provider.unbindAll()
+                                    provider.bindToLifecycle(
+                                        lifecycleOwner,
+                                        CameraSelector.DEFAULT_BACK_CAMERA,
+                                        preview,
+                                        capture
+                                    )
+                                    imageCapture = capture
+                                } catch (e: Exception) {
+                                    Log.e("Camera", "bind failed", e)
+                                }
+                            }, ContextCompat.getMainExecutor(ctx))
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxSize()
@@ -129,7 +103,7 @@ fun CameraScreen(
             }
         }
 
-        // ─── 顶部栏 ───
+        // Top bar
         Box(Modifier.fillMaxWidth().height(100.dp).align(Alignment.TopCenter)
             .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.5f), Color.Transparent))))
         Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp, vertical = 14.dp),
@@ -138,47 +112,43 @@ fun CameraScreen(
                 Icon(Icons.Default.Close, "关闭", tint = Color.White)
             }
             Text(if (capturedUris.isEmpty()) "拍照" else "已拍 ${capturedUris.size} 张", color = Color.White, fontSize = 16.sp)
-            Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).clickable { flashEnabled = !flashEnabled }.padding(12.dp)) {
-                Icon(if (flashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff, "闪光灯", tint = Color.White)
+            Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).padding(12.dp)) {
+                Icon(Icons.Default.FlashOn, "闪光灯", tint = Color.White)
             }
         }
 
-        // ─── 底部控制栏 ───
+        // Bottom controls
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
 
-            val canShoot = cameraReady && !isTakingPhoto && imageCapture.value != null
+            val canCapture = imageCapture != null && !isTakingPhoto
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Box(
-                    Modifier.size(80.dp).clip(CircleShape)
-                        .background(if (canShoot) Color.White.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.08f))
-                        .border(2.dp, Color.White.copy(alpha = if (canShoot) 0.78f else 0.3f), CircleShape)
-                        .clickable(enabled = canShoot) {
-                            val cap = imageCapture.value ?: return@clickable
-                            isTakingPhoto = true
-                            val imagesDir = File(context.filesDir, "photos")
-                            if (!imagesDir.exists()) imagesDir.mkdirs()
-                            val file = File(imagesDir, "capture_${System.currentTimeMillis()}.jpg")
-                            val outputOpts = ImageCapture.OutputFileOptions.Builder(file).build()
-                            cap.takePicture(
-                                outputOpts,
-                                cameraExecutor,
-                                object : ImageCapture.OnImageSavedCallback {
-                                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                        capturedUris.add(Uri.fromFile(file))
-                                        isTakingPhoto = false
-                                    }
-                                    override fun onError(exc: ImageCaptureException) {
-                                        Log.e("CameraScreen", "拍照失败", exc)
-                                        Toast.makeText(context, "拍照失败", Toast.LENGTH_SHORT).show()
-                                        isTakingPhoto = false
-                                    }
+                Box(Modifier.size(80.dp).clip(CircleShape)
+                    .background(if (canCapture) Color.White.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.08f))
+                    .border(2.dp, Color.White.copy(alpha = if (canCapture) 0.78f else 0.3f), CircleShape)
+                    .clickable(enabled = canCapture) {
+                        val capture = imageCapture ?: return@clickable
+                        isTakingPhoto = true
+                        val dir = File(context.filesDir, "photos")
+                        if (!dir.exists()) dir.mkdirs()
+                        val file = File(dir, "capture_${System.currentTimeMillis()}.jpg")
+                        capture.takePicture(
+                            ImageCapture.OutputFileOptions.Builder(file).build(),
+                            ContextCompat.getMainExecutor(context),
+                            object : ImageCapture.OnImageSavedCallback {
+                                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                                    capturedUris.add(Uri.fromFile(file))
+                                    isTakingPhoto = false
                                 }
-                            )
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
+                                override fun onError(exc: ImageCaptureException) {
+                                    Log.e("Camera", "takePicture failed", exc)
+                                    Toast.makeText(context, "拍照失败", Toast.LENGTH_SHORT).show()
+                                    isTakingPhoto = false
+                                }
+                            }
+                        )
+                    }, contentAlignment = Alignment.Center) {
                     Box(Modifier.size(60.dp).clip(CircleShape).background(
                         Brush.linearGradient(listOf(Color(0xFFFFA500), Color(0xFFFFB347)))
                     ))
