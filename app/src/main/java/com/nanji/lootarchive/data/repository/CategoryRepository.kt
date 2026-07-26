@@ -34,30 +34,27 @@ class CategoryRepository @Inject constructor(
     /**
      * 如果分类表为空，填充内置10大分类
      */
+    /**
+     * 批量插入内置10大分类（INSERT OR IGNORE，已存在则跳过）
+     */
     suspend fun seedDefaultCategoriesIfEmpty() {
-        val count = categoryDao.getCount()
-        if (count == 0) {
-            val defaults = listOf(
-                "食品饮料" to "restaurant",
-                "药品保健" to "medical_services",
-                "日用百货" to "local_mall",
-                "数码电子" to "smartphone",
-                "服饰鞋包" to "checkroom",
-                "书籍文具" to "menu_book",
-                "工具器材" to "build",
-                "藏品摆件" to "diamond",
-                "家居家具" to "chair",
-                "其他" to "category"
+        val defaults = listOf(
+            "食品饮料" to "restaurant",
+            "药品保健" to "medical_services",
+            "日用百货" to "local_mall",
+            "数码电子" to "smartphone",
+            "服饰鞋包" to "checkroom",
+            "书籍文具" to "menu_book",
+            "工具器材" to "build",
+            "藏品摆件" to "diamond",
+            "家居家具" to "chair",
+            "其他" to "category"
+        )
+        val entities = defaults.mapIndexed { index, (name, icon) ->
+            com.nanji.lootarchive.data.local.entity.CategoryEntity(
+                name = name, iconName = icon, sortOrder = index
             )
-            defaults.forEachIndexed { index, (name, icon) ->
-                categoryDao.insertCategory(
-                    com.nanji.lootarchive.data.local.entity.CategoryEntity(
-                        name = name,
-                        iconName = icon,
-                        sortOrder = index
-                    )
-                )
-            }
         }
+        categoryDao.insertCategories(entities)
     }
 }

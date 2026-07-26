@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.5",
-  "versionCode": 105,
+  "versionName": "3.2.6",
+  "versionCode": 106,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 日期滚轮改为点击选择（修复只能选首项的问题）\n2. 相机迁移到 LifecycleCameraController（CameraX 官方简化API）\n3. 分类补种扩展至首页筛选入口（CategoryDrawerViewModel）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.5/LootArchive-release-v3.2.5.apk"
+  "updateLog": "1. 修复内置分类不显示——改用INSERT OR IGNORE（之前getCount>0直接跳过）\n2. 日期滚轮点击选择 + LifecycleCameraController + 分类补种",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.6/LootArchive-release-v3.2.6.apk"
 }
