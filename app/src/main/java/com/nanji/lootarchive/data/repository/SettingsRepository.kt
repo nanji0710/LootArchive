@@ -65,7 +65,7 @@ class SettingsRepository @Inject constructor(
     }
 
     // ========== 主色调 ==========
-    val primaryColor: Flow<Int> = dataStore.data.map { it[KEY_PRIMARY_COLOR] ?: 0xFFD4A574.toInt() }
+    val primaryColor: Flow<Int> = dataStore.data.map { it[KEY_PRIMARY_COLOR] ?: 0xFFFFA500.toInt() }
     suspend fun setPrimaryColor(color: Int) {
         dataStore.edit { it[KEY_PRIMARY_COLOR] = color }
     }

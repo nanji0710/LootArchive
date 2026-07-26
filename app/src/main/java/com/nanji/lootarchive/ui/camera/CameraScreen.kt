@@ -53,6 +53,7 @@ fun CameraScreen(
     var hasCameraPermission by remember { mutableStateOf(false) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var camera by remember { mutableStateOf<Camera?>(null) }
+    var cameraReady by remember { mutableStateOf(false) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     var flashEnabled by remember { mutableStateOf(false) }
     val capturedUris = remember { mutableStateListOf<Uri>() }
@@ -97,7 +98,7 @@ fun CameraScreen(
                                 .build()
                             imageCapture = capture
                             try {
-                                provider.unbindAll()
+                                provider.unbindAll(); cameraReady = true
                                 camera = provider.bindToLifecycle(
                                     lifecycleOwner,
                                     CameraSelector.DEFAULT_BACK_CAMERA,

@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.toArgb
 
 // ─── 传递 APP 主题模式和主色给所有子组件 ───
 val LocalDarkTheme = staticCompositionLocalOf { false }
-val LocalPrimaryColor = staticCompositionLocalOf { Color(0xFFD4A574) }
+val LocalPrimaryColor = staticCompositionLocalOf { Color(0xFFFFA500) }
 
 internal val LightColorScheme: ColorScheme
     @Composable
@@ -50,7 +50,7 @@ private fun brighten(c: Color): Color {
 }
 
 @Composable
-fun LootArchiveTheme(themeMode: String = "system", primaryColor: Int = 0xFFD4A574.toInt(), content: @Composable () -> Unit) {
+fun LootArchiveTheme(themeMode: String = "system", primaryColor: Int = 0xFFFFA500.toInt(), content: @Composable () -> Unit) {
     val darkTheme = when (themeMode) {
         "dark" -> true; "light" -> false; else -> isSystemInDarkTheme()
     }

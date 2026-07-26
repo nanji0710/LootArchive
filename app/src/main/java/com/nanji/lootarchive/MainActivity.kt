@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
-            val primaryColor by settingsRepository.primaryColor.collectAsState(initial = 0xFFD4A574.toInt())
+            val primaryColor by settingsRepository.primaryColor.collectAsState(initial = 0xFFFFA500.toInt())
             LootArchiveTheme(themeMode = themeMode, primaryColor = primaryColor) {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                     key("main") { MainScreen() }
