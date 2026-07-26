@@ -28,12 +28,16 @@ object DatabaseModule {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
                     try {
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('数码产品', 'smartphone', 0)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('服饰鞋包', 'checkroom', 1)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('书籍文具', 'menu_book', 2)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('工具器材', 'build', 3)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('藏品摆件', 'diamond', 4)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('其他', 'category', 5)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('食品饮料', 'restaurant', 0)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('药品保健', 'medical_services', 1)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('日用百货', 'local_mall', 2)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('数码电子', 'smartphone', 3)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('服饰鞋包', 'checkroom', 4)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('书籍文具', 'menu_book', 5)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('工具器材', 'build', 6)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('藏品摆件', 'diamond', 7)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('家居家具', 'chair', 8)")
+                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('其他', 'category', 9)")
                     } catch (_: Exception) {
                         // 默认分类插入失败不影响启动
                     }

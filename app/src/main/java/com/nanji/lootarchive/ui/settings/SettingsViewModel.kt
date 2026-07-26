@@ -22,7 +22,7 @@ data class SettingsUiState(
     val backupReminderEnabled: Boolean = false,
     val backupReminderDay: Int = 1,
     val themeMode: String = "system",
-    val primaryColor: Int = 0xFFD4A574.toInt(),
+    val primaryColor: Int = 0xFFFFA500.toInt(),
     val avatarUri: String = "",
     val appName: String = "拾物集",
     val trashItemCount: Int = 0,

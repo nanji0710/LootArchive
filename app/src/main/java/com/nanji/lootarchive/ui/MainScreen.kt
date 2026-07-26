@@ -187,8 +187,8 @@ fun MainScreen() {
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
                     hazeState = hazeState,
                     shape = RoundedCornerShape(26.dp),
-                    containerColor = if (LocalDarkTheme.current) Color.Black.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.16f),
-                    borderColor = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.72f),
+                    containerColor = if (LocalDarkTheme.current) Color.Black.copy(alpha = 0.26f) else Color.White.copy(alpha = 0.26f),
+                    borderColor = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.82f),
                     shadowElevation = 16.dp
                 ) {
                     Row(

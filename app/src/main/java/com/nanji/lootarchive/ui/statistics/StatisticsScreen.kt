@@ -83,38 +83,34 @@ fun StatisticsScreen(
                     }
                 }
 
-                // ─── 饼图卡片 ───
+                // ─── 分类资产概览（价值+数量合并） ───
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Text("分类资产价值占比", fontSize = 18.sp, color = TextPrimary())
-                    Spacer(Modifier.height(16.dp))
+                    Text("分类资产概览", fontSize = 18.sp, color = TextPrimary())
+                    Spacer(Modifier.height(12.dp))
+                    val maxCount = uiState.categorySummaries.maxOfOrNull { it.itemCount }?.coerceAtLeast(1) ?: 1
+                    val maxValue = uiState.categorySummaries.maxOfOrNull { it.totalValue }?.coerceAtLeast(1.0) ?: 1.0
                     uiState.categorySummaries.forEachIndexed { index, s ->
                         val pct = if (uiState.totalValue > 0) (s.totalValue / uiState.totalValue * 100).toInt() else 0
-                        Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[index % ChartColors.size]) {}
-                            Spacer(Modifier.width(8.dp))
-                            Text(s.category.name, fontSize = 13.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
-                            Text("¥${numberFormat.format(s.totalValue)}", fontSize = 14.sp, color = Primary())
-                            Spacer(Modifier.width(8.dp))
-                            Text("$pct%", fontSize = 13.sp, color = TextAuxiliary())
-                        }
-                    }
-                }
-
-                // ─── 柱状图卡片 ───
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Text("分类物品数量对比", fontSize = 18.sp, color = TextPrimary())
-                    Spacer(Modifier.height(16.dp))
-                    val maxCount = uiState.categorySummaries.maxOfOrNull { it.itemCount }?.coerceAtLeast(1) ?: 1
-                    uiState.categorySummaries.forEachIndexed { index, s ->
-                        Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(s.category.name, fontSize = 13.sp, color = TextSecondary(), modifier = Modifier.width(64.dp))
-                            Surface(Modifier.weight(1f).height(24.dp), RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
-                                Box(Modifier.fillMaxSize()) {
-                                    Surface(Modifier.fillMaxHeight().fillMaxWidth((s.itemCount.toFloat() / maxCount).coerceIn(0f, 1f)), RoundedCornerShape(4.dp), color = ChartColors[index % ChartColors.size]) {}
-                                }
+                        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[index % ChartColors.size]) {}
+                                Spacer(Modifier.width(8.dp))
+                                Text(s.category.name, fontSize = 13.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
+                                Text("¥${numberFormat.format(s.totalValue)}", fontSize = 14.sp, color = Primary())
+                                Spacer(Modifier.width(6.dp))
+                                Text("$pct%", fontSize = 12.sp, color = TextAuxiliary())
                             }
-                            Spacer(Modifier.width(8.dp))
-                            Text("${s.itemCount}", fontSize = 14.sp, color = TextPrimary())
+                            Spacer(Modifier.height(4.dp))
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(Modifier.width(18.dp))
+                                Surface(Modifier.weight(1f).height(20.dp), RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                                    Box(Modifier.fillMaxSize()) {
+                                        Surface(Modifier.fillMaxHeight().fillMaxWidth((s.itemCount.toFloat() / maxCount).coerceIn(0f, 1f)), RoundedCornerShape(4.dp), color = ChartColors[index % ChartColors.size]) {}
+                                    }
+                                }
+                                Spacer(Modifier.width(6.dp))
+                                Text("${s.itemCount}件", fontSize = 12.sp, color = TextAuxiliary())
+                            }
                         }
                     }
                 }

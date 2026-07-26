@@ -134,14 +134,16 @@ fun CameraScreen(
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
             // Shutter button
+            val canCapture = imageCapture != null
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Box(Modifier.size(80.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f))
-                    .border(2.dp, Color.White.copy(alpha = 0.78f), CircleShape)
-                    .clickable {
+                Box(Modifier.size(80.dp).clip(CircleShape)
+                    .background(if (canCapture) Color.White.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.08f))
+                    .border(2.dp, Color.White.copy(alpha = if (canCapture) 0.78f else 0.3f), CircleShape)
+                    .clickable(enabled = canCapture) {
                         takePhoto(context, imageCapture) { uri -> capturedUris.add(uri) }
                     }, contentAlignment = Alignment.Center) {
                     Box(Modifier.size(60.dp).clip(CircleShape).background(
-                        Brush.linearGradient(listOf(Color(0xFFD4A574), Color(0xFFE6B886)))
+                        Brush.linearGradient(listOf(Color(0xFFFFA500), Color(0xFFFFB347)))
                     ))
                 }
             }
@@ -151,7 +153,7 @@ fun CameraScreen(
             if (capturedUris.isNotEmpty()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("${capturedUris.size} 张照片", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Color(0xFFD4A574))
+                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Color(0xFFFFA500))
                         .clickable { onPhotoTaken(capturedUris.toList()) }.padding(horizontal = 20.dp, vertical = 10.dp)) {
                         Text("完成", color = Color.White, fontSize = 14.sp)
                     }

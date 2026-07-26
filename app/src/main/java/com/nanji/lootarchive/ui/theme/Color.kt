@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 // ─── 静态色值（Theme.kt 构建 colorScheme 使用） ───
-val _Primary = Color(0xFFD4A574)
-val _PrimaryDark = Color(0xFFE6B886)
+val _Primary = Color(0xFFFFA500)
+val _PrimaryDark = Color(0xFFFFB347)
 val _OnPrimary = Color(0xFFFFFFFF)
 val _BackgroundLight = Color(0xFFF7F3EA)
 val _BackgroundDark = Color(0xFF1A1A1A)
@@ -37,7 +37,7 @@ val WarrantyExpired = Color(0xFFF44336)
 
 // ─── 图表色板 ───
 val ChartColors = listOf(
-    Color(0xFFD4A574), Color(0xFF4CAF50), Color(0xFF2196F3),
+    Color(0xFFFFA500), Color(0xFF4CAF50), Color(0xFF2196F3),
     Color(0xFFFF9800), Color(0xFFE91E63), Color(0xFF9C27B0),
     Color(0xFF00BCD4), Color(0xFF795548)
 )
