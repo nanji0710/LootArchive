@@ -1,7 +1,7 @@
 {
-  "versionName": "3.1.5",
-  "versionCode": 94,
+  "versionName": "3.1.6",
+  "versionCode": 95,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 修复拍照闪退（imageCapture初始化时序+快门双重校验）\n2. 修复编辑保存后首页缩略图不显示（照片操作先于物品更新）\n3. 新增 README 项目文档",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.5/LootArchive-release-v3.1.5.apk"
+  "updateLog": "1. 修复深色模式新增物品页多个文字（购入日期/所属分类/物品照片）颜色发黑\n2. 修复已有数据库用户看不到内置10大分类（onOpen回调补种）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.6/LootArchive-release-v3.1.6.apk"
 }

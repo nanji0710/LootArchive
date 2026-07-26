@@ -27,24 +27,41 @@ object DatabaseModule {
             .addCallback(object : androidx.room.RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
+                    seedDefaultCategories(db)
+                }
+
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    super.onOpen(db)
+                    // 兼容已有数据库：表为空时填充默认分类
                     try {
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('食品饮料', 'restaurant', 0)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('药品保健', 'medical_services', 1)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('日用百货', 'local_mall', 2)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('数码电子', 'smartphone', 3)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('服饰鞋包', 'checkroom', 4)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('书籍文具', 'menu_book', 5)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('工具器材', 'build', 6)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('藏品摆件', 'diamond', 7)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('家居家具', 'chair', 8)")
-                        db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('其他', 'category', 9)")
-                    } catch (_: Exception) {
-                        // 默认分类插入失败不影响启动
-                    }
+                        val cursor = db.query("SELECT COUNT(*) FROM categories")
+                        val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
+                        cursor.close()
+                        if (count == 0) {
+                            seedDefaultCategories(db)
+                        }
+                    } catch (_: Exception) {}
                 }
             })
             .fallbackToDestructiveMigration()
             .build()
+    }
+
+    private fun seedDefaultCategories(db: SupportSQLiteDatabase) {
+        try {
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('食品饮料', 'restaurant', 0)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('药品保健', 'medical_services', 1)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('日用百货', 'local_mall', 2)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('数码电子', 'smartphone', 3)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('服饰鞋包', 'checkroom', 4)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('书籍文具', 'menu_book', 5)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('工具器材', 'build', 6)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('藏品摆件', 'diamond', 7)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('家居家具', 'chair', 8)")
+            db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('其他', 'category', 9)")
+        } catch (_: Exception) {
+            // 默认分类插入失败不影响启动
+        }
     }
 
     @Provides

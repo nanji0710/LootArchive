@@ -124,10 +124,10 @@ fun AddItemScreen(
 
             // 分类选择
             GlassCard {
-                Text("所属分类 *", style = MaterialTheme.typography.labelLarge)
+                Text("所属分类 *", style = MaterialTheme.typography.labelLarge, color = TextPrimary())
                 Spacer(modifier = Modifier.height(8.dp))
                 if (uiState.categories.isEmpty()) {
-                    Text("暂无分类", style = MaterialTheme.typography.bodySmall)
+                    Text("暂无分类", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                 } else {
                     Column {
                         // 分行展示 FilterChip
@@ -207,10 +207,11 @@ fun AddItemScreen(
                     Icon(Icons.Filled.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("购入日期", style = MaterialTheme.typography.labelSmall)
+                        Text("购入日期", style = MaterialTheme.typography.labelSmall, color = TextSecondary())
                         Text(
                             text = uiState.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "点击选择",
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = TextPrimary()
                         )
                     }
                 }
@@ -276,7 +277,7 @@ fun AddItemScreen(
 
             // ─── 照片区域（完整实现） ───
             GlassCard {
-                Text("物品照片", style = MaterialTheme.typography.labelLarge)
+                Text("物品照片", style = MaterialTheme.typography.labelLarge, color = TextPrimary())
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 已选照片预览
