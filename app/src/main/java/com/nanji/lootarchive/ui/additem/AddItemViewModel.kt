@@ -188,8 +188,17 @@ class AddItemViewModel @Inject constructor(
                 val savedId: Long
                 if (editingItemId != null) {
                     itemRepository.updateItem(item)
-                    // 编辑模式：先清掉旧照片，再重建（避免重复）
-                    itemRepository.deletePhotosByItemId(editingItemId!!)
+                    // 编辑模式：先获取旧照片列表，仅删除被移除的照片文件
+                    val oldPhotoPaths = itemRepository.getPhotosByItemId(editingItemId!!)
+                        .map { it.photoPath }
+                    val newPaths = state.photoPaths.toSet()
+                    oldPhotoPaths.forEach { oldPath ->
+                        if (oldPath !in newPaths) {
+                            java.io.File(oldPath).delete()
+                        }
+                    }
+                    // 清空旧照片记录（不删文件），再重建
+                    itemRepository.deletePhotoRecordsByItemId(editingItemId!!)
                     savedId = editingItemId!!
                 } else {
                     savedId = itemRepository.insertItem(item)

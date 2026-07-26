@@ -135,11 +135,20 @@ class ItemRepository @Inject constructor(
         addPhotos(photos)
     }
 
+    // 删除照片记录+文件（用于彻底删除物品）
     suspend fun deletePhotosByItemId(itemId: Long) {
         val photos = itemPhotoDao.getPhotosByItemIdOnce(itemId)
         photos.forEach { java.io.File(it.photoPath).delete() }
         itemPhotoDao.deletePhotosByItemId(itemId)
     }
+
+    // 仅删除照片记录，不删文件（用于编辑时重建照片列表）
+    suspend fun deletePhotoRecordsByItemId(itemId: Long) {
+        itemPhotoDao.deletePhotosByItemId(itemId)
+    }
+
+    suspend fun getPhotosByItemId(itemId: Long): List<ItemPhotoEntity> =
+        itemPhotoDao.getPhotosByItemIdOnce(itemId)
 
     suspend fun getFirstPhotoPath(itemId: Long): String? =
         itemPhotoDao.getFirstPhotoByItemId(itemId)?.photoPath

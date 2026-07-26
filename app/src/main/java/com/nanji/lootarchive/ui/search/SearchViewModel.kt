@@ -84,12 +84,26 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             itemRepository.searchItems(q.ifBlank { "" }).catch {}.collect { items ->
+                val filter = _uiState.value.activeFilter
+                // 按筛选字段过滤
+                val filtered = when (filter) {
+                    "name" -> items.filter { it.name.contains(q, ignoreCase = true) }
+                    "location" -> items.filter { it.storageLocation.contains(q, ignoreCase = true) }
+                    "desc" -> items.filter { it.description.contains(q, ignoreCase = true) }
+                    "warranty" -> items.filter {
+                        (it.warrantyPeriodDays?.toString()?.contains(q) == true) ||
+                        (it.warrantyExpiryDate?.let { d ->
+                            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(d))
+                        }?.contains(q) == true)
+                    }
+                    else -> items // "全部"
+                }
                 val sort = _uiState.value.sort
                 val sorted = when (sort) {
-                    "price_desc" -> items.sortedByDescending { it.purchasePrice }
-                    "date_new" -> items.sortedByDescending { it.purchaseDate ?: 0L }
-                    "warranty" -> items.sortedBy { it.warrantyExpiryDate ?: Long.MAX_VALUE }
-                    else -> items
+                    "price_desc" -> filtered.sortedByDescending { it.purchasePrice }
+                    "date_new" -> filtered.sortedByDescending { it.purchaseDate ?: 0L }
+                    "warranty" -> filtered.sortedBy { it.warrantyExpiryDate ?: Long.MAX_VALUE }
+                    else -> filtered
                 }
                 val results = sorted.map { item ->
                     SearchResultItem(item = item, firstPhotoPath = itemRepository.getFirstPhotoPath(item.id))

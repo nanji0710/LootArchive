@@ -188,7 +188,7 @@ private fun BackupActionButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        color = Color.Transparent
     ) {
         Row(
             modifier = Modifier.padding(12.dp),

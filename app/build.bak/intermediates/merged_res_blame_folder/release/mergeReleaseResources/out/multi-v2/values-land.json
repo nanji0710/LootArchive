@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.nanji.lootarchive.app-mergeReleaseResources-75:/values-land/values-land.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\曹坤龙\\.gradle\\caches\\8.9\\transforms\\fee36d23f2553eaae5cbcd163d0c3cd1\\transformed\\appcompat-1.6.1\\res\\values-land\\values-land.xml",
+                    "from": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,125,196",
+                        "endColumns": "69,70,67",
+                        "endOffsets": "120,191,259"
+                    }
+                }
+            ]
+        }
+    ]
+}
