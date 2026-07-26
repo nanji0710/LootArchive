@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.additem.AddItemScreen
 import com.nanji.lootarchive.ui.backup.BackupScreen
 import com.nanji.lootarchive.ui.camera.CameraScreen
+import com.nanji.lootarchive.ui.recyclebin.RecycleBinScreen
 import com.nanji.lootarchive.ui.category.CategoryScreen
 import com.nanji.lootarchive.ui.detail.DetailScreen
 import com.nanji.lootarchive.ui.home.HomeScreen
@@ -49,7 +50,7 @@ enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselec
 }
 
 // 简易页面路由（替代 NavHost，根除闪退）
-private object Route { const val HOME="home"; const val STATS="stats"; const val MY="my"; const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"; const val SETTINGS="settings"; const val CATEGORY="category"; const val BACKUP="backup"; const val CAMERA="camera" }
+private object Route { const val HOME="home"; const val STATS="stats"; const val MY="my"; const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"; const val SETTINGS="settings"; const val CATEGORY="category"; const val BACKUP="backup"; const val CAMERA="camera"; const val RECYCLEBIN="recyclebin" }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,7 +149,8 @@ fun MainScreen() {
                             avatarUri = avatarUri.avatarUri,
                             onNavigateToSettings = { navigate(Route.SETTINGS) },
                             onNavigateToCategory = { navigate(Route.CATEGORY) },
-                            onNavigateToBackup = { navigate(Route.BACKUP) }
+                            onNavigateToBackup = { navigate(Route.BACKUP) },
+                            onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) }
                         )
                         Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()}, onNavigateToCamera={navigate(Route.CAMERA)}, initialPhotoPaths=cameraPhotoPaths.apply{cameraPhotoPaths=emptyList()})
                         Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
@@ -156,6 +158,7 @@ fun MainScreen() {
                         Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
                         Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                         Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
+                        Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
                         Route.CAMERA -> CameraScreen(
                             onBack = { goBack() },
                             onPhotoTaken = { uris ->

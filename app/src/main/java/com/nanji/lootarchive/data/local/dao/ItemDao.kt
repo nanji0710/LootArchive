@@ -68,6 +68,9 @@ interface ItemDao {
     @Query("SELECT * FROM items WHERE isDeleted = 1 ORDER BY deletedAt DESC")
     fun getDeletedItems(): Flow<List<ItemEntity>>
 
+    @Query("SELECT * FROM items WHERE isDeleted = 1 AND deletedAt IS NOT NULL AND deletedAt < :threshold")
+    suspend fun getDeletedItemsBefore(threshold: Long): List<ItemEntity>
+
     // ========== 写入 ==========
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

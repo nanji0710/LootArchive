@@ -34,7 +34,8 @@ fun MyLandingScreen(
     avatarUri: String = "",
     onNavigateToSettings: () -> Unit,
     onNavigateToCategory: () -> Unit,
-    onNavigateToBackup: () -> Unit
+    onNavigateToBackup: () -> Unit,
+    onNavigateToRecycleBin: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -91,6 +92,8 @@ fun MyLandingScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
             MyMenuItem(Icons.Outlined.Backup, "备份与恢复", "导出Excel、备份数据") { onNavigateToBackup() }
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
+            MyMenuItem(Icons.Outlined.Delete, "回收站", "查看和还原已删除的物品") { onNavigateToRecycleBin() }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
             MyMenuItem(Icons.Outlined.SystemUpdate, "检查更新", "检测GitHub最新版本") {
                 if (!isChecking) {
                     isChecking = true
@@ -112,7 +115,7 @@ fun MyLandingScreen(
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v3.1.6", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v3.2.0", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 
@@ -173,7 +176,7 @@ fun MyLandingScreen(
             onDismissRequest = { showNoUpdate = false },
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v3.1.6") },
+            text = { Text("当前已是最新版本 v3.2.0") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }

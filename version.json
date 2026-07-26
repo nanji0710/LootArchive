@@ -1,7 +1,7 @@
 {
-  "versionName": "3.1.6",
-  "versionCode": 95,
+  "versionName": "3.2.0",
+  "versionCode": 100,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 修复深色模式新增物品页多个文字（购入日期/所属分类/物品照片）颜色发黑\n2. 修复已有数据库用户看不到内置10大分类（onOpen回调补种）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.6/LootArchive-release-v3.1.6.apk"
+  "updateLog": "1. 新增回收站功能（还原/彻底删除/14天自动清空）\n2. 相机重写（COMPATIBLE模式+更好的生命周期处理）修复闪退\n3. 深色模式多处文字颜色修复\n4. 内置10大分类补种（已有数据库用户可见）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.0/LootArchive-release-v3.2.0.apk"
 }
