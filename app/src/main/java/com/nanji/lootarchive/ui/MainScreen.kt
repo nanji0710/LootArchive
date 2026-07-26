@@ -181,7 +181,7 @@ fun MainScreen() {
                                 Surface(
                                     onClick = { switchTab(index) },
                                     shape = RoundedCornerShape(22.dp),
-                                    color = Primary()
+                                    color = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary()
                                 ) {
                                     Row(
                                         Modifier.padding(horizontal = 18.dp, vertical = 10.dp),

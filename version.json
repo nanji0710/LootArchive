@@ -1,7 +1,7 @@
 {
-  "versionName": "3.0.3",
-  "versionCode": 87,
+  "versionName": "3.0.4",
+  "versionCode": 88,
   "updateDate": "2026-07-25",
-  "updateLog": "1. 移除无法点击的主题色选择器\n2. 修复分类页所有文字深色模式显式设色\n3. 导航栏白线修复+暗色调暗\n4. 版本号更新至v3.0.3",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.3/LootArchive-release-v3.0.3.apk"
+  "updateLog": "1. 备份页所有文字深色模式显式设色\n2. 底部导航栏选中色调暗\n3. 版本号更新至v3.0.4",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.4/LootArchive-release-v3.0.4.apk"
 }

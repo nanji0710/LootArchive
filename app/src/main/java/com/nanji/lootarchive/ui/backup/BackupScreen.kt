@@ -63,7 +63,7 @@ fun BackupScreen(
             item { Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }; Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary()) } }
             // 备份操作区
             item {
-                Text("数据备份", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("数据备份", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary())
             }
 
             item {
@@ -84,7 +84,7 @@ fun BackupScreen(
 
             // 恢复操作区
             item {
-                Text("数据恢复", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("数据恢复", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary())
             }
 
             item {
@@ -105,7 +105,7 @@ fun BackupScreen(
 
             // 备份记录
             item {
-                Text("备份记录", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("备份记录", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary())
             }
 
             if (uiState.backupRecords.isEmpty()) {
@@ -113,7 +113,7 @@ fun BackupScreen(
                     EmptyState(
                         icon = {
                             Icon(Icons.Filled.History, null, modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                tint = TextAuxiliary())
                         },
                         title = "暂无备份记录",
                         subtitle = "备份数据后将在此显示记录"
@@ -146,7 +146,7 @@ fun BackupScreen(
                         }
                     }
                 },
-                confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定") } }
+                confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定", color = Primary()) } }
             )
         }
 
@@ -171,7 +171,7 @@ fun BackupScreen(
                         }
                     }
                 },
-                confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的") } }
+                confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的", color = Primary()) } }
             )
         }
     }
@@ -197,7 +197,7 @@ private fun BackupActionButton(
             Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = TextPrimary())
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary())
             }
             Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
@@ -224,11 +224,11 @@ private fun BackupRecordItem(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(record.fileName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                Text(record.fileName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = TextPrimary())
                 Text(
                     dateFormat.format(Date(record.createdAt)),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = TextSecondary()
                 )
             }
             IconButton(onClick = onDelete) {
