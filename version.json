@@ -1,7 +1,7 @@
 {
-  "versionName": "3.1.1",
-  "versionCode": 90,
+  "versionName": "3.1.2",
+  "versionCode": 91,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 主题色从金色改为橙色(#FFA500)\n2. 导航栏毛玻璃透明度降低10%\n3. 修复拍照闪退（相机未就绪禁用快门）\n4. 合并分类价值占比和数量对比为一个图表",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.1/LootArchive-release-v3.1.1.apk"
+  "updateLog": "1. 主题色橙色全面生效（修复4处残留暗金色）\n2. 相机拍照安全防护（cameraReady标志+快门禁用）\n3. 物品详情页照片铺满显示",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.2/LootArchive-release-v3.1.2.apk"
 }
