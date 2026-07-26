@@ -185,11 +185,14 @@ class AddItemViewModel @Inject constructor(
                     updatedAt = System.currentTimeMillis()
                 )
 
-                val savedId = if (editingItemId != null) {
+                val savedId: Long
+                if (editingItemId != null) {
                     itemRepository.updateItem(item)
-                    editingItemId!!
+                    // 编辑模式：先清掉旧照片，再重建（避免重复）
+                    itemRepository.deletePhotosByItemId(editingItemId!!)
+                    savedId = editingItemId!!
                 } else {
-                    itemRepository.insertItem(item)
+                    savedId = itemRepository.insertItem(item)
                 }
 
                 // 保存照片引用

@@ -135,6 +135,15 @@ class ItemRepository @Inject constructor(
         addPhotos(photos)
     }
 
+    suspend fun deletePhotosByItemId(itemId: Long) {
+        val photos = itemPhotoDao.getPhotosByItemIdOnce(itemId)
+        photos.forEach { java.io.File(it.photoPath).delete() }
+        itemPhotoDao.deletePhotosByItemId(itemId)
+    }
+
+    suspend fun getFirstPhotoPath(itemId: Long): String? =
+        itemPhotoDao.getFirstPhotoByItemId(itemId)?.photoPath
+
     // ========== 回收站 ==========
 
     fun getDeletedItems(): Flow<List<ItemEntity>> = itemDao.getDeletedItems()

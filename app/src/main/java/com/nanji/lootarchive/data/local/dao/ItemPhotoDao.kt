@@ -31,6 +31,9 @@ interface ItemPhotoDao {
     @Query("DELETE FROM item_photos WHERE itemId = :itemId")
     suspend fun deletePhotosByItemId(itemId: Long)
 
+    @Query("SELECT * FROM item_photos WHERE itemId = :itemId ORDER BY sortOrder ASC LIMIT 1")
+    suspend fun getFirstPhotoByItemId(itemId: Long): ItemPhotoEntity?
+
     @Query("SELECT photoPath FROM item_photos")
     suspend fun getAllPhotoPaths(): List<String>
 

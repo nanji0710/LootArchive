@@ -27,7 +27,11 @@ import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.ui.component.GlassCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
+import java.io.File
 import java.text.NumberFormat
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,7 +145,7 @@ fun SearchScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(uiState.results, key = { it.id }) { item -> SearchItemCard(item, numberFormat) { onNavigateToDetail(item.id) } }
+                    items(uiState.results, key = { it.item.id }) { result -> SearchItemCard(result.item, result.firstPhotoPath, numberFormat) { onNavigateToDetail(result.item.id) } }
                 }
             }
         }
@@ -149,10 +153,19 @@ fun SearchScreen(
 }
 
 @Composable
-private fun SearchItemCard(item: ItemEntity, numberFormat: NumberFormat, onClick: () -> Unit) {
+private fun SearchItemCard(item: ItemEntity, firstPhotoPath: String?, numberFormat: NumberFormat, onClick: () -> Unit) {
     GlassCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Surface(Modifier.fillMaxWidth().height(100.dp), RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = TextAuxiliary()) }
+            if (firstPhotoPath != null) {
+                AsyncImage(
+                    model = File(firstPhotoPath),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = TextAuxiliary()) }
+            }
         }
         Spacer(Modifier.height(8.dp))
         Text(item.name, fontSize = 18.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -91,97 +91,107 @@ fun MainScreen() {
             // 所有Tab页面取消TopBar，按钮改为悬浮
         },
     ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize().hazeSource(hazeState)) {
-            AnimatedContent(
-                targetState = currentRoute,
-                transitionSpec = {
-                    (fadeIn() + slideInHorizontally { it / 8 }) togetherWith
-                    (fadeOut() + slideOutHorizontally { -it / 8 })
-                },
-                label = "page"
-            ) { route ->
-                when (route) {
-                    Route.HOME -> {
-                        HomeScreen(
-                            categoryFilter = drawerCategoryFilter,
-                            onNavigateToAddItem = { navigate(Route.ADD) },
-                            onNavigateToDetail = { navigate(Route.DETAIL, it) },
-                            onNavigateToSearch = { navigate(Route.SEARCH) },
-                            onNavigateToStats = { switchTab(1) },
-                            onNavigateToCategory = { navigate(Route.CATEGORY) },
-                            onExportExcel = { navigate(Route.BACKUP) },
-                            onImportExcel = { navigate(Route.BACKUP) },
-                            onBackupData = { navigate(Route.BACKUP) }
-                        )
-                    }
-                    Route.STATS -> {
-                        var showTimeFilter by remember { mutableStateOf(false) }
-                        var timeFilterLabel by remember { mutableStateOf("全部时间") }
-                        val statsViewModel: com.nanji.lootarchive.ui.statistics.StatisticsViewModel = hiltViewModel()
-                        Box(Modifier.fillMaxSize()) {
-                            StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)}, isTabMode=true)
-                            // 悬浮时间筛选按钮
-                            Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
-                                Box {
-                                    TextButton(onClick={showTimeFilter=true}) {
-                                        Text(timeFilterLabel, fontSize=14.sp, color=Primary())
-                                        Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
-                                    }
-                                    DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false},
-                                        containerColor = MaterialTheme.colorScheme.surface
-                                    ) {
-                                        listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
-                                            DropdownMenuItem(text={Text(label)}, onClick={
-                                                timeFilterLabel=label
-                                                statsViewModel.setTimeFilter(key)
-                                                showTimeFilter=false
-                                            })
+        Box(Modifier.padding(padding).fillMaxSize()) {
+            // ─── 内容区：hazeSource 提供模糊源 ───
+            Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
+                AnimatedContent(
+                    targetState = currentRoute,
+                    transitionSpec = {
+                        (fadeIn() + slideInHorizontally { it / 8 }) togetherWith
+                        (fadeOut() + slideOutHorizontally { -it / 8 })
+                    },
+                    label = "page"
+                ) { route ->
+                    when (route) {
+                        Route.HOME -> {
+                            HomeScreen(
+                                categoryFilter = drawerCategoryFilter,
+                                onNavigateToAddItem = { navigate(Route.ADD) },
+                                onNavigateToDetail = { navigate(Route.DETAIL, it) },
+                                onNavigateToSearch = { navigate(Route.SEARCH) },
+                                onNavigateToStats = { switchTab(1) },
+                                onNavigateToCategory = { navigate(Route.CATEGORY) },
+                                onExportExcel = { navigate(Route.BACKUP) },
+                                onImportExcel = { navigate(Route.BACKUP) },
+                                onBackupData = { navigate(Route.BACKUP) }
+                            )
+                        }
+                        Route.STATS -> {
+                            var showTimeFilter by remember { mutableStateOf(false) }
+                            var timeFilterLabel by remember { mutableStateOf("全部时间") }
+                            val statsViewModel: com.nanji.lootarchive.ui.statistics.StatisticsViewModel = hiltViewModel()
+                            Box(Modifier.fillMaxSize()) {
+                                StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)}, isTabMode=true)
+                                // 悬浮时间筛选按钮
+                                Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
+                                    Box {
+                                        TextButton(onClick={showTimeFilter=true}) {
+                                            Text(timeFilterLabel, fontSize=14.sp, color=Primary())
+                                            Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
+                                        }
+                                        DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false},
+                                            containerColor = MaterialTheme.colorScheme.surface
+                                        ) {
+                                            listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
+                                                DropdownMenuItem(text={Text(label)}, onClick={
+                                                    timeFilterLabel=label
+                                                    statsViewModel.setTimeFilter(key)
+                                                    showTimeFilter=false
+                                                })
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                        Route.MY -> MyLandingScreen(
+                            avatarUri = avatarUri.avatarUri,
+                            onNavigateToSettings = { navigate(Route.SETTINGS) },
+                            onNavigateToCategory = { navigate(Route.CATEGORY) },
+                            onNavigateToBackup = { navigate(Route.BACKUP) }
+                        )
+                        Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()}, onNavigateToCamera={navigate(Route.CAMERA)}, initialPhotoPaths=cameraPhotoPaths.apply{cameraPhotoPaths=emptyList()})
+                        Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
+                        Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
+                        Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
+                        Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
+                        Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
+                        Route.CAMERA -> CameraScreen(
+                            onBack = { goBack() },
+                            onPhotoTaken = { uris ->
+                                val paths = uris.mapNotNull { uri -> PhotoUtil.savePhotoFromUri(mainContext, uri) }
+                                cameraPhotoPaths = paths
+                                goBack()
+                            }
+                        )
                     }
-                    Route.MY -> MyLandingScreen(
-                        avatarUri = avatarUri.avatarUri,
-                        onNavigateToSettings = { navigate(Route.SETTINGS) },
-                        onNavigateToCategory = { navigate(Route.CATEGORY) },
-                        onNavigateToBackup = { navigate(Route.BACKUP) }
-                    )
-                    Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()}, onNavigateToCamera={navigate(Route.CAMERA)}, initialPhotoPaths=cameraPhotoPaths.apply{cameraPhotoPaths=emptyList()})
-                    Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
-                    Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
-                    Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
-                    Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
-                    Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
-                    Route.CAMERA -> CameraScreen(
-                        onBack = { goBack() },
-                        onPhotoTaken = { uris ->
-                            val paths = uris.mapNotNull { uri -> PhotoUtil.savePhotoFromUri(mainContext, uri) }
-                            cameraPhotoPaths = paths
-                            goBack()
+                }
+
+                // ─── 首页操作按钮（仅首页显示） ───
+                if (currentRoute == Route.HOME) {
+                    Row(
+                        Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 90.dp, start = 16.dp, end = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom
+                    ) {
+                        FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
                         }
-                    )
+                        FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(22.dp))
+                        }
+                        FloatingActionButton(onClick = { navigate(Route.SEARCH) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
+                        }
+                    }
+                }
+                // 分类筛选标签
+                if (drawerCategoryFilter != null) {
+                    AssistChip(onClick={drawerCategoryFilter=null}, label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
+                        trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))}, modifier=Modifier.align(Alignment.TopCenter).padding(top=4.dp))
                 }
             }
 
-            // ─── 首页操作按钮（仅首页显示） ───
-            if (currentRoute == Route.HOME) {
-                Row(
-                    Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 90.dp, start = 16.dp, end = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom
-                ) {
-                    FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
-                    }
-                    FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(22.dp))
-                    }
-                    FloatingActionButton(onClick = { navigate(Route.SEARCH) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
-                    }
-                }
-            }
+            // ─── 底部毛玻璃导航栏（在 hazeSource 之外，仅模糊内容区） ───
             if (!isSubPage) {
                 GlassPanel(
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
@@ -221,11 +231,6 @@ fun MainScreen() {
                         }
                     }
                 }
-            }
-            // 分类筛选标签
-            if (drawerCategoryFilter != null) {
-                AssistChip(onClick={drawerCategoryFilter=null}, label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
-                    trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))}, modifier=Modifier.align(Alignment.TopCenter).padding(top=4.dp))
             }
         }
     }

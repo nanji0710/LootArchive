@@ -37,12 +37,12 @@ fun GlassPanel(
     val glassStyle = HazeStyle(
         backgroundColor = Color.Transparent,
         tints = listOf(
-            HazeTint(Color.White.copy(alpha = 0.12f)),
-            HazeTint(Color(0xFFFFF5E8).copy(alpha = 0.04f))
+            HazeTint(containerColor.copy(alpha = 0.35f)),
+            HazeTint(Color.White.copy(alpha = 0.08f))
         ),
         blurRadius = blurRadius,
         noiseFactor = 0f,
-        fallbackTint = HazeTint(Color.White.copy(alpha = 0.65f))
+        fallbackTint = HazeTint(containerColor)
     )
 
     Box(

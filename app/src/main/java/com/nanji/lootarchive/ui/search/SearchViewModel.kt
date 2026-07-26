@@ -13,9 +13,14 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class SearchResultItem(
+    val item: ItemEntity,
+    val firstPhotoPath: String?
+)
+
 data class SearchUiState(
     val query: String = "",
-    val results: List<ItemEntity> = emptyList(),
+    val results: List<SearchResultItem> = emptyList(),
     val categories: List<CategoryEntity> = emptyList(),
     val activeFilter: String? = null,
     val sort: String = "date_new",
@@ -79,7 +84,17 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             itemRepository.searchItems(q.ifBlank { "" }).catch {}.collect { items ->
-                _uiState.update { it.copy(results = items, isLoading = false) }
+                val sort = _uiState.value.sort
+                val sorted = when (sort) {
+                    "price_desc" -> items.sortedByDescending { it.purchasePrice }
+                    "date_new" -> items.sortedByDescending { it.purchaseDate ?: 0L }
+                    "warranty" -> items.sortedBy { it.warrantyExpiryDate ?: Long.MAX_VALUE }
+                    else -> items
+                }
+                val results = sorted.map { item ->
+                    SearchResultItem(item = item, firstPhotoPath = itemRepository.getFirstPhotoPath(item.id))
+                }
+                _uiState.update { it.copy(results = results, isLoading = false) }
             }
         }
     }
