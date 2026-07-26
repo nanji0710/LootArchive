@@ -29,19 +29,6 @@ object DatabaseModule {
                     super.onCreate(db)
                     seedDefaultCategories(db)
                 }
-
-                override fun onOpen(db: SupportSQLiteDatabase) {
-                    super.onOpen(db)
-                    // 兼容已有数据库：表为空时填充默认分类
-                    try {
-                        val cursor = db.query("SELECT COUNT(*) FROM categories")
-                        val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
-                        cursor.close()
-                        if (count == 0) {
-                            seedDefaultCategories(db)
-                        }
-                    } catch (_: Exception) {}
-                }
             })
             .fallbackToDestructiveMigration()
             .build()

@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.0",
-  "versionCode": 100,
+  "versionName": "3.2.1",
+  "versionCode": 101,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 新增回收站功能（还原/彻底删除/14天自动清空）\n2. 相机重写（COMPATIBLE模式+更好的生命周期处理）修复闪退\n3. 深色模式多处文字颜色修复\n4. 内置10大分类补种（已有数据库用户可见）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.0/LootArchive-release-v3.2.0.apk"
+  "updateLog": "1. 相机完全重写（LaunchedEffect异步绑定+专用线程池+防抖）\n2. 内置分类改用ViewModel启动时补种（修复已有数据库用户不可见）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.1/LootArchive-release-v3.2.1.apk"
 }
