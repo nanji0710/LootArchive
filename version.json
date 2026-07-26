@@ -3,5 +3,5 @@
   "versionCode": 87,
   "updateDate": "2026-07-25",
   "updateLog": "新增：\n1. 一键导出/导入ZIP包含分类数据\n\n修改：\n1. 移除无法点击的主题色选择器\n2. 修复备份页和分类页深色模式文字颜色\n3. 调暗深色模式底部导航栏\n4. 版本号更新至v3.0.2",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.2/LootArchive-release-v3.0.2.apk"
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.2/LootArchive-release-v3.0.3.apk"
 }
