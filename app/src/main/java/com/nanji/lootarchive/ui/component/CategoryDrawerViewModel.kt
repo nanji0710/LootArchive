@@ -29,6 +29,8 @@ class CategoryDrawerViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            // 兼容已有数据库：分类表为空时补种内置10大分类
+            categoryRepository.seedDefaultCategoriesIfEmpty()
             combine(
                 categoryRepository.getAllCategories(),
                 itemRepository.getTotalCount()

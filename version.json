@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.4",
-  "versionCode": 104,
+  "versionName": "3.2.5",
+  "versionCode": 105,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 日期选择器替换为自定义三列滚轮（年月日）——无动画拖影、主题统一、购入日期不超今天\n2. 相机回归最简实现（post延迟绑定+COMPATIBLE模式+主线程回调）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.4/LootArchive-release-v3.2.4.apk"
+  "updateLog": "1. 日期滚轮改为点击选择（修复只能选首项的问题）\n2. 相机迁移到 LifecycleCameraController（CameraX 官方简化API）\n3. 分类补种扩展至首页筛选入口（CategoryDrawerViewModel）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.5/LootArchive-release-v3.2.5.apk"
 }

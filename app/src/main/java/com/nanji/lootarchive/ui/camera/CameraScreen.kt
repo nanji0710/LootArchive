@@ -2,15 +2,12 @@ package com.nanji.lootarchive.ui.camera
 
 import android.Manifest
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,9 +42,10 @@ fun CameraScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var hasCameraPermission by remember { mutableStateOf(false) }
-    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var isTakingPhoto by remember { mutableStateOf(false) }
     val capturedUris = remember { mutableStateListOf<Uri>() }
+
+    val cameraController = remember { LifecycleCameraController(context) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -69,34 +67,16 @@ fun CameraScreen(
                     PreviewView(ctx).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_CENTER
-                        post {
-                            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                            cameraProviderFuture.addListener({
-                                try {
-                                    val provider = cameraProviderFuture.get()
-                                    val preview = Preview.Builder().build().also {
-                                        it.setSurfaceProvider(this.surfaceProvider)
-                                    }
-                                    val capture = ImageCapture.Builder()
-                                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                                        .build()
-                                    provider.unbindAll()
-                                    provider.bindToLifecycle(
-                                        lifecycleOwner,
-                                        CameraSelector.DEFAULT_BACK_CAMERA,
-                                        preview,
-                                        capture
-                                    )
-                                    imageCapture = capture
-                                } catch (e: Exception) {
-                                    Log.e("Camera", "bind failed", e)
-                                }
-                            }, ContextCompat.getMainExecutor(ctx))
-                        }
+                        controller = cameraController
                     }
                 },
                 modifier = Modifier.fillMaxSize()
             )
+            // 绑定生命周期
+            DisposableEffect(lifecycleOwner) {
+                cameraController.bindToLifecycle(lifecycleOwner)
+                onDispose { cameraController.unbind() }
+            }
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF181818)), contentAlignment = Alignment.Center) {
                 Text("需要相机权限", color = Color.White)
@@ -121,19 +101,18 @@ fun CameraScreen(
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
 
-            val canCapture = imageCapture != null && !isTakingPhoto
+            val canCapture = !isTakingPhoto
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Box(Modifier.size(80.dp).clip(CircleShape)
                     .background(if (canCapture) Color.White.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.08f))
                     .border(2.dp, Color.White.copy(alpha = if (canCapture) 0.78f else 0.3f), CircleShape)
                     .clickable(enabled = canCapture) {
-                        val capture = imageCapture ?: return@clickable
                         isTakingPhoto = true
                         val dir = File(context.filesDir, "photos")
                         if (!dir.exists()) dir.mkdirs()
                         val file = File(dir, "capture_${System.currentTimeMillis()}.jpg")
-                        capture.takePicture(
+                        cameraController.takePicture(
                             ImageCapture.OutputFileOptions.Builder(file).build(),
                             ContextCompat.getMainExecutor(context),
                             object : ImageCapture.OnImageSavedCallback {
@@ -142,7 +121,6 @@ fun CameraScreen(
                                     isTakingPhoto = false
                                 }
                                 override fun onError(exc: ImageCaptureException) {
-                                    Log.e("Camera", "takePicture failed", exc)
                                     Toast.makeText(context, "拍照失败", Toast.LENGTH_SHORT).show()
                                     isTakingPhoto = false
                                 }
