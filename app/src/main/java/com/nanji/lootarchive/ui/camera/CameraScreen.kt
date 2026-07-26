@@ -71,35 +71,8 @@ fun CameraScreen(
 
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
-    // ─── 相机生命周期：PreviewView 就绪后异步绑定 ───
+    // ─── 相机生命周期 ───
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    LaunchedEffect(previewViewRef) {
-        val pv = previewViewRef ?: return@LaunchedEffect
-        try {
-            val cameraProvider = withContext(Dispatchers.IO) {
-                ProcessCameraProvider.getInstance(context).get()
-            }
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(pv.surfaceProvider)
-            }
-            val capture = ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .build()
-
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                CameraSelector.DEFAULT_BACK_CAMERA,
-                preview,
-                capture
-            )
-            imageCapture.value = capture
-            cameraReady = true
-        } catch (e: Exception) {
-            Log.e("CameraScreen", "相机绑定失败", e)
-            cameraReady = false
-        }
-    }
 
     // ─── 退出时清理 ───
     DisposableEffect(Unit) {
@@ -120,7 +93,33 @@ fun CameraScreen(
                     PreviewView(ctx).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_CENTER
-                    }.also { previewViewRef = it }
+                    }.also { pv ->
+                        previewViewRef = pv
+                        val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                        cameraProviderFuture.addListener({
+                            try {
+                                val provider = cameraProviderFuture.get()
+                                val preview = Preview.Builder().build()
+                                preview.setSurfaceProvider(pv.surfaceProvider)
+                                val capture = ImageCapture.Builder()
+                                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                                    .build()
+                                provider.unbindAll()
+                                provider.bindToLifecycle(
+                                    lifecycleOwner,
+                                    CameraSelector.DEFAULT_BACK_CAMERA,
+                                    preview,
+                                    capture
+                                )
+                                imageCapture.value = capture
+                                cameraReady = true
+                            } catch (e: Exception) {
+                                Log.e("CameraScreen", "相机绑定失败", e)
+                                imageCapture.value = null
+                                cameraReady = false
+                            }
+                        }, ContextCompat.getMainExecutor(ctx))
+                    }
                 },
                 modifier = Modifier.fillMaxSize()
             )

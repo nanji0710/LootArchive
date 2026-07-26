@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.2",
-  "versionCode": 102,
+  "versionName": "3.2.3",
+  "versionCode": 103,
   "updateDate": "2026-07-26",
-  "updateLog": "1. 日期选择器升级为 Material3 DatePicker（年月日滚动选择+Material Design）\n2. 购入日期和保修到期日期统一使用新的日期选择器",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.2/LootArchive-release-v3.2.2.apk"
+  "updateLog": "1. 日期选择器优化：标题缩短/headline显示选中日期/购入日期禁止未来日期\n2. 相机修复：预览黑屏（factory回调绑定）+拍照闪退（专用线程池+防抖）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.3/LootArchive-release-v3.2.3.apk"
 }

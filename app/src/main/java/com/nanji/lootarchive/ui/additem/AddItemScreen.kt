@@ -2,10 +2,6 @@ package com.nanji.lootarchive.ui.additem
 
 import androidx.compose.ui.graphics.Color
 import android.net.Uri
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -370,53 +366,55 @@ fun AddItemScreen(
 
     // ─── Material3 购入日期选择器 ───
     if (showPurchaseDatePicker) {
-        val initialDate = uiState.purchaseDate?.let {
-            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-        } ?: LocalDate.now()
+        val now = System.currentTimeMillis()
+        val initialMillis = uiState.purchaseDate ?: now
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            initialSelectedDateMillis = initialMillis,
+            initialDisplayMode = DisplayMode.Picker,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= now
+            }
         )
         DatePickerDialog(
             onDismissRequest = { showPurchaseDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val localDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
-                        val cal = Calendar.getInstance().apply {
-                            set(localDate.year, localDate.monthValue - 1, localDate.dayOfMonth)
-                        }
-                        viewModel.updatePurchaseDate(cal.timeInMillis)
-                    }
+                    datePickerState.selectedDateMillis?.let { viewModel.updatePurchaseDate(it) }
                     showPurchaseDatePicker = false
                 }) { Text("确定", color = Primary()) }
             },
             dismissButton = {
                 TextButton(onClick = { showPurchaseDatePicker = false }) { Text("取消") }
-            },
+            }
         ) {
-            DatePicker(state = datePickerState, title = { Text("选择购入日期", color = TextPrimary()) })
+            DatePicker(
+                state = datePickerState,
+                title = { Text("购入日期", style = MaterialTheme.typography.titleMedium, color = TextPrimary(), maxLines = 1) },
+                headline = {
+                    Text(
+                        datePickerState.selectedDateMillis?.let {
+                            SimpleDateFormat("yyyy年M月d日", Locale.getDefault()).format(Date(it))
+                        } ?: "选择日期",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = TextPrimary()
+                    )
+                }
+            )
         }
     }
 
     // ─── Material3 保修到期日期选择器 ───
     if (showWarrantyDatePicker) {
-        val initialDate = uiState.warrantyExpiryDate?.let {
-            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-        } ?: LocalDate.now()
+        val initialMillis = uiState.warrantyExpiryDate ?: System.currentTimeMillis()
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            initialSelectedDateMillis = initialMillis,
+            initialDisplayMode = DisplayMode.Picker
         )
         DatePickerDialog(
             onDismissRequest = { showWarrantyDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val localDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
-                        val cal = Calendar.getInstance().apply {
-                            set(localDate.year, localDate.monthValue - 1, localDate.dayOfMonth)
-                        }
-                        viewModel.updateWarrantyExpiryDate(cal.timeInMillis)
-                    }
+                    datePickerState.selectedDateMillis?.let { viewModel.updateWarrantyExpiryDate(it) }
                     showWarrantyDatePicker = false
                 }) { Text("确定", color = Primary()) }
             },
@@ -424,7 +422,19 @@ fun AddItemScreen(
                 TextButton(onClick = { showWarrantyDatePicker = false }) { Text("取消") }
             }
         ) {
-            DatePicker(state = datePickerState, title = { Text("选择到期日期", color = TextPrimary()) })
+            DatePicker(
+                state = datePickerState,
+                title = { Text("保修到期日", style = MaterialTheme.typography.titleMedium, color = TextPrimary(), maxLines = 1) },
+                headline = {
+                    Text(
+                        datePickerState.selectedDateMillis?.let {
+                            SimpleDateFormat("yyyy年M月d日", Locale.getDefault()).format(Date(it))
+                        } ?: "选择日期",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = TextPrimary()
+                    )
+                }
+            )
         }
     }
 }
