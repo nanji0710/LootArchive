@@ -41,3 +41,4 @@ proguard/
 # Testing
 /test-results/
 /reports/
+app/build.bak/
