@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.ui
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
@@ -13,26 +14,33 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.additem.AddItemScreen
 import com.nanji.lootarchive.ui.backup.BackupScreen
+import com.nanji.lootarchive.ui.camera.CameraScreen
 import com.nanji.lootarchive.ui.category.CategoryScreen
 import com.nanji.lootarchive.ui.detail.DetailScreen
 import com.nanji.lootarchive.ui.home.HomeScreen
 import com.nanji.lootarchive.ui.search.SearchScreen
 import com.nanji.lootarchive.ui.settings.SettingsScreen
 import com.nanji.lootarchive.ui.statistics.StatisticsScreen
+import com.nanji.lootarchive.util.PhotoUtil
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
+import com.nanji.lootarchive.ui.component.GlassPanel
 import com.nanji.lootarchive.ui.theme.ChartColors
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
 import com.nanji.lootarchive.ui.theme.TextPrimary
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.hazeEffect
 
 enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
     HOME("首页", Icons.Filled.Home, Icons.Outlined.Home),
@@ -41,7 +49,7 @@ enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselec
 }
 
 // 简易页面路由（替代 NavHost，根除闪退）
-private object Route { const val HOME="home"; const val STATS="stats"; const val MY="my"; const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"; const val SETTINGS="settings"; const val CATEGORY="category"; const val BACKUP="backup" }
+private object Route { const val HOME="home"; const val STATS="stats"; const val MY="my"; const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"; const val SETTINGS="settings"; const val CATEGORY="category"; const val BACKUP="backup"; const val CAMERA="camera" }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,10 +59,14 @@ fun MainScreen() {
     var detailItemId by remember { mutableStateOf(0L) }
     var editItemId by remember { mutableStateOf<Long?>(null) }
 
+    val mainContext = LocalContext.current
+    var cameraPhotoPaths by remember { mutableStateOf<List<String>>(emptyList()) }
+
     val settingsVM: com.nanji.lootarchive.ui.settings.SettingsViewModel = hiltViewModel()
     val avatarUri by settingsVM.uiState.collectAsState()
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var showCategorySheet by remember { mutableStateOf(false) }
+    val hazeState = remember { HazeState() }
     val backStack = remember { mutableListOf<String>() }
 
     fun navigate(route: String, id: Long? = null) {
@@ -79,7 +91,7 @@ fun MainScreen() {
             // 所有Tab页面取消TopBar，按钮改为悬浮
         },
     ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
+        Box(Modifier.padding(padding).fillMaxSize().hazeSource(hazeState)) {
             AnimatedContent(
                 targetState = currentRoute,
                 transitionSpec = {
@@ -136,12 +148,20 @@ fun MainScreen() {
                         onNavigateToCategory = { navigate(Route.CATEGORY) },
                         onNavigateToBackup = { navigate(Route.BACKUP) }
                     )
-                    Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()})
+                    Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()}, onNavigateToCamera={navigate(Route.CAMERA)}, initialPhotoPaths=cameraPhotoPaths.apply{cameraPhotoPaths=emptyList()})
                     Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
                     Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
                     Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
                     Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                     Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
+                    Route.CAMERA -> CameraScreen(
+                        onBack = { goBack() },
+                        onPhotoTaken = { uris ->
+                            val paths = uris.mapNotNull { uri -> PhotoUtil.savePhotoFromUri(mainContext, uri) }
+                            cameraPhotoPaths = paths
+                            goBack()
+                        }
+                    )
                 }
             }
 
@@ -163,15 +183,16 @@ fun MainScreen() {
                 }
             }
             if (!isSubPage) {
-                Surface(
-                    Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    color = if (LocalDarkTheme.current) Color(0xE61A1A1A) else Color(0xFFFFFFFF),
-                    border = if (!LocalDarkTheme.current) androidx.compose.foundation.BorderStroke(0.5.dp, Color(0x1A000000)) else androidx.compose.foundation.BorderStroke(0.5.dp, Color(0x10FFFFFF)),
-                    shadowElevation = 8.dp
+                GlassPanel(
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+                    hazeState = hazeState,
+                    shape = RoundedCornerShape(26.dp),
+                    containerColor = if (LocalDarkTheme.current) Color.Black.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.16f),
+                    borderColor = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.72f),
+                    shadowElevation = 16.dp
                 ) {
                     Row(
-                        Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {

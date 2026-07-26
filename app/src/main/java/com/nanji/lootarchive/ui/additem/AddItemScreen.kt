@@ -22,7 +22,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.ui.component.GlassCard
@@ -39,16 +38,13 @@ import java.util.*
 fun AddItemScreen(
     editItemId: Long? = null,
     onNavigateBack: () -> Unit,
+    onNavigateToCamera: () -> Unit = {},
+    initialPhotoPaths: List<String> = emptyList(),
     viewModel: AddItemViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-
-    // 照片选择弹窗控制
-    var showPhotoPickerDialog by remember { mutableStateOf(false) }
-    // 用于相机拍照的临时文件 URI
-    var cameraPhotoUri by remember { mutableStateOf<Uri?>(null) }
 
     // 相册选择器
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -61,14 +57,10 @@ fun AddItemScreen(
         }
     }
 
-    // 相机拍照
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success && cameraPhotoUri != null) {
-            // 相机已直接将照片写入我们提供的文件
-            val savedPath = PhotoUtil.savePhotoFromUri(context, cameraPhotoUri!!)
-            if (savedPath != null) viewModel.addPhotoPath(savedPath)
+    // 处理从 CameraScreen 返回的照片路径
+    LaunchedEffect(initialPhotoPaths) {
+        initialPhotoPaths.forEach { path ->
+            viewModel.addPhotoPath(path)
         }
     }
 
@@ -341,14 +333,27 @@ fun AddItemScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 相册选择按钮（拍照暂屏蔽）
-                OutlinedButton(
-                    onClick = { galleryLauncher.launch("image/*") },
-                    modifier = Modifier.fillMaxWidth()
+                // 拍照 + 相册选择
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("从相册选择照片")
+                    OutlinedButton(
+                        onClick = onNavigateToCamera,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("拍照")
+                    }
+                    OutlinedButton(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("从相册选择")
+                    }
                 }
             }
 

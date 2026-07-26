@@ -1,7 +1,7 @@
 {
-  "versionName": "3.0.4",
-  "versionCode": 88,
-  "updateDate": "2026-07-25",
-  "updateLog": "1. 备份页所有文字深色模式显式设色\n2. 底部导航栏选中色调暗\n3. 版本号更新至v3.0.4",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.0.4/LootArchive-release-v3.0.4.apk"
+  "versionName": "3.1.0",
+  "versionCode": 89,
+  "updateDate": "2026-07-26",
+  "updateLog": "新增：\n1. 毛玻璃悬浮导航栏（haze实时模糊）\n2. 物品详情页重设计（大图+层叠卡片+滑动切换）\n3. 拍照录入功能（CameraX+对焦+闪光灯+连拍）\n\n修改：\n1. 添加物品页面新增拍照按钮\n2. 备份页所有文字深色模式显式设色\n3. 底部导航栏选中色调暗",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.1.0/LootArchive-release-v3.1.0.apk"
 }

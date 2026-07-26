@@ -16,6 +16,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
@@ -60,51 +64,120 @@ fun DetailScreen(
             val currencySymbol = remember(uiState.currency) { getCurrencySymbol(uiState.currency) }
 
             Column(
-                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
             ) {
-                // 内联操作栏（紧凑）
-                Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+                // 操作栏
+                Row(Modifier.fillMaxWidth().height(44.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onNavigateBack, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp)) }
                     Text("物品详情", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f))
                     IconButton(onClick = { uiState.itemWithPhotos?.let { onNavigateToEdit(it.item.id) } }, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.Edit, "编辑", tint = Primary(), modifier = Modifier.size(20.dp)) }
                     IconButton(onClick = { viewModel.showDeleteConfirm() }, modifier = Modifier.size(36.dp)) { Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(20.dp)) }
                 }
-                // 1. 物品名称
-                GlassCard {
-                    Text(data.item.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
-                }
 
-                // 2. 分类
-                if (data.category != null) {
-                    GlassCard {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("分类：", fontSize = 14.sp, color = TextSecondary())
-                            AssistChip(onClick = {}, label = { Text(data.category!!.name, color = Primary()) })
-                        }
-                    }
-                }
-
-                // 3. 照片
-                if (data.photos.isNotEmpty()) {
-                    GlassCard {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            data.photos.take(3).forEach { photo ->
-                                AsyncImage(model = File(photo.photoPath), contentDescription = null,
-                                    modifier = Modifier.size(100.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
+                // ── 主图区域 300dp ──
+                Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+                    if (data.photos.isNotEmpty()) {
+                        // 水平滚动浏览所有照片
+                        Row(
+                            modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
+                        ) {
+                            data.photos.forEach { photo ->
+                                AsyncImage(
+                                    model = File(photo.photoPath),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxHeight().fillMaxWidth(),
+                                    contentScale = ContentScale.Crop
+                                )
                             }
                         }
+                        // 底部渐变遮罩（过渡到内容卡片）
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp)
+                                .align(Alignment.BottomCenter)
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f))
+                                    )
+                                )
+                        )
+                        // 照片计数
+                        if (data.photos.size > 1) {
+                            Text(
+                                text = "1/${data.photos.size}",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 12.dp)
+                                    .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                    } else {
+                        // 无照片：暖色渐变 + 首字占位
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(Color(0xFFE8A850), Color(0xFFD4863C))
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = data.item.name.take(1),
+                                fontSize = 96.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.45f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
 
-                // 价格与保修
-                GlassCard {
-                    DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}")
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-                    DetailRow("购入日期", data.item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "未设置")
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                // ── 内容卡片（向上偏移 20dp 重叠主图） ──
+                GlassCard(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .offset(y = (-20).dp)
+                ) {
+                    // 物品名称
+                    Text(
+                        data.item.name,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // 保修状态
+                    // 分类标签 + 位置
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (data.category != null) {
+                            AssistChip(
+                                onClick = {},
+                                label = { Text(data.category!!.name, color = Primary(), fontSize = 13.sp) }
+                            )
+                        }
+                        Text(
+                            data.item.storageLocation.ifEmpty { "" },
+                            fontSize = 13.sp,
+                            color = TextSecondary()
+                        )
+                    }
+
+                    Divider(modifier = Modifier.padding(vertical = 12.dp), color = TextAuxiliary().copy(alpha = 0.2f))
+
+                    // 详细字段
+                    DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}")
+                    DetailRow("购入日期", data.item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "未设置")
+
+                    // 保修状态（PillTag 风格）
                     val warrantyText = when {
                         data.isWarrantyExpired -> "已过期"
                         data.isWarrantyExpiring -> "即将到期"
@@ -116,26 +189,33 @@ fun DetailScreen(
                         data.isWarrantyExpiring -> WarrantyExpiring
                         else -> WarrantyActive
                     }
-                    DetailRow(
-                        "保修状态",
-                        warrantyText,
-                        valueColor = warrantyColor
-                    )
-                }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("保修状态", fontSize = 14.sp, color = TextSecondary(), modifier = Modifier.width(80.dp))
+                        Surface(
+                            color = warrantyColor.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                warrantyText,
+                                color = warrantyColor,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
 
-                // 存放与描述
-                GlassCard {
                     DetailRow("存放位置", data.item.storageLocation.ifEmpty { "未设置" })
                     if (data.item.description.isNotEmpty()) {
-                        Divider(modifier = Modifier.padding(vertical = 8.dp))
                         DetailRow("物品描述", data.item.description)
                     }
-                }
 
-                // 时间信息
-                GlassCard {
+                    Divider(modifier = Modifier.padding(vertical = 8.dp), color = TextAuxiliary().copy(alpha = 0.2f))
+
                     DetailRow("创建时间", dateFormat.format(Date(data.item.createdAt)))
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
                     DetailRow("最后修改", dateFormat.format(Date(data.item.updatedAt)))
                 }
 
@@ -161,23 +241,23 @@ fun DetailScreen(
 private fun DetailRow(
     label: String,
     value: String,
-    valueColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+    valueColor: Color = TextPrimary()
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            fontSize = 14.sp,
+            color = TextSecondary(),
+            modifier = Modifier.width(80.dp)
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            color = valueColor
+            fontSize = 14.sp,
+            color = valueColor,
+            modifier = Modifier.weight(1f)
         )
     }
 }

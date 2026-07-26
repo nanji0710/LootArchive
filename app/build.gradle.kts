@@ -23,8 +23,8 @@ android {
         applicationId = "com.nanji.lootarchive"
         minSdk = 31
         targetSdk = 36
-        versionCode = 88
-        versionName = "3.0.4"
+        versionCode = 89
+        versionName = "3.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -133,6 +133,10 @@ dependencies {
     // Coil (Image Loading)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // Haze (Glass blur effect)
+    implementation("dev.chrisbanes.haze:haze:1.5.2")
+    implementation("dev.chrisbanes.haze:haze-materials:1.5.2")
+
     // Vico removed - using manual Compose charts (saves ~2MB)
 
     // DataStore (Settings)
@@ -142,6 +146,11 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
+
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
 
     // Core
     implementation("androidx.core:core-ktx:1.15.0")
