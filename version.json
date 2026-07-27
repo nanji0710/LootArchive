@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.10",
-  "versionCode": 110,
+  "versionName": "3.2.11",
+  "versionCode": 111,
   "updateDate": "2026-07-27",
-  "updateLog": "1. 修复相机闪退：补充camera-camera2依赖+try-catch保护",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.10/LootArchive-release-v3.2.10.apk"
+  "updateLog": "1. 修复拍照后照片不显示",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.11/LootArchive-release-v3.2.11.apk"
 }
