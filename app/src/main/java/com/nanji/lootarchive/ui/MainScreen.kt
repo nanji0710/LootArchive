@@ -2,7 +2,6 @@ package com.nanji.lootarchive.ui
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import java.io.File
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,7 +28,6 @@ import com.nanji.lootarchive.ui.home.HomeScreen
 import com.nanji.lootarchive.ui.search.SearchScreen
 import com.nanji.lootarchive.ui.settings.SettingsScreen
 import com.nanji.lootarchive.ui.statistics.StatisticsScreen
-import com.nanji.lootarchive.util.PhotoUtil
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -162,10 +160,7 @@ fun MainScreen() {
                         Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
                         Route.CAMERA -> CameraScreen(
                             onBack = { goBack() },
-                            onPhotoTaken = { uris ->
-                                val paths = uris.mapNotNull { uri ->
-                                    PhotoUtil.savePhotoFromUri(mainContext, uri)
-                                }
+                            onPhotoTaken = { paths ->
                                 cameraPhotoPaths = paths
                                 goBack()
                             }

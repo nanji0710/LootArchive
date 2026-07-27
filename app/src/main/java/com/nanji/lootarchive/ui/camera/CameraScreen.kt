@@ -1,7 +1,6 @@
 package com.nanji.lootarchive.ui.camera
 
 import android.Manifest
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,7 +35,7 @@ import java.io.File
 @Composable
 fun CameraScreen(
     onBack: () -> Unit,
-    onPhotoTaken: (List<Uri>) -> Unit
+    onPhotoTaken: (List<String>) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -44,7 +43,7 @@ fun CameraScreen(
     var hasCameraPermission by remember { mutableStateOf(false) }
     var isTakingPhoto by remember { mutableStateOf(false) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
-    val capturedUris = remember { mutableStateListOf<Uri>() }
+    val capturedPaths = remember { mutableStateListOf<String>() }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -55,7 +54,11 @@ fun CameraScreen(
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetMultipleContents()
-    ) { uris -> if (uris.isNotEmpty()) capturedUris.addAll(uris) }
+    ) { uris ->
+        uris.forEach { uri ->
+            PhotoUtil.savePhotoFromUri(context, uri)?.let { path -> capturedPaths.add(path) }
+        }
+    }
 
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
@@ -107,8 +110,8 @@ fun CameraScreen(
             Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).clickable { onBack() }.padding(12.dp)) {
                 Icon(Icons.Default.Close, "关闭", tint = Color.White)
             }
-            Text(if (capturedUris.isEmpty()) "拍照" else "已拍 ${capturedUris.size} 张", color = Color.White, fontSize = 16.sp)
-            Box(Modifier.size(48.dp)) // 占位
+            Text(if (capturedPaths.isEmpty()) "拍照" else "已拍 ${capturedPaths.size} 张", color = Color.White, fontSize = 16.sp)
+            Box(Modifier.size(48.dp))
         }
 
         // Bottom controls
@@ -131,7 +134,7 @@ fun CameraScreen(
                             ContextCompat.getMainExecutor(context),
                             object : ImageCapture.OnImageSavedCallback {
                                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                    capturedUris.add(Uri.fromFile(file))
+                                    capturedPaths.add(file.absolutePath)
                                     isTakingPhoto = false
                                 }
                                 override fun onError(exc: ImageCaptureException) {
@@ -148,11 +151,11 @@ fun CameraScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            if (capturedUris.isNotEmpty()) {
+            if (capturedPaths.isNotEmpty()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("${capturedUris.size} 张照片", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                    Text("${capturedPaths.size} 张照片", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
                     Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Color(0xFFFFA500))
-                        .clickable { onPhotoTaken(capturedUris.toList()) }.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                        .clickable { onPhotoTaken(capturedPaths.toList()) }.padding(horizontal = 20.dp, vertical = 10.dp)) {
                         Text("完成", color = Color.White, fontSize = 14.sp)
                     }
                 }
