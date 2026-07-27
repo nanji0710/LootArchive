@@ -46,15 +46,7 @@ fun CameraScreen(
     var isTakingPhoto by remember { mutableStateOf(false) }
     val capturedUris = remember { mutableStateListOf<Uri>() }
 
-    // 每次进入页面创建新的 controller，避免重用已绑定状态
-    val cameraController = remember {
-        try {
-            LifecycleCameraController(context)
-        } catch (e: Exception) {
-            android.util.Log.e("CameraScreen", "创建 CameraController 失败", e)
-            null
-        }
-    }
+    val cameraController = remember { LifecycleCameraController(context) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -70,31 +62,21 @@ fun CameraScreen(
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        if (hasCameraPermission && cameraController != null) {
+        if (hasCameraPermission) {
             AndroidView(
                 factory = { ctx ->
                     PreviewView(ctx).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_CENTER
-                        this.controller = cameraController
+                        controller = cameraController
                     }
                 },
                 modifier = Modifier.fillMaxSize()
             )
-            // 绑定生命周期 — 用 controller 作为 key，确保只绑定一次
+            // 绑定生命周期
             DisposableEffect(cameraController, lifecycleOwner) {
-                try {
-                    cameraController.bindToLifecycle(lifecycleOwner)
-                } catch (e: Exception) {
-                    android.util.Log.e("CameraScreen", "bindToLifecycle 失败", e)
-                }
-                onDispose {
-                    try { cameraController.unbind() } catch (_: Exception) {}
-                }
-            }
-        } else if (cameraController == null) {
-            Box(Modifier.fillMaxSize().background(Color(0xFF181818)), contentAlignment = Alignment.Center) {
-                Text("无法启动相机", color = Color.White.copy(alpha = 0.6f), fontSize = 15.sp)
+                cameraController.bindToLifecycle(lifecycleOwner)
+                onDispose { cameraController.unbind() }
             }
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF181818)), contentAlignment = Alignment.Center) {
@@ -120,7 +102,7 @@ fun CameraScreen(
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
 
-            val canCapture = !isTakingPhoto && cameraController != null
+            val canCapture = !isTakingPhoto
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Box(Modifier.size(80.dp).clip(CircleShape)
@@ -130,7 +112,7 @@ fun CameraScreen(
                         isTakingPhoto = true
                         val dir = PhotoUtil.getPhotoDir(context) // 使用正确路径
                         val file = File(dir, PhotoUtil.generatePhotoFileName())
-                        cameraController?.takePicture(
+                        cameraController.takePicture(
                             ImageCapture.OutputFileOptions.Builder(file).build(),
                             ContextCompat.getMainExecutor(context),
                             object : ImageCapture.OnImageSavedCallback {
