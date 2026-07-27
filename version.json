@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.6",
-  "versionCode": 106,
-  "updateDate": "2026-07-26",
-  "updateLog": "1. 修复内置分类不显示——改用INSERT OR IGNORE（之前getCount>0直接跳过）\n2. 日期滚轮点击选择 + LifecycleCameraController + 分类补种",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.6/LootArchive-release-v3.2.6.apk"
+  "versionName": "3.2.7",
+  "versionCode": 107,
+  "updateDate": "2026-07-27",
+  "updateLog": "1. 修复相机闪退（Controller生命周期+照片存储路径）\n2. 资产汇总只展示金额>0的分类",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.7/LootArchive-release-v3.2.7.apk"
 }

@@ -73,7 +73,7 @@ class StatisticsViewModel @Inject constructor(
                 val summaries = categories.map { cat ->
                     val catItems = items.filter { it.categoryId == cat.id }
                     CategorySummary(category = cat, itemCount = catItems.size, totalValue = catItems.sumOf { it.purchasePrice })
-                }
+                }.filter { it.totalValue > 0 }
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = items.size,
@@ -112,7 +112,7 @@ class StatisticsViewModel @Inject constructor(
                 val summaries = categories.map { cat ->
                     val catItems = items.filter { it.categoryId == cat.id }
                     CategorySummary(category = cat, itemCount = catItems.size, totalValue = catItems.sumOf { it.purchasePrice })
-                }
+                }.filter { it.totalValue > 0 }
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = items.size,

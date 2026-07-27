@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.nanji.lootarchive.util.PhotoUtil
 import java.io.File
 
 @Composable
@@ -45,7 +46,15 @@ fun CameraScreen(
     var isTakingPhoto by remember { mutableStateOf(false) }
     val capturedUris = remember { mutableStateListOf<Uri>() }
 
-    val cameraController = remember { LifecycleCameraController(context) }
+    // 每次进入页面创建新的 controller，避免重用已绑定状态
+    val cameraController = remember {
+        try {
+            LifecycleCameraController(context)
+        } catch (e: Exception) {
+            android.util.Log.e("CameraScreen", "创建 CameraController 失败", e)
+            null
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -61,21 +70,31 @@ fun CameraScreen(
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        if (hasCameraPermission) {
+        if (hasCameraPermission && cameraController != null) {
             AndroidView(
                 factory = { ctx ->
                     PreviewView(ctx).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_CENTER
-                        controller = cameraController
+                        this.controller = cameraController
                     }
                 },
                 modifier = Modifier.fillMaxSize()
             )
-            // 绑定生命周期
-            DisposableEffect(lifecycleOwner) {
-                cameraController.bindToLifecycle(lifecycleOwner)
-                onDispose { cameraController.unbind() }
+            // 绑定生命周期 — 用 controller 作为 key，确保只绑定一次
+            DisposableEffect(cameraController, lifecycleOwner) {
+                try {
+                    cameraController.bindToLifecycle(lifecycleOwner)
+                } catch (e: Exception) {
+                    android.util.Log.e("CameraScreen", "bindToLifecycle 失败", e)
+                }
+                onDispose {
+                    try { cameraController.unbind() } catch (_: Exception) {}
+                }
+            }
+        } else if (cameraController == null) {
+            Box(Modifier.fillMaxSize().background(Color(0xFF181818)), contentAlignment = Alignment.Center) {
+                Text("无法启动相机", color = Color.White.copy(alpha = 0.6f), fontSize = 15.sp)
             }
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF181818)), contentAlignment = Alignment.Center) {
@@ -101,7 +120,7 @@ fun CameraScreen(
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
 
-            val canCapture = !isTakingPhoto
+            val canCapture = !isTakingPhoto && cameraController != null
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Box(Modifier.size(80.dp).clip(CircleShape)
@@ -109,10 +128,9 @@ fun CameraScreen(
                     .border(2.dp, Color.White.copy(alpha = if (canCapture) 0.78f else 0.3f), CircleShape)
                     .clickable(enabled = canCapture) {
                         isTakingPhoto = true
-                        val dir = File(context.filesDir, "photos")
-                        if (!dir.exists()) dir.mkdirs()
-                        val file = File(dir, "capture_${System.currentTimeMillis()}.jpg")
-                        cameraController.takePicture(
+                        val dir = PhotoUtil.getPhotoDir(context) // 使用正确路径
+                        val file = File(dir, PhotoUtil.generatePhotoFileName())
+                        cameraController?.takePicture(
                             ImageCapture.OutputFileOptions.Builder(file).build(),
                             ContextCompat.getMainExecutor(context),
                             object : ImageCapture.OnImageSavedCallback {
