@@ -5,9 +5,8 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.view.LifecycleCameraController
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,17 +43,8 @@ fun CameraScreen(
 
     var hasCameraPermission by remember { mutableStateOf(false) }
     var isTakingPhoto by remember { mutableStateOf(false) }
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     val capturedUris = remember { mutableStateListOf<Uri>() }
-
-    var controllerError by remember { mutableStateOf(false) }
-    val cameraController = remember {
-        runCatching { LifecycleCameraController(context) }
-            .onFailure { e ->
-                android.util.Log.e("CameraScreen", "创建Controller失败", e)
-                controllerError = true
-            }
-            .getOrNull()
-    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -70,29 +60,36 @@ fun CameraScreen(
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        if (controllerError) {
-            Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("无法启动相机", color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp)
-                    Spacer(Modifier.height(8.dp))
-                    Text("请检查是否已授予相机权限", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
-                }
-            }
-        } else if (hasCameraPermission && cameraController != null) {
+        if (hasCameraPermission) {
             AndroidView(
                 factory = { ctx ->
                     PreviewView(ctx).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_CENTER
-                        controller = cameraController
+                    }.also { pv ->
+                        val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                        cameraProviderFuture.addListener({
+                            val provider = cameraProviderFuture.get()
+                            val preview = Preview.Builder().build()
+                            preview.setSurfaceProvider(pv.surfaceProvider)
+                            val capture = ImageCapture.Builder()
+                                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                                .build()
+                            imageCapture = capture
+                            try {
+                                provider.unbindAll()
+                                provider.bindToLifecycle(
+                                    lifecycleOwner,
+                                    CameraSelector.DEFAULT_BACK_CAMERA,
+                                    preview,
+                                    capture
+                                )
+                            } catch (_: Exception) {}
+                        }, ContextCompat.getMainExecutor(ctx))
                     }
                 },
                 modifier = Modifier.fillMaxSize()
             )
-            DisposableEffect(cameraController, lifecycleOwner) {
-                cameraController.bindToLifecycle(lifecycleOwner)
-                onDispose { cameraController.unbind() }
-            }
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF181818)), contentAlignment = Alignment.Center) {
                 Text("需要相机权限", color = Color.White)
@@ -108,27 +105,25 @@ fun CameraScreen(
                 Icon(Icons.Default.Close, "关闭", tint = Color.White)
             }
             Text(if (capturedUris.isEmpty()) "拍照" else "已拍 ${capturedUris.size} 张", color = Color.White, fontSize = 16.sp)
-            Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).padding(12.dp)) {
-                Icon(Icons.Default.FlashOn, "闪光灯", tint = Color.White)
-            }
+            Box(Modifier.size(48.dp)) // 占位
         }
 
         // Bottom controls
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
 
-            val canCapture = !isTakingPhoto && cameraController != null
+            val canCapture = !isTakingPhoto && imageCapture != null
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Box(Modifier.size(80.dp).clip(CircleShape)
                     .background(if (canCapture) Color.White.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.08f))
                     .border(2.dp, Color.White.copy(alpha = if (canCapture) 0.78f else 0.3f), CircleShape)
                     .clickable(enabled = canCapture) {
-                        val ctrl = cameraController ?: return@clickable
+                        val cap = imageCapture ?: return@clickable
                         isTakingPhoto = true
                         val dir = PhotoUtil.getPhotoDir(context)
                         val file = File(dir, PhotoUtil.generatePhotoFileName())
-                        ctrl.takePicture(
+                        cap.takePicture(
                             ImageCapture.OutputFileOptions.Builder(file).build(),
                             ContextCompat.getMainExecutor(context),
                             object : ImageCapture.OnImageSavedCallback {

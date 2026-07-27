@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.8",
-  "versionCode": 108,
+  "versionName": "3.2.9",
+  "versionCode": 109,
   "updateDate": "2026-07-27",
-  "updateLog": "1. 修复相机黑屏（去掉错误try-catch）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.8/LootArchive-release-v3.2.8.apk"
+  "updateLog": "1. 修复相机闪退：改用ProcessCameraProvider直接绑定",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.9/LootArchive-release-v3.2.9.apk"
 }
