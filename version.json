@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.9",
-  "versionCode": 109,
+  "versionName": "3.2.10",
+  "versionCode": 110,
   "updateDate": "2026-07-27",
-  "updateLog": "1. 修复相机闪退：改用ProcessCameraProvider直接绑定",
+  "updateLog": "1. 修复相机闪退：补充camera-camera2依赖+try-catch保护",
   "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.9/LootArchive-release-v3.2.9.apk"
 }

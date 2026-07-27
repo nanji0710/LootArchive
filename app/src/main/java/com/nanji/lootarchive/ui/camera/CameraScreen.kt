@@ -69,14 +69,14 @@ fun CameraScreen(
                     }.also { pv ->
                         val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                         cameraProviderFuture.addListener({
-                            val provider = cameraProviderFuture.get()
-                            val preview = Preview.Builder().build()
-                            preview.setSurfaceProvider(pv.surfaceProvider)
-                            val capture = ImageCapture.Builder()
-                                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                                .build()
-                            imageCapture = capture
                             try {
+                                val provider = cameraProviderFuture.get()
+                                val preview = Preview.Builder().build()
+                                preview.setSurfaceProvider(pv.surfaceProvider)
+                                val capture = ImageCapture.Builder()
+                                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                                    .build()
+                                imageCapture = capture
                                 provider.unbindAll()
                                 provider.bindToLifecycle(
                                     lifecycleOwner,
@@ -84,7 +84,10 @@ fun CameraScreen(
                                     preview,
                                     capture
                                 )
-                            } catch (_: Exception) {}
+                            } catch (exc: Exception) {
+                                android.util.Log.e("CameraScreen", "相机初始化失败", exc)
+                                Toast.makeText(ctx, "相机启动失败: ${exc.message}", Toast.LENGTH_LONG).show()
+                            }
                         }, ContextCompat.getMainExecutor(ctx))
                     }
                 },
