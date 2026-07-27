@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.7",
-  "versionCode": 107,
+  "versionName": "3.2.8",
+  "versionCode": 108,
   "updateDate": "2026-07-27",
-  "updateLog": "1. 修复相机闪退（Controller生命周期+照片存储路径）\n2. 资产汇总只展示金额>0的分类",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.7/LootArchive-release-v3.2.7.apk"
+  "updateLog": "1. 修复相机黑屏（去掉错误try-catch）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.8/LootArchive-release-v3.2.8.apk"
 }
