@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -151,7 +152,13 @@ fun MainScreen() {
                             onNavigateToBackup = { navigate(Route.BACKUP) },
                             onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) }
                         )
-                        Route.ADD -> AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()}, onNavigateToCamera={navigate(Route.CAMERA)}, initialPhotoPaths=cameraPhotoPaths.apply{cameraPhotoPaths=emptyList()})
+                        Route.ADD -> {
+                            val pendingPaths = cameraPhotoPaths
+                            SideEffect {
+                                if (pendingPaths.isNotEmpty()) cameraPhotoPaths = emptyList()
+                            }
+                            AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()}, onNavigateToCamera={navigate(Route.CAMERA)}, initialPhotoPaths=pendingPaths)
+                        }
                         Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
                         Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
                         Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
