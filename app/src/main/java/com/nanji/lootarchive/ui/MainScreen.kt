@@ -2,6 +2,7 @@ package com.nanji.lootarchive.ui
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import java.io.File
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -162,7 +163,16 @@ fun MainScreen() {
                         Route.CAMERA -> CameraScreen(
                             onBack = { goBack() },
                             onPhotoTaken = { uris ->
-                                val paths = uris.mapNotNull { uri -> PhotoUtil.savePhotoFromUri(mainContext, uri) }
+                                // 相机拍照已直接存到 PhotoUtil 目录，用路径即可；
+                                // 相册选的 content:// URI 才需要 savePhotoFromUri
+                                val paths = uris.mapNotNull { uri ->
+                                    val filePath = uri.path
+                                    if (filePath != null && File(filePath).exists()) {
+                                        filePath // 相机拍的，已在正确位置
+                                    } else {
+                                        PhotoUtil.savePhotoFromUri(mainContext, uri)
+                                    }
+                                }
                                 cameraPhotoPaths = paths
                                 goBack()
                             }

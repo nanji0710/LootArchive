@@ -46,7 +46,15 @@ fun CameraScreen(
     var isTakingPhoto by remember { mutableStateOf(false) }
     val capturedUris = remember { mutableStateListOf<Uri>() }
 
-    val cameraController = remember { LifecycleCameraController(context) }
+    var controllerError by remember { mutableStateOf(false) }
+    val cameraController = remember {
+        runCatching { LifecycleCameraController(context) }
+            .onFailure { e ->
+                android.util.Log.e("CameraScreen", "创建Controller失败", e)
+                controllerError = true
+            }
+            .getOrNull()
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -62,7 +70,15 @@ fun CameraScreen(
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        if (hasCameraPermission) {
+        if (controllerError) {
+            Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("无法启动相机", color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text("请检查是否已授予相机权限", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
+                }
+            }
+        } else if (hasCameraPermission && cameraController != null) {
             AndroidView(
                 factory = { ctx ->
                     PreviewView(ctx).apply {
@@ -73,7 +89,6 @@ fun CameraScreen(
                 },
                 modifier = Modifier.fillMaxSize()
             )
-            // 绑定生命周期
             DisposableEffect(cameraController, lifecycleOwner) {
                 cameraController.bindToLifecycle(lifecycleOwner)
                 onDispose { cameraController.unbind() }
@@ -102,17 +117,18 @@ fun CameraScreen(
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
             .background(Color.Black.copy(alpha = 0.8f)).padding(horizontal = 20.dp, vertical = 16.dp)) {
 
-            val canCapture = !isTakingPhoto
+            val canCapture = !isTakingPhoto && cameraController != null
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Box(Modifier.size(80.dp).clip(CircleShape)
                     .background(if (canCapture) Color.White.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.08f))
                     .border(2.dp, Color.White.copy(alpha = if (canCapture) 0.78f else 0.3f), CircleShape)
                     .clickable(enabled = canCapture) {
+                        val ctrl = cameraController ?: return@clickable
                         isTakingPhoto = true
-                        val dir = PhotoUtil.getPhotoDir(context) // 使用正确路径
+                        val dir = PhotoUtil.getPhotoDir(context)
                         val file = File(dir, PhotoUtil.generatePhotoFileName())
-                        cameraController.takePicture(
+                        ctrl.takePicture(
                             ImageCapture.OutputFileOptions.Builder(file).build(),
                             ContextCompat.getMainExecutor(context),
                             object : ImageCapture.OnImageSavedCallback {
