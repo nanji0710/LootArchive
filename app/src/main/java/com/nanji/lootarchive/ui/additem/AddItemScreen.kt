@@ -40,6 +40,7 @@ fun AddItemScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCamera: () -> Unit = {},
     initialPhotoPaths: List<String> = emptyList(),
+    photoSession: Int = 0,
     viewModel: AddItemViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -62,9 +63,12 @@ fun AddItemScreen(
     }
 
     // 处理从 CameraScreen 返回的照片路径
-    LaunchedEffect(initialPhotoPaths) {
-        initialPhotoPaths.forEach { path ->
-            viewModel.addPhotoPath(path)
+    // 注意：不能用 initialPhotoPaths 做 key（Compose 组合时机问题），用 photoSession 计数器触发
+    var lastSession by remember { mutableIntStateOf(0) }
+    LaunchedEffect(photoSession) {
+        if (photoSession > lastSession && initialPhotoPaths.isNotEmpty()) {
+            initialPhotoPaths.forEach { path -> viewModel.addPhotoPath(path) }
+            lastSession = photoSession
         }
     }
 

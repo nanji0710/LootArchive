@@ -10,6 +10,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -31,6 +34,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.nanji.lootarchive.util.PhotoUtil
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun CameraScreen(
@@ -39,10 +43,19 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val density = LocalDensity.current
 
     var hasCameraPermission by remember { mutableStateOf(false) }
     var isTakingPhoto by remember { mutableStateOf(false) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var camera by remember { mutableStateOf<Camera?>(null) }
+    var previewView by remember { mutableStateOf<PreviewView?>(null) }
+    var flashEnabled by remember { mutableStateOf(false) }
+
+    // 对焦标记
+    var focusMarker by remember { mutableStateOf<Pair<Float, Float>?>(null) }
+    var focusMarkerStamp by remember { mutableLongStateOf(0L) }
+
     val capturedPaths = remember { mutableStateListOf<String>() }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -62,6 +75,18 @@ fun CameraScreen(
 
     LaunchedEffect(Unit) { permissionLauncher.launch(Manifest.permission.CAMERA) }
 
+    // 闪光灯更新
+    LaunchedEffect(flashEnabled, imageCapture) {
+        imageCapture?.flashMode = if (flashEnabled) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+    }
+
+    // 对焦标记自动消失
+    LaunchedEffect(focusMarkerStamp) {
+        if (focusMarkerStamp == 0L) return@LaunchedEffect
+        kotlinx.coroutines.delay(900)
+        focusMarker = null
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         if (hasCameraPermission) {
             AndroidView(
@@ -70,6 +95,7 @@ fun CameraScreen(
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_CENTER
                     }.also { pv ->
+                        previewView = pv
                         val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                         cameraProviderFuture.addListener({
                             try {
@@ -81,7 +107,7 @@ fun CameraScreen(
                                     .build()
                                 imageCapture = capture
                                 provider.unbindAll()
-                                provider.bindToLifecycle(
+                                camera = provider.bindToLifecycle(
                                     lifecycleOwner,
                                     CameraSelector.DEFAULT_BACK_CAMERA,
                                     preview,
@@ -89,13 +115,40 @@ fun CameraScreen(
                                 )
                             } catch (exc: Exception) {
                                 android.util.Log.e("CameraScreen", "相机初始化失败", exc)
-                                Toast.makeText(ctx, "相机启动失败: ${exc.message}", Toast.LENGTH_LONG).show()
                             }
                         }, ContextCompat.getMainExecutor(ctx))
                     }
                 },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(camera, previewView) {
+                        detectTapGestures { offset ->
+                            val view = previewView ?: return@detectTapGestures
+                            val cameraInstance = camera ?: return@detectTapGestures
+                            val meteringPoint = view.meteringPointFactory.createPoint(offset.x, offset.y)
+                            val action = FocusMeteringAction.Builder(
+                                meteringPoint,
+                                FocusMeteringAction.FLAG_AF or FocusMeteringAction.FLAG_AE
+                            ).setAutoCancelDuration(3, TimeUnit.SECONDS).build()
+                            cameraInstance.cameraControl.startFocusAndMetering(action)
+                            focusMarker = offset.x to offset.y
+                            focusMarkerStamp = System.currentTimeMillis()
+                        }
+                    }
             )
+
+            // 对焦框
+            focusMarker?.let { (x, y) ->
+                Box(
+                    modifier = Modifier
+                        .padding(
+                            start = with(density) { x.toDp() - 36.dp },
+                            top = with(density) { y.toDp() - 36.dp }
+                        )
+                        .size(72.dp)
+                        .border(2.dp, Color.White.copy(alpha = 0.92f), RoundedCornerShape(20.dp))
+                )
+            }
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF181818)), contentAlignment = Alignment.Center) {
                 Text("需要相机权限", color = Color.White)
@@ -111,7 +164,12 @@ fun CameraScreen(
                 Icon(Icons.Default.Close, "关闭", tint = Color.White)
             }
             Text(if (capturedPaths.isEmpty()) "拍照" else "已拍 ${capturedPaths.size} 张", color = Color.White, fontSize = 16.sp)
-            Box(Modifier.size(48.dp))
+            Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).clickable { flashEnabled = !flashEnabled }.padding(12.dp)) {
+                Icon(
+                    if (flashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                    "闪光灯", tint = if (flashEnabled) Color(0xFFFFA500) else Color.White
+                )
+            }
         }
 
         // Bottom controls

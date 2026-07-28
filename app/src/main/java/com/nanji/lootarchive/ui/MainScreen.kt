@@ -62,6 +62,7 @@ fun MainScreen() {
 
     val mainContext = LocalContext.current
     var cameraPhotoPaths by remember { mutableStateOf<List<String>>(emptyList()) }
+    var cameraSession by remember { mutableIntStateOf(0) }
 
     val settingsVM: com.nanji.lootarchive.ui.settings.SettingsViewModel = hiltViewModel()
     val avatarUri by settingsVM.uiState.collectAsState()
@@ -152,13 +153,13 @@ fun MainScreen() {
                             onNavigateToBackup = { navigate(Route.BACKUP) },
                             onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) }
                         )
-                        Route.ADD -> {
-                            val pendingPaths = cameraPhotoPaths
-                            SideEffect {
-                                if (pendingPaths.isNotEmpty()) cameraPhotoPaths = emptyList()
-                            }
-                            AddItemScreen(editItemId=editItemId, onNavigateBack={editItemId=null;goBack()}, onNavigateToCamera={navigate(Route.CAMERA)}, initialPhotoPaths=pendingPaths)
-                        }
+                        Route.ADD -> AddItemScreen(
+                            editItemId = editItemId,
+                            onNavigateBack = { editItemId = null; goBack() },
+                            onNavigateToCamera = { navigate(Route.CAMERA) },
+                            initialPhotoPaths = cameraPhotoPaths,
+                            photoSession = cameraSession
+                        )
                         Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
                         Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
                         Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
@@ -169,6 +170,7 @@ fun MainScreen() {
                             onBack = { goBack() },
                             onPhotoTaken = { paths ->
                                 cameraPhotoPaths = paths
+                                cameraSession++
                                 goBack()
                             }
                         )
