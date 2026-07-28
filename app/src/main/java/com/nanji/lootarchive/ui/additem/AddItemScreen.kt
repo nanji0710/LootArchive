@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -85,7 +86,7 @@ fun AddItemScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { viewModel.onScreenDisposed(); onNavigateBack() }) {
-                    Icon(Icons.Rounded.ArrowBack, "返回", tint = TextPrimary())
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary())
                 }
                 Text(
                     if (uiState.isEditMode) "编辑物品" else "新增物品",

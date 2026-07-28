@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +31,7 @@ import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,9 +172,13 @@ fun DetailScreen(
                 .padding(padding)
         ) {
             val screenWidth = maxWidth
+            val density = LocalDensity.current
+            val screenWidthPx = with(density) { screenWidth.toPx() }
             if (data.photos.isNotEmpty()) {
+                val scrollState = rememberScrollState()
+                val currentPage = if (screenWidthPx > 0) (scrollState.value / screenWidthPx).roundToInt().coerceIn(0, data.photos.size - 1) else 0
                 Row(
-                    modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
+                    modifier = Modifier.fillMaxSize().horizontalScroll(scrollState)
                 ) {
                     data.photos.forEach { photo ->
                         AsyncImage(
@@ -193,18 +200,25 @@ fun DetailScreen(
                             )
                         )
                 )
-                // 照片计数
+                // v5.0: 照片圆点指示器 (matching HTML mockup)
                 if (data.photos.size > 1) {
-                    Surface(
-                        Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp),
-                        RoundedCornerShape(12.dp),
-                        color = Color.Black.copy(alpha = 0.35f)
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "1 / ${data.photos.size}",
-                            color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
-                        )
+                        data.photos.indices.forEach { index ->
+                            Surface(
+                                modifier = Modifier.size(if (index == currentPage) 8.dp else 6.dp),
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (index == currentPage)
+                                    Color.White
+                                else
+                                    Color.White.copy(alpha = 0.45f)
+                            ) {}
+                        }
                     }
                 }
             } else {
@@ -242,7 +256,7 @@ fun DetailScreen(
                     color = Color.Black.copy(alpha = 0.22f)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.ArrowBack, "返回", tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = Color.White, modifier = Modifier.size(20.dp))
                     }
                 }
                 Spacer(Modifier.weight(1f))

@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,7 +51,7 @@ fun SearchScreen(
             // v5.0 搜索栏 — 圆角玻璃风格
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onNavigateBack, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Rounded.ArrowBack, "返回", modifier = Modifier.size(22.dp), tint = TextPrimary())
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", modifier = Modifier.size(22.dp), tint = TextPrimary())
                 }
                 Surface(
                     modifier = Modifier.weight(1f),

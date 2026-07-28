@@ -1,15 +1,16 @@
 package com.nanji.lootarchive.ui.theme
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
 
 /**
  * v5.0 Glass 规格 — 毛玻璃效果层级
- * 从 Neumorphism 双层阴影 → 单层微阴影 + 玻璃边框
  */
 enum class GlassTier(
     val cornerRadiusDp: Int,
@@ -23,6 +24,11 @@ enum class GlassTier(
     SHEET(28, 12, 30)
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  v5.0: 全局 HazeState — 让所有子组件都能访问玻璃模糊
+// ═══════════════════════════════════════════════════════════════
+val LocalHazeState = compositionLocalOf<HazeState?> { null }
+
 /**
  * v5.0 玻璃态效果 Modifier
  * Light: 微阴影 + 白色半透明 = 轻盈玻璃感
@@ -33,10 +39,7 @@ fun Modifier.glassEffect(
     tier: GlassTier = GlassTier.CARD
 ): Modifier {
     val dark = LocalDarkTheme.current
-    val shape = when (tier) {
-        GlassTier.FAB -> RoundedCornerShape(tier.cornerRadiusDp.dp)
-        else -> RoundedCornerShape(tier.cornerRadiusDp.dp)
-    }
+    val shape = RoundedCornerShape(tier.cornerRadiusDp.dp)
 
     val shadowColor = if (dark)
         Color.Black.copy(alpha = 0.30f)
@@ -56,7 +59,6 @@ fun Modifier.glassEffect(
     )
 }
 
-// ── v5.0 边框颜色 helpers ──
 @Composable
 fun glassBorderColor() = if (LocalDarkTheme.current)
     Color.White.copy(alpha = 0.08f)
@@ -75,14 +77,12 @@ fun navGlassBackground() = if (LocalDarkTheme.current)
 else
     _NavGlassLight
 
-// ── v5.0 阴影色 ──
 @Composable
 fun glassShadowColor() = if (LocalDarkTheme.current)
     Color.Black.copy(alpha = 0.30f)
 else
     Color.Black.copy(alpha = 0.05f)
 
-// ── 向后兼容：保留 neumorphRaised 签名但不使用多层阴影 ──
 @Composable
 fun Modifier.neumorphRaised(
     tier: GlassTier = GlassTier.CARD

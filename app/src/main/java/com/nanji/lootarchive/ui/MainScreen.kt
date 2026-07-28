@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,8 +100,9 @@ fun MainScreen() {
         topBar = { /* 不使用 TopAppBar */ },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
-            // 内容区：hazeSource
+            // 内容区：hazeSource + 提供 LocalHazeState 给子组件
             Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
+                CompositionLocalProvider(LocalHazeState provides hazeState) {
                 AnimatedContent(
                     targetState = currentRoute,
                     transitionSpec = {
@@ -323,7 +325,9 @@ fun MainScreen() {
                         }
                     }
                 }
-            }
+                }
+
+            } // close CompositionLocalProvider
 
             // ── v5.0 浮动胶囊式底部导航 ──
             if (!isSubPage) {

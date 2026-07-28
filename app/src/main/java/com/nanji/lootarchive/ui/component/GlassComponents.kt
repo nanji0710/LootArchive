@@ -19,6 +19,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.theme.*
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
 
 // ═══════════════════════════════════════════════════════════════
 //  v5.0 Warm Glassmorphism 通用组件
@@ -28,7 +31,8 @@ import com.nanji.lootarchive.ui.theme.*
 private val CardShape = RoundedCornerShape(20.dp)
 
 /**
- * v5.0 玻璃卡片 — 微阴影 + 玻璃边框 + 半透明背景
+ * v5.0 玻璃卡片 — Haze 模糊毛玻璃 + 微阴影 + 玻璃边框
+ * 当 LocalHazeState 可用时自动启用实时玻璃模糊
  */
 @Composable
 fun NeoCard(
@@ -38,14 +42,35 @@ fun NeoCard(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val dark = LocalDarkTheme.current
-    val cardBg = if (dark) _CardDark else _CardLight
+    val hazeState = LocalHazeState.current
+    val cardBg = if (dark) _GlassDark else _GlassLight
     val borderClr = if (dark)
-        Color.White.copy(alpha = 0.08f)
+        Color.White.copy(alpha = 0.10f)
     else
         Color.White.copy(alpha = 0.55f)
 
+    // v5.0: Haze glass blur modifier (when available)
+    val hazeModifier = if (hazeState != null) {
+        Modifier.hazeEffect(
+            state = hazeState,
+            style = HazeStyle(
+                backgroundColor = Color.Transparent,
+                tints = listOf(
+                    HazeTint(cardBg),
+                    HazeTint(if (dark) Color.White.copy(alpha = 0.02f) else Color.White.copy(alpha = 0.06f))
+                ),
+                blurRadius = 20.dp,
+                noiseFactor = 0f,
+                fallbackTint = HazeTint(if (dark) _CardDark else _CardLight)
+            )
+        )
+    } else {
+        Modifier
+    }
+
     Card(
         modifier = modifier
+            .then(hazeModifier)
             .shadow(
                 elevation = 3.dp,
                 shape = CardShape,
@@ -55,7 +80,7 @@ fun NeoCard(
             .border(width = 0.5.dp, color = borderClr, shape = CardShape)
             .clip(CardShape),
         shape = CardShape,
-        colors = CardDefaults.cardColors(containerColor = cardBg),
+        colors = CardDefaults.cardColors(containerColor = if (hazeState != null) Color.Transparent else if (dark) _CardDark else _CardLight),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         onClick = onClick ?: {}
     ) {
