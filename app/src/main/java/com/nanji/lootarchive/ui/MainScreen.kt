@@ -297,9 +297,9 @@ fun MainScreen() {
                     hazeState = hazeState,
                     shape = RoundedCornerShape(22.dp),
                     containerColor = if (LocalDarkTheme.current)
-                        Color.Black.copy(alpha = 0.38f)
+                        Color.Black.copy(alpha = 0.20f)
                     else
-                        Color.White.copy(alpha = 0.45f),
+                        Color.White.copy(alpha = 0.30f),
                     borderColor = if (LocalDarkTheme.current)
                         Color.White.copy(alpha = 0.12f)
                     else

@@ -165,7 +165,7 @@ fun SettingsScreen(
             ClayCard(modifier = Modifier.fillMaxWidth()) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v4.0.2", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v4.0.3", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(24.dp))

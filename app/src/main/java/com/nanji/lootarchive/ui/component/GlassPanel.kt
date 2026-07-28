@@ -44,7 +44,7 @@ fun GlassPanel(
     val glassStyle = HazeStyle(
         backgroundColor = Color.Transparent,
         tints = listOf(
-            HazeTint(containerColor.copy(alpha = 0.55f)),
+            HazeTint(containerColor),
             HazeTint(Color.White.copy(alpha = 0.04f))
         ),
         blurRadius = blurRadius,
@@ -68,7 +68,6 @@ fun GlassPanel(
             )
             .clip(shape)
             .hazeEffect(state = hazeState, style = glassStyle)
-            .background(containerColor.copy(alpha = 0.25f))
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(contentPadding),
