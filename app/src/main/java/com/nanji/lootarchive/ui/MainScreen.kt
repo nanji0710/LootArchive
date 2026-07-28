@@ -214,7 +214,7 @@ fun MainScreen() {
                         onClick = { navigate(Route.ADD) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 90.dp),
+                            .padding(bottom = 110.dp),
                         shape = RoundedCornerShape(28.dp),
                         color = Primary(),
                         shadowElevation = 8.dp
