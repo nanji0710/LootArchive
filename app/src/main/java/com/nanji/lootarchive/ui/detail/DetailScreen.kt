@@ -75,27 +75,39 @@ fun DetailScreen(
                 }
 
                 // ── 主图区域 300dp ──
-                Box(
+                BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp)
-                        .background(Color(0xFF1A1A1A))  // 暗底，避免 Fit 留白突兀
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF2A2A2E),
+                                    Color(0xFF1A1A1E)
+                                )
+                            )
+                        )
                 ) {
+                    val screenWidth = maxWidth
                     if (data.photos.isNotEmpty()) {
-                        // 水平滚动浏览所有照片
                         Row(
-                            modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState()),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
                         ) {
                             data.photos.forEach { photo ->
-                                AsyncImage(
-                                    model = File(photo.photoPath),
-                                    contentDescription = null,
+                                // 每张照片占一屏宽度，居中显示
+                                Box(
                                     modifier = Modifier
-                                        .fillMaxHeight()
-                                        .fillMaxWidth(),
-                                    contentScale = ContentScale.Fit  // 居中完整显示，保持比例
-                                )
+                                        .width(screenWidth)
+                                        .fillMaxHeight(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = File(photo.photoPath),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
                             }
                         }
                         // 底部渐变遮罩（过渡到内容卡片）
