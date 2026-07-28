@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.FormatUtil
@@ -65,7 +64,7 @@ fun StatisticsScreen(
                     }
                 }
 
-                ClayCard(Modifier.fillMaxWidth()) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                     Text("分类资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(16.dp))
                     Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
@@ -78,7 +77,7 @@ fun StatisticsScreen(
                     uiState.categorySummaries.forEachIndexed { i, s -> Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.width(10.dp)); Text(s.category.name, fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f)); Text("¥${numberFormat.format(s.totalValue)}", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Primary()); Spacer(Modifier.width(6.dp)); Text("${if (uiState.totalValue > 0) (s.totalValue / uiState.totalValue * 100).toInt() else 0}%", fontSize = 11.sp, color = TextAuxiliary()) } }
                 }
 
-                ClayCard(Modifier.fillMaxWidth()) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                     Text("月度购入趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(14.dp))
                     val md = uiState.items.filter { it.purchaseDate != null }.groupBy { java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }.mapValues { it.value.sumOf { i -> i.purchasePrice } }.toList().sortedBy { it.first }.takeLast(12)
@@ -86,7 +85,7 @@ fun StatisticsScreen(
                     else { val mv = md.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0; Row(Modifier.fillMaxWidth().height(80.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) { md.forEachIndexed { i, (ym, t) -> Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) { Surface(Modifier.width(18.dp).height(((t / mv) * 60).dp.coerceAtLeast(4.dp)), shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp), color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.height(4.dp)); val pts = ym.split("-"); Text(if (pts.size == 2) "${pts[0].takeLast(2)}-${pts[1]}" else ym, fontSize = 8.sp, color = TextAuxiliary()) } } } }
                 }
 
-                ClayCard(Modifier.fillMaxWidth()) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                     Text("分类排名", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(12.dp))
                     val rk = uiState.categorySummaries.sortedByDescending { it.totalValue }

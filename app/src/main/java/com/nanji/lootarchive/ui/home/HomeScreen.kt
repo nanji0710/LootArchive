@@ -150,39 +150,39 @@ fun HomeScreen(
                     EmptyState(icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(100.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) }, title = "还没有物品", subtitle = "点击下方按钮记录你的第一件宝贝吧", actionLabel = "添加第一件", onAction = onNavigateToAddItem)
                 }
             } else {
-                items(filteredItems, key = { it.id }) { item ->
+                // ── v5.0 Bento Grid: 第一件宽卡占2列, 其余1列 ──
+                items(
+                    count = filteredItems.size,
+                    key = { filteredItems[it].id },
+                    span = { index -> if (index == 0) GridItemSpan(2) else GridItemSpan(1) }
+                ) { index ->
+                    val item = filteredItems[index]
+                    val isWide = index == 0
                     val catColor = ChartColors[(item.categoryId % ChartColors.size).toInt()]
-                    // 对标 HTML .bento-card: 20dp圆角 + 玻璃边框 + 微阴影
+                    val photoH = if (isWide) 160.dp else 135.dp
+                    val nameSz = if (isWide) 17.sp else 15.sp
+                    val priceSz = if (isWide) 18.sp else 16.sp
                     Card(Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).clickable { onNavigateToDetail(item.id) }, shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                         Column {
-                            Box(Modifier.fillMaxWidth().height(135.dp).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))) {
-                                if (uiState.photoPaths[item.id] != null) {
-                                    AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                                } else {
-                                    Box(Modifier.fillMaxSize().background(catColor.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(44.dp), tint = catColor.copy(alpha = 0.35f)) }
-                                }
-                                // 类别色点 (左上)
+                            Box(Modifier.fillMaxWidth().height(photoH).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))) {
+                                if (uiState.photoPaths[item.id] != null) AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                else Box(Modifier.fillMaxSize().background(catColor.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(if (isWide) 52.dp else 44.dp), tint = catColor.copy(alpha = 0.35f)) }
                                 Surface(Modifier.padding(10.dp).size(10.dp).align(Alignment.TopStart), RoundedCornerShape(5.dp), color = catColor) {}
-                                // 保修徽章 (右上)
                                 if (item.warrantyExpiryDate != null) {
-                                    val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)
-                                    val badgeColor = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> WarrantyActive }
-                                    Surface(Modifier.padding(10.dp).align(Alignment.TopEnd), RoundedCornerShape(10.dp), color = badgeColor.copy(alpha = 0.88f)) {
+                                    val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24*60*60*1000)
+                                    val bdg = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> WarrantyActive }
+                                    Surface(Modifier.padding(10.dp).align(Alignment.TopEnd), RoundedCornerShape(10.dp), color = bdg.copy(alpha = 0.88f)) {
                                         Text(when { days < 0 -> "过期"; days == 0L -> "今天"; else -> "${days}天" }, fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                                     }
                                 }
-                                // NEW 角标
-                                if (System.currentTimeMillis() - item.createdAt < 7 * 24 * 60 * 60 * 1000 && item.warrantyExpiryDate == null) {
-                                    Surface(Modifier.padding(10.dp).align(Alignment.TopStart), RoundedCornerShape(6.dp), color = Primary().copy(alpha = 0.85f)) {
-                                        Text("NEW", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                                    }
-                                }
+                                if (System.currentTimeMillis() - item.createdAt < 7*24*60*60*1000 && item.warrantyExpiryDate == null)
+                                    Surface(Modifier.padding(10.dp).align(Alignment.TopStart), RoundedCornerShape(6.dp), color = Primary().copy(alpha = 0.85f)) { Text("NEW", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
                             }
                             Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                                Text(item.name, fontSize = 15.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+                                Text(item.name, fontSize = nameSz, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(6.dp))
                                 Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) {
-                                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
+                                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
                                 }
                             }
                         }
