@@ -61,17 +61,21 @@ fun AddItemScreen(
         }
     }
 
-    // 从 CameraScreen/相册返回的照片路径 — 通过 PhotoQueue 传递，绕过 Compose 快照限制
+    // 编辑模式初始化（只在首次进入时触发，避免从相机返回时重复 resetForm）
+    var didInit by remember { mutableStateOf(false) }
+    LaunchedEffect(editItemId) {
+        if (!didInit) {
+            viewModel.initEditMode(editItemId)
+            didInit = true
+        }
+    }
+
+    // 从 CameraScreen 返回的照片路径
     LaunchedEffect(photoSession) {
         if (photoSession > 0) {
             val paths = com.nanji.lootarchive.util.PhotoQueue.consume()
             paths.forEach { path -> viewModel.addPhotoPath(path) }
         }
-    }
-
-    // 编辑模式初始化
-    LaunchedEffect(editItemId) {
-        viewModel.initEditMode(editItemId)
     }
 
     // 保存成功后返回
@@ -89,7 +93,7 @@ fun AddItemScreen(
                     .padding(horizontal = 4.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onNavigateBack) {
+                IconButton(onClick = { viewModel.onScreenDisposed(); onNavigateBack() }) {
                     Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary())
                 }
                 Text(

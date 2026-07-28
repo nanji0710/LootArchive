@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.15",
-  "versionCode": 115,
+  "versionName": "3.2.16",
+  "versionCode": 116,
   "updateDate": "2026-07-28",
-  "updateLog": "1. 修复拍照照片不回传：PhotoQueue绕过Compose快照",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.15/LootArchive-release-v3.2.15.apk"
+  "updateLog": "1. 修复拍照照片不回传：formInitialized 防止重复初始化",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.16/LootArchive-release-v3.2.16.apk"
 }

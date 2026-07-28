@@ -43,6 +43,11 @@ class AddItemViewModel @Inject constructor(
     val uiState: StateFlow<AddItemUiState> = _uiState.asStateFlow()
 
     private var editingItemId: Long? = null
+    private var formInitialized = false
+
+    fun onScreenDisposed() {
+        formInitialized = false
+    }
 
     fun resetForm() {
         editingItemId = null
@@ -51,6 +56,9 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun initEditMode(itemId: Long?) {
+        // ViewModel 存活期只初始化一次，避免从相机返回时重复 resetForm 清空照片
+        if (formInitialized) return
+        formInitialized = true
         if (itemId == null) { resetForm(); return }
         editingItemId = itemId
         viewModelScope.launch {
@@ -217,6 +225,7 @@ class AddItemViewModel @Inject constructor(
                 }
 
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
+                formInitialized = false  // 允许下次新增物品时重新初始化表单
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
