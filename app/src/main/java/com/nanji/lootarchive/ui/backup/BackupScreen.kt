@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,7 +57,7 @@ fun BackupScreen(
         ) {
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
+                    IconButton(onClick = onNavigateBack) { Icon(Icons.Rounded.ArrowBack, "返回", tint = TextPrimary()) }
                     Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
                 }
             }
@@ -81,7 +81,7 @@ fun BackupScreen(
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Filled.FileDownload, null, tint = Primary(), modifier = Modifier.size(22.dp))
+                                    Icon(Icons.Rounded.FileDownload, null, tint = Primary(), modifier = Modifier.size(22.dp))
                                 }
                             }
                             Spacer(Modifier.width(14.dp))
@@ -89,7 +89,7 @@ fun BackupScreen(
                                 Text("一键导出", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
                                 Text("物品数据 + 照片 + 分类打包为 ZIP", fontSize = 12.sp, color = TextAuxiliary())
                             }
-                            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -115,7 +115,7 @@ fun BackupScreen(
                                 color = Color(0xFF10B981).copy(alpha = 0.10f)
                             ) {
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Filled.UploadFile, null, tint = Color(0xFF10B981), modifier = Modifier.size(22.dp))
+                                    Icon(Icons.Rounded.UploadFile, null, tint = Color(0xFF10B981), modifier = Modifier.size(22.dp))
                                 }
                             }
                             Spacer(Modifier.width(14.dp))
@@ -123,7 +123,7 @@ fun BackupScreen(
                                 Text("一键导入", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
                                 Text("选择备份 ZIP 恢复全部数据", fontSize = 12.sp, color = TextAuxiliary())
                             }
-                            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -134,7 +134,7 @@ fun BackupScreen(
             if (uiState.backupRecords.isEmpty()) {
                 item {
                     EmptyState(
-                        icon = { Icon(Icons.Filled.History, null, modifier = Modifier.size(48.dp), tint = TextAuxiliary()) },
+                        icon = { Icon(Icons.Rounded.History, null, modifier = Modifier.size(48.dp), tint = TextAuxiliary()) },
                         title = "暂无备份记录",
                         subtitle = "备份数据后将在此显示记录"
                     )
@@ -148,14 +148,14 @@ fun BackupScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
                         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Archive, null, tint = Primary(), modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Archive, null, tint = Primary(), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(record.fileName, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
                                 Text(dateFormat.format(Date(record.createdAt)), fontSize = 12.sp, color = TextAuxiliary())
                             }
                             IconButton(onClick = { viewModel.deleteRecord(record) }) {
-                                Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Rounded.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(18.dp))
                             }
                         }
                     }
@@ -170,7 +170,7 @@ fun BackupScreen(
                 onDismissRequest = { viewModel.clearMessage() },
                 shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.surface,
-                icon = { Icon(Icons.Filled.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
+                icon = { Icon(Icons.Rounded.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
                 title = { Text("操作失败", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 13.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定", color = Primary()) } }
@@ -186,7 +186,7 @@ fun BackupScreen(
                 onDismissRequest = { viewModel.clearMessage() },
                 shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.surface,
-                icon = { Icon(Icons.Filled.CheckCircle, null, tint = Primary()) },
+                icon = { Icon(Icons.Rounded.CheckCircle, null, tint = Primary()) },
                 title = { Text("操作成功", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 14.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的", color = Primary()) } }

@@ -9,9 +9,10 @@ import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.R
 
 // ═══════════════════════════════════════════════════════════════
-//  Playful Creative 字体系统
-//  标题: Fredoka — 圆润友好年轻
-//  正文: Nunito  — 柔和清晰可读
+//  v5.0 字体系统 — Warm Glassmorphism
+//  标题: Fredoka (圆润友好 — 已内嵌)
+//  正文: Nunito (柔和清晰 — 已内嵌)
+//  数字: Platform Monospace (JetBrains Mono 等效，等宽数字)
 // ═══════════════════════════════════════════════════════════════
 
 val FredokaFont = FontFamily(
@@ -27,20 +28,23 @@ val NunitoFont = FontFamily(
     Font(R.font.nunito_bold, FontWeight.Bold),
 )
 
+// v5.0: 等宽数字字体 (用于价格、统计数据)
+val MonoFont = FontFamily.Monospace
+
 val AppTypography = Typography(
-    // ── 大标题 — Fredoka Bold ──
+    // ── v5.0 大数值展示 — Fredoka Bold ──
     displayLarge = TextStyle(
         fontFamily = FredokaFont, fontWeight = FontWeight.Bold,
-        fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = (-0.5).sp
+        fontSize = 38.sp, lineHeight = 46.sp, letterSpacing = (-0.5).sp
     ),
     displayMedium = TextStyle(
         fontFamily = FredokaFont, fontWeight = FontWeight.Bold,
-        fontSize = 30.sp, lineHeight = 36.sp
+        fontSize = 30.sp, lineHeight = 38.sp
     ),
     // ── 页面标题 — Fredoka SemiBold ──
     headlineLarge = TextStyle(
         fontFamily = FredokaFont, fontWeight = FontWeight.SemiBold,
-        fontSize = 26.sp, lineHeight = 32.sp
+        fontSize = 26.sp, lineHeight = 34.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = FredokaFont, fontWeight = FontWeight.SemiBold,

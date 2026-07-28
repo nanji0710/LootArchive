@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
+
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,7 +50,7 @@ fun SearchScreen(
             // v5.0 搜索栏 — 圆角玻璃风格
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onNavigateBack, modifier = Modifier.size(42.dp)) {
-                    Icon(Icons.Filled.ArrowBack, "返回", modifier = Modifier.size(22.dp), tint = TextPrimary())
+                    Icon(Icons.Rounded.ArrowBack, "返回", modifier = Modifier.size(22.dp), tint = TextPrimary())
                 }
                 Surface(
                     modifier = Modifier.weight(1f),
@@ -71,11 +71,11 @@ fun SearchScreen(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent
                         ),
-                        leadingIcon = { Icon(Icons.Filled.Search, null, tint = TextAuxiliary(), modifier = Modifier.size(20.dp)) },
+                        leadingIcon = { Icon(Icons.Rounded.Search, null, tint = TextAuxiliary(), modifier = Modifier.size(20.dp)) },
                         trailingIcon = {
                             if (uiState.query.isNotEmpty()) {
                                 IconButton(onClick = { viewModel.updateQuery("") }) {
-                                    Icon(Icons.Filled.Close, "清除", Modifier.size(18.dp), tint = TextAuxiliary())
+                                    Icon(Icons.Rounded.Close, "清除", Modifier.size(18.dp), tint = TextAuxiliary())
                                 }
                             }
                         }
@@ -116,7 +116,7 @@ fun SearchScreen(
                     var showSort by remember { mutableStateOf(false) }
                     Box {
                         TextButton(onClick = { showSort = true }) {
-                            Icon(Icons.Filled.SwapVert, null, Modifier.size(16.dp), tint = Primary())
+                            Icon(Icons.Rounded.SwapVert, null, Modifier.size(16.dp), tint = Primary())
                             Spacer(Modifier.width(4.dp))
                             Text("排序", fontSize = 13.sp, color = Primary())
                         }
@@ -159,7 +159,7 @@ fun SearchScreen(
                                         Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(Icons.Filled.History, null, Modifier.size(13.dp), tint = TextAuxiliary())
+                                        Icon(Icons.Rounded.History, null, Modifier.size(13.dp), tint = TextAuxiliary())
                                         Spacer(Modifier.width(6.dp))
                                         Text(query, fontSize = 13.sp, color = TextSecondary())
                                     }
@@ -169,14 +169,14 @@ fun SearchScreen(
                     }
                 } else {
                     EmptyState(
-                        icon = { Icon(Icons.Filled.Search, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
+                        icon = { Icon(Icons.Rounded.Search, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
                         title = "搜索物品",
                         subtitle = "输入关键词查找你的物品"
                     )
                 }
             } else if (uiState.results.isEmpty()) {
                 EmptyState(
-                    icon = { Icon(Icons.Filled.SearchOff, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
+                    icon = { Icon(Icons.Rounded.SearchOff, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
                     title = "未找到对应物品",
                     subtitle = "换个关键词试试"
                 )
@@ -205,7 +205,7 @@ private fun SearchItemCard(item: ItemEntity, firstPhotoPath: String?, numberForm
                 AsyncImage(model = File(firstPhotoPath), contentDescription = null, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)), contentScale = ContentScale.Crop)
             } else {
                 Box(Modifier.fillMaxSize().background(Primary().copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Image, null, Modifier.size(36.dp), tint = TextAuxiliary().copy(alpha = 0.35f))
+                    Icon(Icons.Rounded.Image, null, Modifier.size(36.dp), tint = TextAuxiliary().copy(alpha = 0.35f))
                 }
             }
         }

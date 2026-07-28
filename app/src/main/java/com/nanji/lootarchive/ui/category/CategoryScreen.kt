@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,6 +23,21 @@ import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.vector.ImageVector
+
+// v5.0: 分类专属图标映射
+private val CategoryIcons = mapOf(
+    "食品饮料" to Icons.Rounded.Restaurant,
+    "药品保健" to Icons.Rounded.MedicalServices,
+    "日用百货" to Icons.Rounded.Checkroom,
+    "数码电子" to Icons.Rounded.Devices,
+    "服饰鞋包" to Icons.Rounded.Checkroom,
+    "书籍文具" to Icons.Rounded.MenuBook,
+    "工具器材" to Icons.Rounded.Build,
+    "藏品摆件" to Icons.Rounded.Diamond,
+    "家居家具" to Icons.Rounded.Chair,
+    "其他" to Icons.Rounded.MoreHoriz
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,26 +55,27 @@ fun CategoryScreen(
                 containerColor = Primary(),
                 shape = RoundedCornerShape(18.dp)
             ) {
-                Icon(Icons.Filled.Add, "新增", tint = Color.White)
+                Icon(Icons.Rounded.Add, "新增", tint = Color.White)
             }
         }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
             Spacer(Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.Rounded.ArrowBack, "返回", tint = TextPrimary())
+                }
                 Text("分类管理", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
             }
             Spacer(Modifier.height(10.dp))
 
             if (uiState.categories.isEmpty() && !uiState.isLoading) {
                 EmptyState(
-                    icon = { Icon(Icons.Filled.Category, null, modifier = Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
+                    icon = { Icon(Icons.Outlined.Category, null, modifier = Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
                     title = "暂无分类",
                     subtitle = "点击右下角按钮新增分类"
                 )
             } else {
-                // v5.0: 图标网格布局
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
@@ -143,6 +161,7 @@ private fun CategoryGridCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val icon = CategoryIcons[category.name] ?: Icons.Rounded.Folder
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit),
         shape = RoundedCornerShape(20.dp),
@@ -153,26 +172,25 @@ private fun CategoryGridCard(
             Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 图标
             Surface(
                 Modifier.size(48.dp), RoundedCornerShape(16.dp),
                 color = Primary().copy(alpha = 0.10f)
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.Folder, null, tint = Primary(), modifier = Modifier.size(24.dp))
+                    Icon(icon, category.name, tint = Primary(), modifier = Modifier.size(26.dp))
                 }
             }
             Spacer(Modifier.height(12.dp))
-            Text(category.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
+            Text(category.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center, maxLines = 1)
             Spacer(Modifier.height(4.dp))
             Text("$itemCount 件物品", fontSize = 12.sp, color = TextAuxiliary())
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Filled.Edit, "编辑", tint = Primary(), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Edit, "编辑", tint = Primary(), modifier = Modifier.size(16.dp))
                 }
                 IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(16.dp))
                 }
             }
         }

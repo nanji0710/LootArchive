@@ -8,6 +8,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +40,8 @@ fun StatisticsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
+    var timeFilter by remember { mutableStateOf("all") }
+    var timeLabel by remember { mutableStateOf("全部") }
 
     DisposableEffect(Unit) {
         viewModel.refresh()
@@ -52,7 +55,7 @@ fun StatisticsScreen(
                     title = { Text("资产汇总", fontFamily = FredokaFont, fontWeight = FontWeight.SemiBold) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Filled.ArrowBack, "返回")
+                            Icon(Icons.Rounded.ArrowBack, "返回")
                         }
                     }
                 )
@@ -73,7 +76,7 @@ fun StatisticsScreen(
                 }
             } else if (uiState.categorySummaries.isEmpty()) {
                 EmptyState(
-                    icon = { Icon(Icons.Filled.BarChart, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) },
+                    icon = { Icon(Icons.Rounded.BarChart, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) },
                     title = "暂无统计数据",
                     subtitle = "添加物品后即可查看统计图表"
                 )
@@ -91,16 +94,46 @@ fun StatisticsScreen(
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
-                        Row(Modifier.fillMaxWidth().padding(20.dp)) {
-                            Column(Modifier.weight(1f)) {
-                                Text("物品总件数", fontSize = 14.sp, color = TextAuxiliary())
-                                Spacer(Modifier.height(4.dp))
-                                Text("${uiState.totalCount}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                        Column(Modifier.padding(20.dp)) {
+                            Row(Modifier.fillMaxWidth()) {
+                                Column(Modifier.weight(1f)) {
+                                    Text("物品总件数", fontSize = 14.sp, color = TextAuxiliary())
+                                    Spacer(Modifier.height(4.dp))
+                                    Text("${uiState.totalCount}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                                }
+                                Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                                    Text("全部资产总价", fontSize = 14.sp, color = TextAuxiliary())
+                                    Spacer(Modifier.height(4.dp))
+                                    Text("¥${numberFormat.format(uiState.totalValue)}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+                                }
                             }
-                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                                Text("全部资产总价", fontSize = 14.sp, color = TextAuxiliary())
-                                Spacer(Modifier.height(4.dp))
-                                Text("¥${numberFormat.format(uiState.totalValue)}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+                            // v5.0: Segmented time filter (HTML mockup match)
+                            Spacer(Modifier.height(16.dp))
+                            Surface(
+                                Modifier.fillMaxWidth(),
+                                RoundedCornerShape(14.dp),
+                                color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.03f)
+                            ) {
+                                Row(Modifier.padding(3.dp)) {
+                                    listOf("all" to "全部", "3months" to "3月", "6months" to "半年", "1year" to "1年").forEach { (key, label) ->
+                                        val sel = timeFilter == key
+                                        Surface(
+                                            onClick = { timeFilter = key; timeLabel = label; viewModel.setTimeFilter(key) },
+                                            modifier = Modifier.weight(1f),
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = if (sel) Primary() else Color.Transparent
+                                        ) {
+                                            Text(
+                                                label,
+                                                fontSize = 12.sp,
+                                                fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal,
+                                                color = if (sel) Color.White else TextSecondary(),
+                                                modifier = Modifier.padding(vertical = 8.dp),
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -221,9 +254,9 @@ fun StatisticsScreen(
                         val ranked = uiState.categorySummaries.sortedByDescending { it.totalValue }
                         ranked.forEachIndexed { index, s ->
                             val rankBg = when (index) {
-                                0 -> Color(0xFFF59E0B)
-                                1 -> Color(0xFFA8A29E)
-                                2 -> Color(0xFFD4A574)
+                                0 -> Color(0xFFF59E0B) // gold
+                                1 -> Color(0xFFA8A29E) // silver
+                                2 -> Color(0xFFCDA87B) // bronze
                                 else -> Color.Transparent
                             }
                             Row(

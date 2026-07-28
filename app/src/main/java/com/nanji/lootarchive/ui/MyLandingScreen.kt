@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -82,7 +83,7 @@ fun MyLandingScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Icon(Icons.Filled.Person, null, Modifier.size(38.dp), tint = Primary())
+                            Icon(Icons.Rounded.Person, null, Modifier.size(38.dp), tint = Primary())
                         }
                     }
                 }
@@ -146,15 +147,15 @@ fun MyLandingScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column {
-                MyMenuItem(Icons.Outlined.Settings, "设置", "主题模式、提醒、数据备份", onNavigateToSettings)
+                MyMenuItem(Icons.Rounded.Settings, "设置", "主题模式、提醒、数据备份", onNavigateToSettings)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Outlined.Category, "分类管理", "管理物品分类", onNavigateToCategory)
+                MyMenuItem(Icons.Rounded.Category, "分类管理", "管理物品分类", onNavigateToCategory)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Outlined.Backup, "备份与恢复", "导出/导入数据", onNavigateToBackup)
+                MyMenuItem(Icons.Rounded.Backup, "备份与恢复", "导出/导入数据", onNavigateToBackup)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Outlined.Delete, "回收站", "查看和还原已删除物品", onNavigateToRecycleBin)
+                MyMenuItem(Icons.Rounded.Delete, "回收站", "查看和还原已删除物品", onNavigateToRecycleBin)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Outlined.SystemUpdate, "检查更新", "检测GitHub最新版本") {
+                MyMenuItem(Icons.Rounded.SystemUpdate, "检查更新", "检测GitHub最新版本") {
                     if (!isChecking) {
                         isChecking = true
                         scope.launch {
@@ -319,7 +320,7 @@ private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onCli
                 Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
                 Text(subtitle, fontSize = 12.sp, color = TextAuxiliary())
             }
-            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
+            Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
         }
     }
 }

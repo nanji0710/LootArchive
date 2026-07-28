@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,7 +53,7 @@ fun RecycleBinScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(22.dp))
+                    Icon(Icons.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(22.dp))
                 }
                 Text("回收站", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
                 if (uiState.deletedItems.isNotEmpty()) {
@@ -83,7 +83,7 @@ fun RecycleBinScreen(
                 }
             } else if (uiState.deletedItems.isEmpty()) {
                 EmptyState(
-                    icon = { Icon(Icons.Filled.DeleteOutline, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
+                    icon = { Icon(Icons.Rounded.DeleteOutline, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
                     title = "回收站为空",
                     subtitle = "删除的物品会出现在这里"
                 )
@@ -178,7 +178,7 @@ private fun TrashItemCard(
                     color = Primary().copy(alpha = 0.10f)
                 ) {
                     Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Restore, "还原", tint = Primary(), modifier = Modifier.size(15.dp))
+                        Icon(Icons.Rounded.Restore, "还原", tint = Primary(), modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("还原", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary())
                     }
@@ -189,7 +189,7 @@ private fun TrashItemCard(
                     color = WarrantyExpired.copy(alpha = 0.10f)
                 ) {
                     Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.DeleteForever, "删除", tint = WarrantyExpired, modifier = Modifier.size(15.dp))
+                        Icon(Icons.Rounded.DeleteForever, "删除", tint = WarrantyExpired, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("删除", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = WarrantyExpired)
                     }

@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.SideEffect
@@ -44,9 +45,9 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
 enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
-    HOME("首页", Icons.Filled.Home, Icons.Outlined.Home),
-    STATS("统计", Icons.Filled.PieChart, Icons.Outlined.PieChart),
-    MY("我的", Icons.Filled.Person, Icons.Outlined.Person)
+    HOME("首页", Icons.Rounded.Home, Icons.Outlined.Home),
+    STATS("统计", Icons.Rounded.PieChart, Icons.Outlined.PieChart),
+    MY("我的", Icons.Rounded.Person, Icons.Outlined.Person)
 }
 
 private object Route {
@@ -136,7 +137,7 @@ fun MainScreen() {
                                     Box {
                                         TextButton(onClick={showTimeFilter=true}) {
                                             Text(timeFilterLabel, fontSize=14.sp, color=Primary())
-                                            Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
+                                            Icon(Icons.Rounded.ArrowDropDown, null, tint=Primary())
                                         }
                                         DropdownMenu(
                                             expanded=showTimeFilter,
@@ -273,7 +274,7 @@ fun MainScreen() {
                                     },
                                     leadingIcon = {
                                         if (drawerCategoryFilter == null)
-                                            Icon(Icons.Filled.Check, null, Modifier.size(18.dp), tint = Primary())
+                                            Icon(Icons.Rounded.Check, null, Modifier.size(18.dp), tint = Primary())
                                     }
                                 )
                                 val viewModel: CategoryDrawerViewModel = hiltViewModel()
@@ -294,7 +295,7 @@ fun MainScreen() {
                                         },
                                         trailingIcon = {
                                             if (selected)
-                                                Icon(Icons.Filled.Check, null, Modifier.size(16.dp), tint = Primary())
+                                                Icon(Icons.Rounded.Check, null, Modifier.size(16.dp), tint = Primary())
                                         }
                                     )
                                 }
@@ -316,7 +317,7 @@ fun MainScreen() {
                             Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Filled.Add, "新增物品", Modifier.size(22.dp), tint = Color.White)
+                            Icon(Icons.Rounded.Add, "新增物品", Modifier.size(22.dp), tint = Color.White)
                             Spacer(Modifier.width(6.dp))
                             Text("新增物品", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                         }

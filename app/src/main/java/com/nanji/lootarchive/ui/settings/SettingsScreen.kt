@@ -9,7 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -63,7 +63,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // ── v5.0 个性化 ──
-            SectionHeader(Icons.Filled.Palette, "个性化")
+            SectionHeader(Icons.Rounded.Palette, "个性化")
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -109,13 +109,13 @@ fun SettingsScreen(
                             }
                             Spacer(Modifier.width(8.dp))
                         }
-                        Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
                 }
             }
 
             // ── v5.0 提醒 ──
-            SectionHeader(Icons.Filled.Notifications, "提醒")
+            SectionHeader(Icons.Rounded.Notifications, "提醒")
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -142,14 +142,14 @@ fun SettingsScreen(
                             editReminderDays = uiState.warrantyReminderDays.toString()
                             showReminderDialog = true
                         }) {
-                            Icon(Icons.Filled.Edit, null, Modifier.size(18.dp), tint = Primary())
+                            Icon(Icons.Rounded.Edit, null, Modifier.size(18.dp), tint = Primary())
                         }
                     }
                 }
             }
 
             // ── v5.0 存储 ──
-            SectionHeader(Icons.Filled.Storage, "存储")
+            SectionHeader(Icons.Rounded.Storage, "存储")
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -177,7 +177,7 @@ fun SettingsScreen(
                         if (uiState.isClearing) {
                             CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = Primary())
                         } else {
-                            Icon(Icons.Filled.DeleteSweep, null, Modifier.size(16.dp))
+                            Icon(Icons.Rounded.DeleteSweep, null, Modifier.size(16.dp))
                         }
                         Spacer(Modifier.width(6.dp))
                         Text("清除缓存", fontSize = 13.sp)
@@ -186,7 +186,7 @@ fun SettingsScreen(
             }
 
             // ── v5.0 关于 ──
-            SectionHeader(Icons.Filled.Info, "关于")
+            SectionHeader(Icons.Rounded.Info, "关于")
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),

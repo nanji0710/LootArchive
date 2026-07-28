@@ -13,7 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -85,7 +85,7 @@ fun AddItemScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { viewModel.onScreenDisposed(); onNavigateBack() }) {
-                    Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary())
+                    Icon(Icons.Rounded.ArrowBack, "返回", tint = TextPrimary())
                 }
                 Text(
                     if (uiState.isEditMode) "编辑物品" else "新增物品",
@@ -167,7 +167,7 @@ fun AddItemScreen(
                                             .clickable { viewModel.removePhotoPath(path) },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(Icons.Filled.Close, "删除", modifier = Modifier.size(14.dp), tint = Color.White)
+                                        Icon(Icons.Rounded.Close, "删除", modifier = Modifier.size(14.dp), tint = Color.White)
                                     }
                                 }
                             }
@@ -188,7 +188,7 @@ fun AddItemScreen(
                             shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Primary())
                         ) {
-                            Icon(Icons.Filled.CameraAlt, null, Modifier.size(18.dp))
+                            Icon(Icons.Rounded.CameraAlt, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
                             Text("拍照", fontWeight = FontWeight.Medium)
                         }
@@ -196,7 +196,7 @@ fun AddItemScreen(
                             onClick = { galleryLauncher.launch("image/*") }, modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp)
                         ) {
-                            Icon(Icons.Filled.PhotoLibrary, null, Modifier.size(18.dp))
+                            Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
                             Text("从相册选择")
                         }
@@ -319,7 +319,7 @@ fun AddItemScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
-                        leadingIcon = { Icon(Icons.Filled.LocationOn, null, tint = Primary()) }
+                        leadingIcon = { Icon(Icons.Rounded.LocationOn, null, tint = Primary()) }
                     )
                 }
 
@@ -328,7 +328,7 @@ fun AddItemScreen(
                         modifier = Modifier.fillMaxWidth().clickable { showPurchaseDatePicker = true }.padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.CalendarToday, null, tint = Primary(), modifier = Modifier.size(22.dp))
+                        Icon(Icons.Rounded.CalendarToday, null, tint = Primary(), modifier = Modifier.size(22.dp))
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
                             Text("购入日期", fontSize = 13.sp, color = TextSecondary())
