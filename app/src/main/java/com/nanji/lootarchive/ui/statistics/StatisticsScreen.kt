@@ -158,9 +158,12 @@ fun StatisticsScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.Bottom
                             ) {
-                                monthlyData.forEachIndexed { index, (month, total) ->
+                                monthlyData.forEachIndexed { index, (ym, total) ->
                                     val barHeight = ((total / maxVal) * 130).dp.coerceAtLeast(4.dp)
                                     val barColor = ChartColors[index % ChartColors.size]
+                                    // 格式化横轴: "2026-01" → 适应12个月显示
+                                    val parts = ym.split("-")
+                                    val label = if (parts.size == 2) "${parts[0].takeLast(2)}-${parts[1]}" else ym
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier.weight(1f),
@@ -173,7 +176,7 @@ fun StatisticsScreen(
                                         Spacer(Modifier.height(4.dp))
                                         Surface(
                                             Modifier
-                                                .width(if (monthlyData.size > 6) 20.dp else 26.dp)
+                                                .width(20.dp)
                                                 .height(barHeight),
                                             shape = RoundedCornerShape(
                                                 topStart = 6.dp, topEnd = 6.dp,
@@ -183,8 +186,8 @@ fun StatisticsScreen(
                                         ) {}
                                         Spacer(Modifier.height(6.dp))
                                         Text(
-                                            month.takeLast(2) + "月",
-                                            fontSize = if (monthlyData.size > 8) 9.sp else 11.sp,
+                                            label,
+                                            fontSize = 9.sp,
                                             color = TextAuxiliary(), maxLines = 1
                                         )
                                     }

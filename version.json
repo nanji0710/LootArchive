@@ -1,7 +1,7 @@
 {
-  "versionName": "4.0.4",
-  "versionCode": 404,
+  "versionName": "4.0.5",
+  "versionCode": 405,
   "updateDate": "2026-07-28",
-  "updateLog": "🔧 修复 3 个体验问题\n\n• 底部导航栏点击效果改为圆角，视觉更柔和\n• 从详情页进入编辑不再出现空白页面，物品信息正确加载\n• 日期选择器打开时选中日期显示在中间位置，更符合直觉",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.4/LootArchive-release-v4.0.4.apk"
+  "updateLog": "🔧 修复 5 个问题，交互更顺畅\n\n• 编辑物品现在每次都能正确加载数据，不再出现空白页\n• 日期选择器选中项始终显示在中间，不再跳到底部\n• 首页分类筛选改为下拉菜单，比底部弹出更轻便快捷\n• 首页分类图标换为漏斗样式，更直观\n• 资产汇总柱状图横轴显示完整年月，柱子宽度统一对齐",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.5/LootArchive-release-v4.0.5.apk"
 }

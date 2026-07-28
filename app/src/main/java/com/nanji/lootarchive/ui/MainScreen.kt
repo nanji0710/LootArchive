@@ -241,20 +241,64 @@ fun MainScreen() {
                         }
 
                         // 分类按钮
-                        Surface(
-                            onClick = { showCategorySheet = true },
-                            modifier = Modifier.size(42.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            color = if (LocalDarkTheme.current)
-                                Primary().copy(alpha = 0.20f)
-                            else
-                                Primary().copy(alpha = 0.10f)
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Icon(
-                                    Icons.Outlined.Category, "分类",
-                                    Modifier.size(20.dp), tint = Primary()
+                        Box {
+                            Surface(
+                                onClick = { showCategorySheet = true },
+                                modifier = Modifier.size(42.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                color = if (LocalDarkTheme.current)
+                                    Primary().copy(alpha = 0.20f)
+                                else
+                                    Primary().copy(alpha = 0.10f)
+                            ) {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Outlined.FilterAlt, "分类筛选",
+                                        Modifier.size(20.dp), tint = Primary()
+                                    )
+                                }
+                            }
+
+                            // DropdownMenu 替代底部弹出 — 从按钮下方展开
+                            DropdownMenu(
+                                expanded = showCategorySheet,
+                                onDismissRequest = { showCategorySheet = false },
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("全部物品") },
+                                    onClick = {
+                                        drawerCategoryFilter = null
+                                        showCategorySheet = false
+                                    },
+                                    leadingIcon = {
+                                        if (drawerCategoryFilter == null)
+                                            Icon(Icons.Filled.Check, null, Modifier.size(18.dp), tint = Primary())
+                                    }
                                 )
+                                val viewModel: CategoryDrawerViewModel = hiltViewModel()
+                                val catState by viewModel.uiState.collectAsState()
+                                catState.categories.forEach { cat ->
+                                    val color = ChartColors[catState.categories.indexOf(cat) % ChartColors.size]
+                                    val selected = drawerCategoryFilter?.first == cat.id
+                                    DropdownMenuItem(
+                                        text = { Text(cat.name) },
+                                        onClick = {
+                                            drawerCategoryFilter = Pair(cat.id, cat.name)
+                                            showCategorySheet = false
+                                        },
+                                        leadingIcon = {
+                                            Surface(
+                                                Modifier.size(10.dp), RoundedCornerShape(5.dp), color = color
+                                            ) {}
+                                        },
+                                        trailingIcon = {
+                                            if (selected)
+                                                Icon(Icons.Filled.Check, null, Modifier.size(16.dp), tint = Primary())
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -342,80 +386,5 @@ fun MainScreen() {
                 }
             }
         }
-    }
-
-    // 分类筛选底部弹出
-    if (showCategorySheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showCategorySheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
-        ) {
-            CategoryFilterSheet(
-                selectedFilter = drawerCategoryFilter,
-                onCategorySelected = { id, name ->
-                    drawerCategoryFilter = if (id == -1L) null else Pair(id, name)
-                    showCategorySheet = false
-                }
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CategoryFilterSheet(
-    selectedFilter: Pair<Long, String>?,
-    onCategorySelected: (Long, String) -> Unit
-) {
-    val viewModel: CategoryDrawerViewModel = hiltViewModel()
-    val state by viewModel.uiState.collectAsState()
-
-    Column(Modifier.padding(24.dp).fillMaxWidth()) {
-        Text(
-            "物品分类",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = TextPrimary(),
-            fontFamily = FredokaFont
-        )
-        Spacer(Modifier.height(16.dp))
-
-        Surface(
-            onClick = { onCategorySelected(-1L, "全部物品") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            color = if (selectedFilter == null) Primary().copy(alpha = 0.10f) else Color.Transparent
-        ) {
-            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("全部物品", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                Text("${state.totalItemCount}", fontSize = 13.sp, color = TextAuxiliary())
-            }
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        state.categories.forEachIndexed { index, cat ->
-            val color = ChartColors[index % ChartColors.size]
-            val isSelected = selectedFilter?.first == cat.id
-            Surface(
-                onClick = { onCategorySelected(cat.id, cat.name) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                color = if (isSelected) color.copy(alpha = 0.10f) else Color.Transparent
-            ) {
-                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        Modifier.width(4.dp).height(26.dp),
-                        RoundedCornerShape(2.dp),
-                        color = color
-                    ) {}
-                    Spacer(Modifier.width(12.dp))
-                    Text(cat.name, fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                }
-            }
-        }
-
-        Spacer(Modifier.height(32.dp))
     }
 }

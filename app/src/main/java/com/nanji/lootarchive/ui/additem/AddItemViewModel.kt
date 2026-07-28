@@ -52,6 +52,7 @@ class AddItemViewModel @Inject constructor(
     fun resetForm() {
         editingItemId = null
         warrantyManuallySet = false
+        formInitialized = false
         _uiState.value = AddItemUiState(categories = _uiState.value.categories)
     }
 
