@@ -1,7 +1,7 @@
 {
-  "versionName": "3.3.0",
-  "versionCode": 330,
+  "versionName": "3.3.1",
+  "versionCode": 331,
   "updateDate": "2026-07-28",
-  "updateLog": "1. 修复编辑按钮失效",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.3.0/LootArchive-release-v3.3.0.apk"
+  "updateLog": "1. 修复新增/编辑按钮导航冲突",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.3.1/LootArchive-release-v3.3.1.apk"
 }

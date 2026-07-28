@@ -79,6 +79,9 @@ fun MainScreen() {
     fun switchTab(tab: Int) {
         currentTab = tab
         backStack.clear()
+        editItemId = null
+        detailItemId = 0L
+        cameraSession = 0
         currentRoute = when(tab) { 0->Route.HOME; 1->Route.STATS; 2->Route.MY; else->Route.HOME }
     }
 
