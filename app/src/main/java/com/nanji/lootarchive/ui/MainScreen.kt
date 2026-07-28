@@ -214,7 +214,7 @@ fun MainScreen() {
                         onClick = { navigate(Route.ADD) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 100.dp),
+                            .padding(bottom = 90.dp),
                         shape = RoundedCornerShape(28.dp),
                         color = Primary(),
                         shadowElevation = 8.dp
@@ -265,16 +265,16 @@ fun MainScreen() {
                                     .weight(1f)
                                     .clip(RoundedCornerShape(16.dp))
                                     .clickable { switchTab(index) }
-                                    .padding(vertical = 8.dp)
+                                    .padding(vertical = 6.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(if (selected) 44.dp else 38.dp)
+                                        .size(if (selected) 34.dp else 30.dp)
                                         .then(
                                             if (selected)
                                                 Modifier.background(
                                                     Primary().copy(alpha = 0.12f),
-                                                    RoundedCornerShape(14.dp)
+                                                    RoundedCornerShape(12.dp)
                                                 )
                                             else Modifier
                                         ),
@@ -283,14 +283,14 @@ fun MainScreen() {
                                     Icon(
                                         if (selected) tab.selectedIcon else tab.unselectedIcon,
                                         tab.label,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(20.dp),
                                         tint = if (selected) Primary() else TextAuxiliary()
                                     )
                                 }
-                                Spacer(Modifier.height(3.dp))
+                                Spacer(Modifier.height(2.dp))
                                 Text(
                                     tab.label,
-                                    fontSize = 12.sp,
+                                    fontSize = 11.sp,
                                     color = if (selected) Primary() else TextAuxiliary(),
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )

@@ -85,23 +85,35 @@ class BackupViewModel @Inject constructor(
                 val importResult = withContext(Dispatchers.IO) {
                     BackupUtil.fullImport(context, uri)
                 }
-                // Import categories first
+                // Build name→ID map from current DB categories
+                val existingCats = categoryRepository.getAllCategories().first()
+                val nameToId = mutableMapOf<String, Long>()
+                existingCats.forEach { nameToId[it.name] = it.id }
+
+                // Import missing categories, track their new IDs
                 var catCount = 0
                 for (cat in importResult.categories) {
-                    try {
-                        // Skip if category with same name already exists
-                        val existing = categoryRepository.getAllCategories().first()
-                        if (existing.none { it.name == cat.name }) {
-                            categoryRepository.createCategory(cat.name)
-                            catCount++
-                        }
-                    } catch (_: Exception) {}
+                    if (!nameToId.containsKey(cat.name)) {
+                        val newId = categoryRepository.createCategory(cat.name)
+                        nameToId[cat.name] = newId
+                        catCount++
+                    }
                 }
-                // Import items
+
+                // Import items — remap categoryId by name lookup
                 var itemCount = 0
                 var photoCount = 0
                 for (ii in importResult.items) {
-                    val itemId = itemRepository.insertItem(ii.item)
+                    // Find new category ID by looking up the old category ID's name
+                    val oldCat = importResult.categories.firstOrNull { it.id == ii.item.categoryId }
+                    val newCatId = if (oldCat != null && nameToId.containsKey(oldCat.name)) {
+                        nameToId[oldCat.name]!!
+                    } else {
+                        // Fallback: try to use the categoryId directly
+                        ii.item.categoryId
+                    }
+                    val itemToSave = ii.item.copy(categoryId = newCatId)
+                    val itemId = itemRepository.insertItem(itemToSave)
                     if (ii.photoFiles.isNotEmpty()) {
                         itemRepository.addPhotosForItem(itemId, ii.photoFiles)
                         photoCount += ii.photoFiles.size

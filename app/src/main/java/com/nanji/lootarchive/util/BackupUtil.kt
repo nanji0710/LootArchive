@@ -112,10 +112,11 @@ object BackupUtil {
                 manifestItems.put(itemJson)
             }
 
-            // 3. Categories
+            // 3. Categories (include IDs for import remapping)
             val manifestCategories = JSONArray()
             for (cat in categories) {
                 manifestCategories.put(JSONObject().apply {
+                    put("id", cat.id)
                     put("name", cat.name)
                     put("sortOrder", cat.sortOrder)
                     put("iconName", cat.iconName)
@@ -176,13 +177,14 @@ object BackupUtil {
         val itemsArray = manifest.getJSONArray("items")
         if (itemsArray.length() == 0) throw Exception("备份文件中没有物品数据")
 
-        // Parse categories
+        // Parse categories (with IDs for remapping)
         val categoriesArray = manifest.optJSONArray("categories") ?: JSONArray()
         val categories = mutableListOf<com.nanji.lootarchive.data.local.entity.CategoryEntity>()
         for (i in 0 until categoriesArray.length()) {
             val catObj = categoriesArray.getJSONObject(i)
             categories.add(
                 com.nanji.lootarchive.data.local.entity.CategoryEntity(
+                    id = catObj.optLong("id", (i + 1).toLong()),
                     name = catObj.getString("name"),
                     sortOrder = catObj.optInt("sortOrder", i),
                     iconName = catObj.optString("iconName", "")

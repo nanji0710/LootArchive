@@ -83,7 +83,7 @@ fun HomeScreen(
     PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp, bottom = 170.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp, bottom = 160.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // ── 对标 HTML .ph-hero: 全部资产 大数字 + 3个小统计 ──

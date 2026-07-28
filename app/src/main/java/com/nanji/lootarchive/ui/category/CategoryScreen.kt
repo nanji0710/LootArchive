@@ -170,7 +170,7 @@ private fun CategoryGridCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            Modifier.padding(20.dp),
+            Modifier.fillMaxWidth().padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Surface(

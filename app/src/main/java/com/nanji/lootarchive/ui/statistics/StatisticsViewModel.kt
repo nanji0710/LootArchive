@@ -8,7 +8,6 @@ import com.nanji.lootarchive.data.repository.CategoryRepository
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -40,92 +39,58 @@ class StatisticsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
-    private var collectJob: Job? = null
-    private var filterJob: Job? = null
 
-    init { loadStatistics() }
-
-    fun refresh() {
-        _uiState.update { it.copy(isLoading = true) }
-        loadStatistics()
-    }
-
-    private fun loadStatistics() {
-        collectJob?.cancel()
-        filterJob?.cancel()
-        collectJob = viewModelScope.launch {
-            val filter = _uiState.value.timeFilter
-            val now = System.currentTimeMillis()
-            val cutoff = when (filter) {
-                "3months" -> now - 90L * 24 * 60 * 60 * 1000
-                "6months" -> now - 180L * 24 * 60 * 60 * 1000
-                "1year" -> now - 365L * 24 * 60 * 60 * 1000
-                else -> 0L
-            }
+    init {
+        viewModelScope.launch {
             combine(
-                itemRepository.getAllItems(),
-                itemRepository.getTotalCount(),
-                itemRepository.getTotalValue(),
+                combine(
+                    itemRepository.getAllItems(),
+                    itemRepository.getTotalCount(),
+                    itemRepository.getTotalValue()
+                ) { items, count, value -> Triple(items, count, value) },
                 categoryRepository.getAllCategories(),
                 settingsRepository.currency
-            ) { allItems, count, value, categories, currency ->
-                val items = if (cutoff == 0L) allItems else allItems.filter { (it.purchaseDate ?: 0) >= cutoff }
+            ) { (items, count, value), categories, currency ->
+                val filter = _uiState.value.timeFilter
+                val now = System.currentTimeMillis()
+                val cutoff = when (filter) {
+                    "3months" -> now - 90L * 24 * 60 * 60 * 1000
+                    "6months" -> now - 180L * 24 * 60 * 60 * 1000
+                    "1year" -> now - 365L * 24 * 60 * 60 * 1000
+                    else -> 0L
+                }
+                val filteredItems = if (cutoff == 0L) items else items.filter { (it.purchaseDate ?: 0) >= cutoff }
                 val summaries = categories.map { cat ->
-                    val catItems = items.filter { it.categoryId == cat.id }
+                    val catItems = filteredItems.filter { it.categoryId == cat.id }
                     CategorySummary(category = cat, itemCount = catItems.size, totalValue = catItems.sumOf { it.purchasePrice })
-                }.filter { it.totalValue > 0 }
+                }
                 StatisticsUiState(
                     isLoading = false,
-                    totalCount = items.size,
-                    totalValue = items.sumOf { it.purchasePrice },
+                    totalCount = filteredItems.size,
+                    totalValue = filteredItems.sumOf { it.purchasePrice },
                     currency = currency,
                     categorySummaries = summaries,
-                    items = items,
+                    items = filteredItems,
                     timeFilter = filter
                 )
             }.collect { state ->
                 _uiState.value = state
             }
+        }
+    }
+
+    fun refresh() {
+        // Room Flows are reactive — data auto-updates via combine above.
+        // Just trigger a brief loading state to signal UI refresh.
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            kotlinx.coroutines.delay(100)
+            // Flow will auto-emit fresh data
         }
     }
 
     fun setTimeFilter(filter: String) {
         _uiState.update { it.copy(timeFilter = filter, isLoading = true) }
-        filterJob?.cancel()
-        collectJob?.cancel()
-        collectJob = viewModelScope.launch {
-            val now = System.currentTimeMillis()
-            val cutoff = when (filter) {
-                "3months" -> now - 90L * 24 * 60 * 60 * 1000
-                "6months" -> now - 180L * 24 * 60 * 60 * 1000
-                "1year" -> now - 365L * 24 * 60 * 60 * 1000
-                else -> 0L
-            }
-            combine(
-                itemRepository.getAllItems(),
-                itemRepository.getTotalCount(),
-                itemRepository.getTotalValue(),
-                categoryRepository.getAllCategories(),
-                settingsRepository.currency
-            ) { allItems, count, value, categories, currency ->
-                val items = if (cutoff == 0L) allItems else allItems.filter { (it.purchaseDate ?: 0) >= cutoff }
-                val summaries = categories.map { cat ->
-                    val catItems = items.filter { it.categoryId == cat.id }
-                    CategorySummary(category = cat, itemCount = catItems.size, totalValue = catItems.sumOf { it.purchasePrice })
-                }.filter { it.totalValue > 0 }
-                StatisticsUiState(
-                    isLoading = false,
-                    totalCount = items.size,
-                    totalValue = items.sumOf { it.purchasePrice },
-                    currency = currency,
-                    categorySummaries = summaries,
-                    items = items,
-                    timeFilter = filter
-                )
-            }.collect { state ->
-                _uiState.value = state
-            }
-        }
     }
 
     fun selectCategorySummary(summary: CategorySummary) {
