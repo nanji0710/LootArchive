@@ -84,34 +84,14 @@ fun DetailScreen(
                             modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
                         ) {
                             data.photos.forEach { photo ->
-                                // 每张照片占一屏宽度，居中显示
-                                Box(
+                                AsyncImage(
+                                    model = File(photo.photoPath),
+                                    contentDescription = null,
                                     modifier = Modifier
                                         .width(screenWidth)
-                                        .fillMaxHeight()
-                                        .background(
-                                            brush = Brush.radialGradient(
-                                                colors = listOf(Color.White.copy(alpha = 0.06f), Color.Transparent)
-                                            )
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    // 底层：模糊缩放填充做背景
-                                    AsyncImage(
-                                        model = File(photo.photoPath),
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop,
-                                        alpha = 0.25f
-                                    )
-                                    // 顶层：Fit 居中清晰显示
-                                    AsyncImage(
-                                        model = File(photo.photoPath),
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                }
+                                        .fillMaxHeight(),
+                                    contentScale = ContentScale.Crop
+                                )
                             }
                         }
                         // 底部渐变遮罩（过渡到内容卡片）

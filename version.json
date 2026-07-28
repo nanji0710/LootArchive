@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.20",
-  "versionCode": 120,
+  "versionName": "3.2.21",
+  "versionCode": 121,
   "updateDate": "2026-07-28",
-  "updateLog": "1. 修复缓存大小始终显示0B",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.20/LootArchive-release-v3.2.20.apk"
+  "updateLog": "1. 图片居中放大铺满，简化显示效果",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.21/LootArchive-release-v3.2.21.apk"
 }

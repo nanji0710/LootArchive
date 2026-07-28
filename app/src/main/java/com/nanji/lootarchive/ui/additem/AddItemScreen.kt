@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -286,12 +287,14 @@ fun AddItemScreen(
                                         .clip(RoundedCornerShape(8.dp)),
                                     contentScale = ContentScale.Crop
                                 )
-                                // 删除按钮（半透明小叉号）
-                                IconButton(
-                                    onClick = { viewModel.removePhotoPath(path) },
+                                // 删除按钮
+                                Box(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
-                                        .size(18.dp)
+                                        .size(20.dp)
+                                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                        .clickable { viewModel.removePhotoPath(path) },
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Filled.Close,
