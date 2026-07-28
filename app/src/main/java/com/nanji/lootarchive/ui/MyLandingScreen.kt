@@ -77,7 +77,7 @@ fun MyLandingScreen(
                 Surface(
                     modifier = Modifier.size(68.dp),
                     shape = RoundedCornerShape(24.dp),
-                    color = Primary().copy(alpha = 0.12f),
+                    color = if (LocalDarkTheme.current) Primary().copy(alpha = 0.15f) else Color(0xFFFFEDE0),
                     shadowElevation = 2.dp
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -88,7 +88,7 @@ fun MyLandingScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Icon(Icons.Rounded.Person, null, Modifier.size(40.dp), tint = Primary())
+                            Icon(Icons.Rounded.Person, null, Modifier.size(44.dp), tint = Primary())
                         }
                     }
                 }
