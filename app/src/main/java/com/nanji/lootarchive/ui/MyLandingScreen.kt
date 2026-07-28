@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -124,10 +125,10 @@ fun MyLandingScreen(
                 colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Column(Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("🏆", fontSize = 28.sp)
-                    Text("最贵物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp))
-                    Text(if (homeState.items.isNotEmpty()) "¥${NumberFormat.getNumberInstance().format(homeState.items.maxByOrNull { it.purchasePrice }?.purchasePrice ?: 0)}" else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Text("最贵物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
+                    Text(if (homeState.items.isNotEmpty()) "¥${NumberFormat.getNumberInstance().format(homeState.items.maxByOrNull { it.purchasePrice }?.purchasePrice ?: 0)}" else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
                 }
             }
             Card(
@@ -136,10 +137,10 @@ fun MyLandingScreen(
                 colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Column(Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("📅", fontSize = 28.sp)
-                    Text("最老物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp))
-                    Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest?.purchaseDate!!)) + "年购入" } else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Text("最老物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
+                    Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest?.purchaseDate!!)) + "年购入" } else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
                 }
             }
         }
