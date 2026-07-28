@@ -11,10 +11,11 @@ import androidx.compose.ui.graphics.toArgb
 
 // ── 传递 APP 主题模式和主色 ──
 val LocalDarkTheme = staticCompositionLocalOf { false }
-val LocalPrimaryColor = staticCompositionLocalOf { Color(0xFFFF7A3D) }
+val LocalPrimaryColor = staticCompositionLocalOf { Color(0xFFE8782A) }
 
 // ══════════════════════════════════════════════════════════════
-//  Light ColorScheme — 现代拟物风 · 冷灰底 + 光影层次
+//  v5.0 Light ColorScheme — Warm Glassmorphism
+//  暖象牙白底 + 毛玻璃卡片 + 琥珀点缀
 // ══════════════════════════════════════════════════════════════
 internal val LightColorScheme: ColorScheme
     @Composable
@@ -25,30 +26,36 @@ internal val LightColorScheme: ColorScheme
             onPrimary = Color.White,
             primaryContainer = p.copy(alpha = 0.12f),
             onPrimaryContainer = Color(0xFF3D1A00),
-            secondary = _Accent,
+            secondary = _Secondary,
             onSecondary = Color.White,
-            secondaryContainer = _Accent.copy(alpha = 0.12f),
-            onSecondaryContainer = Color(0xFF001540),
+            secondaryContainer = _Secondary.copy(alpha = 0.12f),
+            onSecondaryContainer = Color(0xFF1A0040),
+            tertiary = _Secondary,
+            onTertiary = Color.White,
+            tertiaryContainer = _Secondary.copy(alpha = 0.10f),
+            onTertiaryContainer = Color(0xFF1A0040),
             background = _BackgroundLight,
             onBackground = _TextPrimaryLight,
             surface = _SurfaceLight,
             onSurface = _TextPrimaryLight,
             surfaceVariant = _CardLight,
             onSurfaceVariant = _TextSecondaryLight,
-            outline = _TextAuxiliaryLight.copy(alpha = 0.25f),
-            outlineVariant = _TextAuxiliaryLight.copy(alpha = 0.12f),
+            outline = _TextAuxiliaryLight.copy(alpha = 0.20f),
+            outlineVariant = _TextAuxiliaryLight.copy(alpha = 0.10f),
             error = WarrantyExpired,
             onError = Color.White,
             errorContainer = WarrantyExpired.copy(alpha = 0.12f),
             onErrorContainer = Color(0xFF410002),
-            inverseSurface = Color(0xFF2D3748),
-            inverseOnSurface = Color(0xFFEDF2F7),
+            inverseSurface = Color(0xFF1C1917),
+            inverseOnSurface = Color(0xFFF0ECE6),
             inversePrimary = _PrimaryDark,
+            scrim = Color.Black.copy(alpha = 0.45f),
         )
     }
 
 // ══════════════════════════════════════════════════════════════
-//  Dark ColorScheme — 深灰蓝黑底 + 提亮主色
+//  v5.0 Dark ColorScheme — Warm Glassmorphism Dark
+//  深暖黑底 + 毛玻璃面板 + 提亮主色
 // ══════════════════════════════════════════════════════════════
 internal val DarkColorScheme: ColorScheme
     @Composable
@@ -60,25 +67,30 @@ internal val DarkColorScheme: ColorScheme
             onPrimary = Color(0xFF2D1500),
             primaryContainer = bright.copy(alpha = 0.15f),
             onPrimaryContainer = Color(0xFFFFDCC0),
-            secondary = _Accent,
-            onSecondary = Color(0xFF001540),
-            secondaryContainer = _Accent.copy(alpha = 0.15f),
-            onSecondaryContainer = Color(0xFFB0D0FF),
+            secondary = _Secondary,
+            onSecondary = Color(0xFF1A0040),
+            secondaryContainer = _Secondary.copy(alpha = 0.18f),
+            onSecondaryContainer = Color(0xFFD0C0FF),
+            tertiary = _Secondary,
+            onTertiary = Color(0xFF1A0040),
+            tertiaryContainer = _Secondary.copy(alpha = 0.15f),
+            onTertiaryContainer = Color(0xFFD0C0FF),
             background = _BackgroundDark,
             onBackground = _TextPrimaryDark,
             surface = _SurfaceDark,
             onSurface = _TextPrimaryDark,
             surfaceVariant = _CardDark,
             onSurfaceVariant = _TextSecondaryDark,
-            outline = _TextAuxiliaryDark.copy(alpha = 0.25f),
-            outlineVariant = _TextAuxiliaryDark.copy(alpha = 0.12f),
+            outline = _TextAuxiliaryDark.copy(alpha = 0.20f),
+            outlineVariant = _TextAuxiliaryDark.copy(alpha = 0.10f),
             error = Color(0xFFFF8080),
             onError = Color(0xFF690005),
             errorContainer = Color(0xFF93000A),
             onErrorContainer = Color(0xFFFFDAD6),
-            inverseSurface = Color(0xFFEDF2F7),
-            inverseOnSurface = Color(0xFF2D3748),
+            inverseSurface = Color(0xFFF0ECE6),
+            inverseOnSurface = Color(0xFF1C1917),
             inversePrimary = _Primary,
+            scrim = Color.Black.copy(alpha = 0.55f),
         )
     }
 
@@ -93,7 +105,7 @@ private fun brighten(c: Color): Color {
 @Composable
 fun LootArchiveTheme(
     themeMode: String = "system",
-    primaryColor: Int = 0xFFFF7A3D.toInt(),
+    primaryColor: Int = 0xFFE8782A.toInt(),
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {

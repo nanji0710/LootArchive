@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +36,7 @@ import coil.compose.AsyncImage
 import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.StatCard
+import com.nanji.lootarchive.ui.component.HeroStatCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.FormatUtil
@@ -62,6 +65,11 @@ fun HomeScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    // v5.0: category chips data (lifted to @Composable scope)
+    val catViewModel: com.nanji.lootarchive.ui.component.CategoryDrawerViewModel = hiltViewModel()
+    val catState by catViewModel.uiState.collectAsState()
+    val categoryCount = catState.categories.size
+
     val filteredItems = remember(uiState.items, categoryFilter) {
         if (categoryFilter != null) uiState.items.filter { it.categoryId == categoryFilter.first }
         else uiState.items
@@ -69,9 +77,9 @@ fun HomeScreen(
     val filteredCount = filteredItems.size
     val filteredValue = filteredItems.sumOf { it.purchasePrice }
 
-    val animCount by animateIntAsState(filteredCount, animationSpec = tween(500, easing = androidx.compose.animation.core.EaseOutCubic))
-    val animValue by animateFloatAsState(filteredValue.toFloat(), animationSpec = tween(500, easing = androidx.compose.animation.core.EaseOutCubic))
-    val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(500, easing = androidx.compose.animation.core.EaseOutCubic))
+    val animCount by animateIntAsState(filteredCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
+    val animValue by animateFloatAsState(filteredValue.toFloat(), animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
+    val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -84,27 +92,97 @@ fun HomeScreen(
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 68.dp, bottom = 160.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp, bottom = 170.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── 资产总览（独占一行） ──
+            // ── v5.0 Hero 资产总览 (独占一行，温暖渐变背景) ──
             item(span = { GridItemSpan(2) }) {
-                StatCard(
-                    "全部资产", FormatUtil.formatPriceShort(animValue.toDouble()),
-                    Modifier.fillMaxWidth(), onClick = onNavigateToStats
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (LocalDarkTheme.current)
+                            _CardDark
+                        else
+                            Color(0xFFFFF8F0)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Column(Modifier.padding(20.dp)) {
+                        Text(
+                            "全部资产",
+                            fontSize = 13.sp,
+                            color = TextAuxiliary()
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            FormatUtil.formatPriceShort(animValue.toDouble()),
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Primary(),
+                            fontFamily = FredokaFont
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            HeroStatCard(
+                                title = "物品总数",
+                                value = "$animCount",
+                                modifier = Modifier.weight(1f),
+                                valueColor = TextPrimary()
+                            )
+                            HeroStatCard(
+                                title = "保修待提醒",
+                                value = "$animWarranty",
+                                modifier = Modifier.weight(1f),
+                                valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary(),
+                                accentBg = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring.copy(alpha = 0.10f) else null,
+                                onClick = { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true }
+                            )
+                            HeroStatCard(
+                                title = "分类数",
+                                value = "$categoryCount",
+                                modifier = Modifier.weight(1f),
+                                valueColor = Secondary(),
+                                accentBg = Secondary().copy(alpha = 0.08f)
+                            )
+                        }
+                    }
+                }
             }
-            // ── 物品总数 + 保修提醒（并排） ──
+
+            // ── v5.0 水平分类胶囊 ──
             item(span = { GridItemSpan(2) }) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    StatCard("物品总数", "$animCount", Modifier.weight(1f))
-                    StatCard(
-                        "保修待提醒", "$animWarranty",
-                        Modifier.weight(1f),
-                        valueColor = if (uiState.warrantyExpiringCount > 0) WarrantyExpiring else Primary(),
-                        onClick = { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true }
-                    )
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            selected = categoryFilter == null,
+                            onClick = { /* 全部 — handled by parent */ },
+                            label = { Text("全部", fontSize = 13.sp) },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Primary(),
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                    items(catState.categories.size) { idx ->
+                        val cat = catState.categories[idx]
+                        val selected = categoryFilter?.first == cat.id
+                        FilterChip(
+                            selected = selected,
+                            onClick = { /* handled by parent dropdown */ },
+                            label = { Text(cat.name, fontSize = 13.sp) },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Primary(),
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
                 }
             }
 
@@ -114,7 +192,7 @@ fun HomeScreen(
                     item {
                         Card(
                             Modifier.fillMaxWidth().height(200.dp),
-                            shape = RoundedCornerShape(22.dp),
+                            shape = RoundedCornerShape(20.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
                         ) {
                             Box(Modifier.fillMaxWidth().height(130.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)))
@@ -132,9 +210,11 @@ fun HomeScreen(
             if (filteredItems.isEmpty() && !uiState.isLoading) {
                 item(span = { GridItemSpan(2) }) {
                     EmptyState(
-                        icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(100.dp), tint = TextAuxiliary().copy(alpha = 0.5f)) },
+                        icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(100.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) },
                         title = "还没有物品",
-                        subtitle = "点击下方 + 按钮记录你的第一件宝贝吧"
+                        subtitle = "点击下方按钮记录你的第一件宝贝吧",
+                        actionLabel = "添加第一件",
+                        onAction = onNavigateToAddItem
                     )
                 }
             } else {
@@ -158,23 +238,37 @@ fun HomeScreen(
         }
         AlertDialog(
             onDismissRequest = { showWarrantyDialog = false },
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("保修待提醒 (${expiringItems.size})", fontWeight = FontWeight.SemiBold) },
+            title = { Text("保修待提醒 (${expiringItems.size})", fontWeight = FontWeight.SemiBold, color = TextPrimary()) },
             text = {
                 if (expiringItems.isEmpty()) {
-                    Text("暂无即将到期的保修物品")
+                    Text("暂无即将到期的保修物品", color = TextSecondary())
                 } else {
-                    LazyColumn { items(expiringItems.size) { i -> Text("${expiringItems[i].name}", modifier = Modifier.padding(vertical = 4.dp)) } }
+                    LazyColumn {
+                        items(expiringItems.size) { i ->
+                            Row(
+                                Modifier.padding(vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    Modifier.size(8.dp), RoundedCornerShape(4.dp),
+                                    color = WarrantyExpiring
+                                ) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(expiringItems[i].name, fontSize = 14.sp, color = TextPrimary())
+                            }
+                        }
+                    }
                 }
             },
-            confirmButton = { TextButton(onClick = { showWarrantyDialog = false }) { Text("关闭") } }
+            confirmButton = { TextButton(onClick = { showWarrantyDialog = false }) { Text("关闭", color = Primary()) } }
         )
     }
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Claymorphism 物品卡片 — 22dp 大圆角 + 柔和阴影 + 价格 Pill
+//  v5.0 物品卡片 — 20dp 圆角 + 微阴影 + 价格 Pill
 // ═══════════════════════════════════════════════════════════════
 
 @Composable
@@ -186,26 +280,26 @@ private fun ItemCard(
 ) {
     val dark = LocalDarkTheme.current
     val cardBg = if (dark) _CardDark else _CardLight
-    val shadowColor = if (dark) Color.Black.copy(alpha = 0.25f) else Color(0xFFE0C8A0).copy(alpha = 0.18f)
+    val shadowColor = if (dark) Color.Black.copy(alpha = 0.20f) else Color.Black.copy(alpha = 0.05f)
     val catColor = ChartColors[(item.categoryId % ChartColors.size).toInt()]
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(22.dp), ambientColor = shadowColor, spotColor = shadowColor.copy(alpha = 0.05f))
-            .clip(RoundedCornerShape(22.dp))
+            .shadow(2.dp, RoundedCornerShape(20.dp), ambientColor = shadowColor, spotColor = shadowColor.copy(alpha = 0.5f))
+            .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column {
-            // ── 照片区 135dp ──
+            // ── 照片区 140dp ──
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(135.dp)
-                    .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+                    .height(140.dp)
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             ) {
                 if (photoPath != null) {
                     AsyncImage(
@@ -216,10 +310,10 @@ private fun ItemCard(
                     )
                 } else {
                     Box(
-                        Modifier.fillMaxSize().background(catColor.copy(alpha = 0.15f)),
+                        Modifier.fillMaxSize().background(catColor.copy(alpha = 0.12f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Outlined.Image, null, Modifier.size(44.dp), tint = catColor.copy(alpha = 0.4f))
+                        Icon(Icons.Outlined.Image, null, Modifier.size(44.dp), tint = catColor.copy(alpha = 0.35f))
                     }
                 }
 
@@ -240,7 +334,25 @@ private fun ItemCard(
                         Text(
                             when { days < 0 -> "过期"; days == 0L -> "今天"; else -> "${days}天" },
                             fontSize = 11.sp, color = Color.White,
+                            fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+
+                // v5.0: 近期添加角标
+                val isRecent = System.currentTimeMillis() - item.createdAt < 7 * 24 * 60 * 60 * 1000
+                if (isRecent && item.warrantyExpiryDate == null) {
+                    Surface(
+                        Modifier.padding(10.dp).align(Alignment.TopStart),
+                        RoundedCornerShape(6.dp),
+                        color = Primary().copy(alpha = 0.85f)
+                    ) {
+                        Text(
+                            "NEW",
+                            fontSize = 9.sp, fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
                 }
@@ -249,25 +361,23 @@ private fun ItemCard(
             // ── 文字区 ──
             Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
                 Text(
-                    item.name, fontSize = 16.sp, color = TextPrimary(),
+                    item.name, fontSize = 15.sp, color = TextPrimary(),
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(6.dp))
-                // 价格 Pill 标签（白色底 + 蜜橘文字）
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = Primary().copy(alpha = 0.10f)
-                    ) {
-                        Text(
-                            "¥${numberFormat.format(item.purchasePrice)}",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Primary(),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
-                        )
-                    }
+                // v5.0 价格 Pill 标签（琥珀底 + 白色文字）
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Primary().copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        "¥${numberFormat.format(item.purchasePrice)}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Primary(),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                    )
                 }
             }
         }

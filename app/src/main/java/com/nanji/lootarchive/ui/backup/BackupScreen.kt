@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,20 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
 import com.nanji.lootarchive.ui.component.ClayCard
-import com.nanji.lootarchive.ui.theme.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.component.EmptyState
-import com.nanji.lootarchive.ui.component.GlassAlertDialog
+import com.nanji.lootarchive.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Suppress("DEPRECATION")
 fun BackupScreen(
     onNavigateBack: () -> Unit,
     viewModel: BackupViewModel = hiltViewModel()
@@ -45,196 +43,154 @@ fun BackupScreen(
     fun launchImport() { importPicker.launch(arrayOf("application/zip", "application/x-zip-compressed")) }
 
     LaunchedEffect(uiState.message) {
-        // 消息显示3秒后自动清除
         if (uiState.message != null) {
             kotlinx.coroutines.delay(3000)
             viewModel.clearMessage()
         }
     }
 
-    Scaffold(
-        containerColor = Color.Transparent
-    ) { padding ->
+    Scaffold(containerColor = Color.Transparent) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 返回按钮
-            item { Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }; Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary()) } }
-            // 备份操作区
             item {
-                Text("数据备份", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
+                    Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                }
             }
-
+            item { Text("数据备份", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
             item {
-                ClayCard {
-                    Column(
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Surface(
+                        onClick = { viewModel.fullExport() },
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color.Transparent
                     ) {
-                        BackupActionButton(
-                            icon = Icons.Filled.FileDownload,
-                            title = "一键导出",
-                            subtitle = "完整备份：物品数据 + 照片 + 分类，打包为一个 ZIP 文件",
-                            onClick = { viewModel.fullExport() }
-                        )
+                        Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                Modifier.size(46.dp), RoundedCornerShape(14.dp),
+                                color = Primary().copy(alpha = 0.10f)
+                            ) {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Filled.FileDownload, null, tint = Primary(), modifier = Modifier.size(22.dp))
+                                }
+                            }
+                            Spacer(Modifier.width(14.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("一键导出", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                                Text("物品数据 + 照片 + 分类打包为 ZIP", fontSize = 12.sp, color = TextAuxiliary())
+                            }
+                            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
             }
 
-            // 恢复操作区
+            item { Text("数据恢复", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
             item {
-                Text("数据恢复", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary())
-            }
-
-            item {
-                ClayCard {
-                    Column(
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Surface(
+                        onClick = { launchImport() },
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color.Transparent
                     ) {
-                        BackupActionButton(
-                            icon = Icons.Filled.UploadFile,
-                            title = "一键导入",
-                            subtitle = "选择备份 ZIP 文件，恢复全部物品数据、照片和分类",
-                            onClick = { launchImport() }
-                        )
+                        Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                Modifier.size(46.dp), RoundedCornerShape(14.dp),
+                                color = Color(0xFF10B981).copy(alpha = 0.10f)
+                            ) {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Filled.UploadFile, null, tint = Color(0xFF10B981), modifier = Modifier.size(22.dp))
+                                }
+                            }
+                            Spacer(Modifier.width(14.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("一键导入", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                                Text("选择备份 ZIP 恢复全部数据", fontSize = 12.sp, color = TextAuxiliary())
+                            }
+                            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
             }
 
-            // 备份记录
-            item {
-                Text("备份记录", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary())
-            }
+            item { Text("备份记录", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
 
             if (uiState.backupRecords.isEmpty()) {
                 item {
                     EmptyState(
-                        icon = {
-                            Icon(Icons.Filled.History, null, modifier = Modifier.size(48.dp),
-                                tint = TextAuxiliary())
-                        },
+                        icon = { Icon(Icons.Filled.History, null, modifier = Modifier.size(48.dp), tint = TextAuxiliary()) },
                         title = "暂无备份记录",
                         subtitle = "备份数据后将在此显示记录"
                     )
                 }
             } else {
                 items(uiState.backupRecords, key = { it.id }) { record ->
-                    BackupRecordItem(
-                        record = record,
-                        dateFormat = dateFormat,
-                        onDelete = { viewModel.deleteRecord(record) }
-                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.Archive, null, tint = Primary(), modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(record.fileName, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                                Text(dateFormat.format(Date(record.createdAt)), fontSize = 12.sp, color = TextAuxiliary())
+                            }
+                            IconButton(onClick = { viewModel.deleteRecord(record) }) {
+                                Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
                 }
             }
-
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { Spacer(Modifier.height(16.dp)) }
         }
 
-        // 错误提示对话框
+        // 错误/成功弹窗（保持原有逻辑）
         if (uiState.message != null && !uiState.isSuccess) {
             AlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
+                shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.surface,
                 icon = { Icon(Icons.Filled.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
                 title = { Text("操作失败", fontWeight = FontWeight.Bold, color = TextPrimary()) },
-                text = {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        uiState.message!!.split("\n").forEach { line ->
-                            Text(line, fontSize = 13.sp, color = TextSecondary())
-                        }
-                    }
-                },
+                text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 13.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定", color = Primary()) } }
             )
         }
-
-        // Loading
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Primary())
             }
         }
-
-        // 成功提示对话框
         if (uiState.message != null && uiState.isSuccess) {
             AlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
+                shape = RoundedCornerShape(28.dp),
                 containerColor = MaterialTheme.colorScheme.surface,
                 icon = { Icon(Icons.Filled.CheckCircle, null, tint = Primary()) },
                 title = { Text("操作成功", fontWeight = FontWeight.Bold, color = TextPrimary()) },
-                text = {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        uiState.message!!.split("\n").forEach { line ->
-                            Text(line, fontSize = 14.sp, color = TextSecondary())
-                        }
-                    }
-                },
+                text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 14.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的", color = Primary()) } }
             )
-        }
-    }
-}
-
-@Composable
-private fun BackupActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-        color = Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = TextPrimary())
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary())
-            }
-            Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
-        }
-    }
-}
-
-@Composable
-private fun BackupRecordItem(
-    record: BackupRecordEntity,
-    dateFormat: SimpleDateFormat,
-    onDelete: () -> Unit
-) {
-    ClayCard(modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                when (record.backupType) {
-                    "database" -> Icons.Filled.Storage
-                    "excel" -> Icons.Filled.Archive
-                    else -> Icons.Filled.Image
-                },
-                null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(record.fileName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = TextPrimary())
-                Text(
-                    dateFormat.format(Date(record.createdAt)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary()
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, "删除", tint = MaterialTheme.colorScheme.error)
-            }
         }
     }
 }

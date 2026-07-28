@@ -5,59 +5,78 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 // ═══════════════════════════════════════════════════════════════
-//  现代拟物风 (Neumorphism Soft UI Evolution) 色板
-//  冷灰底色 + 双层光影 + 橙色点缀
-//  设计来源: UI/UX Pro Max — Neumorphism (Mobile) + Soft UI Evolution
+//  v5.0 Warm Glassmorphism 色板
+//  暖象牙底 + 毛玻璃卡片 + 琥珀点缀
+//  设计来源: UI/UX Pro Max — Warm Glassmorphism + Bento Grid
 // ═══════════════════════════════════════════════════════════════
 
-// ── 主色 ──
-val _Primary = Color(0xFFFF7A3D)            // 暖橙 — 拟物风格的点睛色
-val _PrimaryDark = Color(0xFFFFB380)        // 深色模式提亮
+// ── 主色 (暖琥珀系) ──
+val _Primary = Color(0xFFE8782A)            // 暖琥珀 — 有温度的强调色
+val _PrimaryDark = Color(0xFFF5995C)        // 深色模式提亮
 val _OnPrimary = Color(0xFFFFFFFF)
 
-val _Accent = Color(0xFF5B7FFF)             // 柔和蓝 — 次要强调
-val _OnAccent = Color(0xFFFFFFFF)
+val _Secondary = Color(0xFF7C3AED)          // 优雅紫 — 次强调
+val _OnSecondary = Color(0xFFFFFFFF)
 
-// ── 拟物底色（统一的浅灰基调 — 光影在此之上产生深度） ──
-val _BackgroundLight = Color(0xFFEEF0F4)    // 冷灰底 — 拟物画布
-val _BackgroundDark = Color(0xFF1A1D23)     // 深灰蓝黑底
+// ── Glass 底色体系 ──
+val _BackgroundLight = Color(0xFFFBF9F6)    // 暖象牙白 — 有温度的画布
+val _BackgroundDark = Color(0xFF0C0C10)      // 深暖黑
 
-val _SurfaceLight = Color(0xFFEEF0F4)       // 与背景同色 — 影子区分层级
-val _SurfaceDark = Color(0xFF242830)        // 比背景略亮
+val _SurfaceLight = Color(0xFFFFFFFF)        // 纯白表面
+val _SurfaceDark = Color(0xFF1C1C24)         // 深紫灰
 
-val _CardLight = Color(0xFFF8F9FB)          // 卡片明显亮于背景 — 清晰层次
-val _CardDark = Color(0xFF2E323A)
+val _CardLight = Color(0xFFFEFDFB)           // 卡片微暖白
+val _CardDark = Color(0xFF242430)            // 卡片深灰
 
-// ── 导航栏（略不透以保持可用性） ──
-val _NavGlassLight = Color(0xFFEEF0F4)
-val _NavGlassDark = Color(0xFF242830)
+// ── Glass 专用色 (毛玻璃卡片/面板) ──
+val _GlassLight = Color(0xAAFFFFFF)          // 浅色毛玻璃 (65% opacity)
+val _GlassDark = Color(0xB21C1C24)           // 深色毛玻璃 (70% opacity)
 
-// ── 文字色（干净冷灰，避免暖色偏色） ──
-val _TextPrimaryLight = Color(0xFF2D3748)    // 深板岩
-val _TextSecondaryLight = Color(0xFF5A6678)  // 中灰
-val _TextAuxiliaryLight = Color(0xFF8B95A5)  // 浅灰
+val _GlassBorderLight = Color(0x80FFFFFF)     // 玻璃边框浅色
+val _GlassBorderDark = Color(0x14FFFFFF)      // 玻璃边框深色
 
-val _TextPrimaryDark = Color(0xFFEDF2F7)     // 亮白灰
-val _TextSecondaryDark = Color(0xFFA0AEC0)   // 中亮灰
-val _TextAuxiliaryDark = Color(0xFF6B7A8D)   // 中暗灰
+val _NavGlassLight = Color(0xBFFFFFFF)        // 导航毛玻璃 (75% opacity)
+val _NavGlassDark = Color(0xCC14141C)         // 导航深色 (80% opacity)
+
+// ── 文字色 (暖色调灰阶) ──
+val _TextPrimaryLight = Color(0xFF1C1917)    // 暖黑
+val _TextSecondaryLight = Color(0xFF78716C)  // 暖石灰
+val _TextAuxiliaryLight = Color(0xFFA8A29E)  // 暖浅灰
+
+val _TextPrimaryDark = Color(0xFFF0ECE6)     // 暖白
+val _TextSecondaryDark = Color(0xFFA8A29E)   // 暖石灰
+val _TextAuxiliaryDark = Color(0xFF78716C)   // 暖暗灰
 
 // ── @Composable 主题感知色 ──
 @Composable fun Primary() = MaterialTheme.colorScheme.primary
-@Composable fun Accent() = _Accent
+@Composable fun Secondary() = _Secondary
 @Composable fun TextPrimary() = if (LocalDarkTheme.current) _TextPrimaryDark else _TextPrimaryLight
 @Composable fun TextSecondary() = if (LocalDarkTheme.current) _TextSecondaryDark else _TextSecondaryLight
 @Composable fun TextAuxiliary() = if (LocalDarkTheme.current) _TextAuxiliaryDark else _TextAuxiliaryLight
 fun OnPrimary() = _OnPrimary
 
-// ── 功能色 ──
-val WarrantyActive = Color(0xFF38A169)
-val WarrantyExpiring = Color(0xFFED8936)
-val WarrantyExpired = Color(0xFFE53E3E)
+// ── Glass 背景色 ──
+@Composable fun GlassBg() = if (LocalDarkTheme.current) _GlassDark else _GlassLight
+@Composable fun GlassBorder() = if (LocalDarkTheme.current) _GlassBorderDark else _GlassBorderLight
+@Composable fun NavGlassBg() = if (LocalDarkTheme.current) _NavGlassDark else _NavGlassLight
+@Composable fun CardBg() = if (LocalDarkTheme.current) _CardDark else _CardLight
 
-// ── 图表色板（与橙蓝主色协调） ──
+// ── 功能色 ──
+val WarrantyActive = Color(0xFF10B981)
+val WarrantyExpiring = Color(0xFFF59E0B)
+val WarrantyExpired = Color(0xFFEF4444)
+val SemanticInfo = Color(0xFF3B82F6)
+
+// ── 图表色板 (12色，暖色调优先) ──
 val ChartColors = listOf(
-    Color(0xFFFF7A3D), Color(0xFF5B7FFF), Color(0xFF38A169),
-    Color(0xFFED8936), Color(0xFFE53E3E), Color(0xFF805AD5),
-    Color(0xFF319795), Color(0xFFD69E2E), Color(0xFF3182CE),
-    Color(0xFFDD6B20), Color(0xFF9F7AEA), Color(0xFF2B6CB0)
+    Color(0xFFE8782A), Color(0xFF7C3AED), Color(0xFF10B981),
+    Color(0xFF3B82F6), Color(0xFFF59E0B), Color(0xFFEF4444),
+    Color(0xFFEC4899), Color(0xFF06B6D4), Color(0xFF84CC16),
+    Color(0xFFF97316), Color(0xFF6366F1), Color(0xFF14B8A6)
 )
+
+// ── 渐变色 (用于 Hero / 照片区渐变) ──
+val GradientStartLight = Color(0xFFFFF8F0)
+val GradientEndLight = Color(0xFFFFF0E0)
+val GradientStartDark = Color(0xFF1A1410)
+val GradientEndDark = Color(0xFF181008)

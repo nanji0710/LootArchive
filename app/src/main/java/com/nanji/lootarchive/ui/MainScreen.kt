@@ -45,11 +45,10 @@ import dev.chrisbanes.haze.hazeSource
 
 enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
     HOME("首页", Icons.Filled.Home, Icons.Outlined.Home),
-    STATS("汇总", Icons.Filled.PieChart, Icons.Outlined.PieChart),
+    STATS("统计", Icons.Filled.PieChart, Icons.Outlined.PieChart),
     MY("我的", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
-// 简易页面路由
 private object Route {
     const val HOME="home"; const val STATS="stats"; const val MY="my"
     const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"
@@ -204,24 +203,24 @@ fun MainScreen() {
                     }
                 }
 
-                // ── 首页：仅保留一个居中新增大按钮 + 顶部搜索/分类入口 ──
+                // ── v5.0 首页：Hero 搜索栏 + 分类入口 + 胶囊FAB ──
                 if (isHome) {
-                    // 顶部：搜索栏 + 分类筛选
+                    // 顶部搜索栏（精简圆角玻璃框）
                     Row(
                         Modifier.fillMaxWidth().align(Alignment.TopCenter)
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 搜索栏（轻量圆角框）
                         Surface(
                             onClick = { navigate(Route.SEARCH) },
-                            modifier = Modifier.weight(1f).height(42.dp),
-                            shape = RoundedCornerShape(21.dp),
+                            modifier = Modifier.weight(1f).height(44.dp),
+                            shape = RoundedCornerShape(22.dp),
                             color = if (LocalDarkTheme.current)
-                                Color.White.copy(alpha = 0.14f)
+                                Color.White.copy(alpha = 0.12f)
                             else
-                                Color.Black.copy(alpha = 0.08f)
+                                Color.White.copy(alpha = 0.85f),
+                            shadowElevation = 2.dp
                         ) {
                             Row(
                                 Modifier.fillMaxSize().padding(horizontal = 14.dp),
@@ -244,12 +243,13 @@ fun MainScreen() {
                         Box {
                             Surface(
                                 onClick = { showCategorySheet = true },
-                                modifier = Modifier.size(42.dp),
+                                modifier = Modifier.size(44.dp),
                                 shape = RoundedCornerShape(14.dp),
                                 color = if (LocalDarkTheme.current)
-                                    Primary().copy(alpha = 0.20f)
+                                    Primary().copy(alpha = 0.18f)
                                 else
-                                    Primary().copy(alpha = 0.10f)
+                                    Primary().copy(alpha = 0.10f),
+                                shadowElevation = 1.dp
                             ) {
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     Icon(
@@ -259,12 +259,11 @@ fun MainScreen() {
                                 }
                             }
 
-                            // DropdownMenu 替代底部弹出 — 从按钮下方展开
                             DropdownMenu(
                                 expanded = showCategorySheet,
                                 onDismissRequest = { showCategorySheet = false },
                                 containerColor = MaterialTheme.colorScheme.surface,
-                                shape = RoundedCornerShape(14.dp)
+                                shape = RoundedCornerShape(16.dp)
                             ) {
                                 DropdownMenuItem(
                                     text = { Text("全部物品") },
@@ -303,45 +302,46 @@ fun MainScreen() {
                         }
                     }
 
-                    // 居中：唯一的新增 FAB
-                    FloatingActionButton(
+                    // v5.0 胶囊形 FAB（居中，简洁）
+                    Surface(
                         onClick = { navigate(Route.ADD) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 100.dp)
-                            .size(56.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        containerColor = Primary().copy(alpha = 0.88f),
-                        contentColor = Color.White,
-                        elevation = FloatingActionButtonDefaults.elevation(
-                            defaultElevation = 6.dp,
-                            pressedElevation = 10.dp
-                        )
+                            .padding(bottom = 100.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        color = Primary(),
+                        shadowElevation = 8.dp
                     ) {
-                        Icon(Icons.Filled.Add, "新增物品", Modifier.size(26.dp))
+                        Row(
+                            Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Filled.Add, "新增物品", Modifier.size(22.dp), tint = Color.White)
+                            Spacer(Modifier.width(6.dp))
+                            Text("新增物品", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
-
             }
 
-            // ── 底部轻量导航（仅主Tab显示） ──
+            // ── v5.0 浮动胶囊式底部导航 ──
             if (!isSubPage) {
                 GlassPanel(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 20.dp, start = 28.dp, end = 28.dp),
+                        .padding(bottom = 16.dp, start = 20.dp, end = 20.dp),
                     hazeState = hazeState,
-                    shape = RoundedCornerShape(22.dp),
+                    shape = RoundedCornerShape(24.dp),
                     containerColor = if (LocalDarkTheme.current)
-                        Color.Black.copy(alpha = 0.20f)
+                        Color.Black.copy(alpha = 0.25f)
                     else
-                        Color.White.copy(alpha = 0.30f),
+                        Color.White.copy(alpha = 0.35f),
                     borderColor = if (LocalDarkTheme.current)
-                        Color.White.copy(alpha = 0.12f)
+                        Color.White.copy(alpha = 0.10f)
                     else
-                        Color.White.copy(alpha = 0.60f),
-                    shadowElevation = 12.dp,
-                    blurRadius = 20.dp
+                        Color.White.copy(alpha = 0.50f),
+                    shadowElevation = 8.dp,
+                    blurRadius = 24.dp
                 ) {
                     Row(
                         Modifier.fillMaxWidth(),
@@ -356,20 +356,35 @@ fun MainScreen() {
                                     .width(72.dp)
                                     .clip(RoundedCornerShape(16.dp))
                                     .clickable { switchTab(index) }
-                                    .padding(vertical = 2.dp)
+                                    .padding(vertical = 4.dp)
                             ) {
-                                Icon(
-                                    if (selected) tab.selectedIcon else tab.unselectedIcon,
-                                    tab.label,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = if (selected) Primary() else TextAuxiliary()
-                                )
+                                // v5.0: 选中态加圆形背景
+                                Box(
+                                    modifier = Modifier
+                                        .size(if (selected) 36.dp else 28.dp)
+                                        .then(
+                                            if (selected)
+                                                Modifier.background(
+                                                    Primary().copy(alpha = 0.12f),
+                                                    RoundedCornerShape(12.dp)
+                                                )
+                                            else Modifier
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        if (selected) tab.selectedIcon else tab.unselectedIcon,
+                                        tab.label,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = if (selected) Primary() else TextAuxiliary()
+                                    )
+                                }
                                 Spacer(Modifier.height(2.dp))
                                 Text(
                                     tab.label,
                                     fontSize = 10.sp,
                                     color = if (selected) Primary() else TextAuxiliary(),
-                                    fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )
                             }
                         }

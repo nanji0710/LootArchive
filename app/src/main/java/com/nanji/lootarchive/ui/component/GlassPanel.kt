@@ -1,6 +1,7 @@
 package com.nanji.lootarchive.ui.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -16,36 +17,39 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme._NavGlassDark
+import com.nanji.lootarchive.ui.theme._NavGlassLight
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 
 /**
- * 拟物底部导航面板
+ * v5.0 玻璃导航面板 — 浮动胶囊式
  *
- * Light: 浅灰底 + 双层阴影（上亮下暗）→ 从页面中浮起
- * Dark:  深灰底 + 微弱亮边 → 在深色背景上凸显
- *
- * 保留 Haze 模糊能力以提供层级感，但降低强度适配拟物风格
+ * Light: 高透明白 + backdrop 模糊 + 微边框 = 漂浮玻璃
+ * Dark:  深色半透明 + backdrop 模糊 + 微亮边 = 深色玻璃
  */
 @Composable
 fun GlassPanel(
     modifier: Modifier = Modifier,
     hazeState: HazeState,
-    shape: Shape = RoundedCornerShape(20.dp),
+    shape: Shape = RoundedCornerShape(24.dp),
     contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-    containerColor: Color = Color(0xFFEEF0F4),
-    borderColor: Color = Color.White.copy(alpha = 0.65f),
-    shadowElevation: Dp = 10.dp,
-    blurRadius: Dp = 16.dp,
+    containerColor: Color = if (LocalDarkTheme.current) _NavGlassDark else _NavGlassLight,
+    borderColor: Color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.50f),
+    shadowElevation: Dp = 8.dp,
+    blurRadius: Dp = 24.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val dark = LocalDarkTheme.current
+
     val glassStyle = HazeStyle(
         backgroundColor = Color.Transparent,
         tints = listOf(
             HazeTint(containerColor),
-            HazeTint(Color.White.copy(alpha = 0.04f))
+            HazeTint(if (dark) Color.White.copy(alpha = 0.03f) else Color.White.copy(alpha = 0.08f))
         ),
         blurRadius = blurRadius,
         noiseFactor = 0f,
@@ -55,16 +59,10 @@ fun GlassPanel(
     Box(
         modifier = modifier
             .shadow(
-                elevation = 6.dp,
+                elevation = shadowElevation,
                 shape = shape,
-                ambientColor = Color.White.copy(alpha = 0.70f),
-                spotColor = Color.Black.copy(alpha = 0.06f)
-            )
-            .shadow(
-                elevation = 1.dp,
-                shape = shape,
-                ambientColor = Color.White.copy(alpha = 0.40f),
-                spotColor = Color.Black.copy(alpha = 0.04f)
+                ambientColor = if (dark) Color.Black.copy(alpha = 0.10f) else Color.Black.copy(alpha = 0.04f),
+                spotColor = if (dark) Color.Black.copy(alpha = 0.20f) else Color.Black.copy(alpha = 0.04f)
             )
             .clip(shape)
             .hazeEffect(state = hazeState, style = glassStyle)

@@ -2,6 +2,7 @@ package com.nanji.lootarchive.ui.component
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -10,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -19,17 +21,14 @@ import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.theme.*
 
 // ═══════════════════════════════════════════════════════════════
-//  现代拟物风 (Neumorphism) 通用组件
-//  冷灰底 + 双层光影 → 浮凸深度感
+//  v5.0 Warm Glassmorphism 通用组件
+//  暖象牙底 + 毛玻璃卡片 + 琥珀点缀
 // ═══════════════════════════════════════════════════════════════
 
-private val CardShape = RoundedCornerShape(18.dp)
+private val CardShape = RoundedCornerShape(20.dp)
 
 /**
- * 拟物卡片 — 与背景同色系，靠阴影浮起
- *
- * Light: 亮面在上/左，暗影在下/右 → 凸起感
- * Dark:  微弱亮边 + 暗影 → 从深色背景中浮出
+ * v5.0 玻璃卡片 — 微阴影 + 玻璃边框 + 半透明背景
  */
 @Composable
 fun NeoCard(
@@ -40,32 +39,20 @@ fun NeoCard(
 ) {
     val dark = LocalDarkTheme.current
     val cardBg = if (dark) _CardDark else _CardLight
-
-    // 拟物双层阴影：亮面（左上）+ 暗面（右下）= 凸起深度
-    val shadowColor = if (dark)
-        Color.Black.copy(alpha = 0.45f)
+    val borderClr = if (dark)
+        Color.White.copy(alpha = 0.08f)
     else
-        Color.Black.copy(alpha = 0.10f)
-
-    val highlightColor = if (dark)
-        Color.White.copy(alpha = 0.05f)
-    else
-        Color.White.copy(alpha = 0.85f)
+        Color.White.copy(alpha = 0.55f)
 
     Card(
         modifier = modifier
             .shadow(
-                elevation = 6.dp,
+                elevation = 3.dp,
                 shape = CardShape,
-                ambientColor = highlightColor,
-                spotColor = shadowColor
+                ambientColor = if (dark) Color.Black.copy(alpha = 0.10f) else Color.Black.copy(alpha = 0.04f),
+                spotColor = if (dark) Color.Black.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.03f)
             )
-            .shadow(
-                elevation = 1.5.dp,
-                shape = CardShape,
-                ambientColor = highlightColor.copy(alpha = 0.5f),
-                spotColor = shadowColor.copy(alpha = 0.5f)
-            )
+            .border(width = 0.5.dp, color = borderClr, shape = CardShape)
             .clip(CardShape),
         shape = CardShape,
         colors = CardDefaults.cardColors(containerColor = cardBg),
@@ -80,7 +67,7 @@ fun NeoCard(
 }
 
 /**
- * 拟物统计卡片 — 大数字 + 标签
+ * v5.0 统计卡片 — 大数字 + 标签
  */
 @Composable
 fun NeoStatCard(
@@ -97,7 +84,7 @@ fun NeoStatCard(
     ) {
         Text(
             value,
-            fontSize = 26.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = valueColor,
             maxLines = 1,
@@ -116,7 +103,50 @@ fun NeoStatCard(
 }
 
 /**
- * 空状态 — 浮动图标 + 引导文字
+ * v5.0 Hero 统计卡片 — 用于首页顶部资产总览
+ */
+@Composable
+fun HeroStatCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = Primary(),
+    accentBg: Color? = null,
+    onClick: (() -> Unit)? = null
+) {
+    val bg = accentBg ?: Primary().copy(alpha = 0.06f)
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = bg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        onClick = onClick ?: {}
+    ) {
+        Column(
+            Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                value,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = valueColor,
+                fontFamily = FredokaFont,
+                maxLines = 1
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                title,
+                fontSize = 11.sp,
+                color = TextAuxiliary(),
+                maxLines = 1
+            )
+        }
+    }
+}
+
+/**
+ * v5.0 空状态 — 浮动图标 + 引导文字
  */
 @Composable
 fun NeoEmptyState(
@@ -130,9 +160,9 @@ fun NeoEmptyState(
     val infinite = rememberInfiniteTransition(label = "float")
     val floatOffset by infinite.animateFloat(
         initialValue = 0f,
-        targetValue = 5f,
+        targetValue = 6f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1800, easing = EaseInOutCubic),
+            animation = tween(2000, easing = EaseInOutCubic),
             repeatMode = RepeatMode.Reverse
         ),
         label = "floatOffset"
@@ -144,26 +174,26 @@ fun NeoEmptyState(
     ) {
         Box(modifier = Modifier.offset(y = floatOffset.dp)) { icon() }
         Spacer(modifier = Modifier.height(24.dp))
-        Text(title, fontSize = 18.sp, color = TextSecondary(), textAlign = TextAlign.Center)
+        Text(title, fontSize = 18.sp, color = TextSecondary(), textAlign = TextAlign.Center, fontWeight = FontWeight.Medium)
         if (subtitle.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(subtitle, fontSize = 14.sp, color = TextAuxiliary(), textAlign = TextAlign.Center)
         }
         if (actionLabel != null && onAction != null) {
             Spacer(modifier = Modifier.height(20.dp))
-            OutlinedButton(
+            Button(
                 onClick = onAction,
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary())
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary(), contentColor = Color.White)
             ) {
-                Text(actionLabel, fontSize = 14.sp)
+                Text(actionLabel, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
 }
 
 /**
- * 拟物对话框
+ * v5.0 玻璃对话框
  */
 @Composable
 fun NeoAlertDialog(
@@ -177,24 +207,27 @@ fun NeoAlertDialog(
     val dark = LocalDarkTheme.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(28.dp),
         containerColor = if (dark) _CardDark else _CardLight,
-        title = { Text(title, fontWeight = FontWeight.SemiBold) },
-        text = { Text(message) },
+        tonalElevation = 0.dp,
+        title = { Text(title, fontWeight = FontWeight.SemiBold, color = TextPrimary()) },
+        text = { Text(message, color = TextSecondary(), fontSize = 14.sp) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(confirmText, color = Primary())
+                Text(confirmText, color = Primary(), fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(dismissText)
+                Text(dismissText, color = TextSecondary())
             }
         }
     )
 }
 
-// ── 向后兼容别名 ──
+// ═══════════════════════════════════════════════════════════════
+//  向后兼容别名 (保持现有代码无需修改)
+// ═══════════════════════════════════════════════════════════════
 
 @Composable
 fun ClayCard(

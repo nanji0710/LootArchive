@@ -32,7 +32,6 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Suppress("DEPRECATION")
 fun DetailScreen(
     itemId: Long,
     onNavigateBack: () -> Unit,
@@ -58,31 +57,11 @@ fun DetailScreen(
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
             ) {
-                // ── 操作栏 ──
-                Row(
-                    Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(22.dp))
-                    }
-                    Text(
-                        "物品详情", fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary(), modifier = Modifier.weight(1f),
-                        fontFamily = FredokaFont
-                    )
-                    IconButton(onClick = { onNavigateToEdit(data.item.id) }, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.Filled.Edit, "编辑", tint = Primary(), modifier = Modifier.size(22.dp))
-                    }
-                    IconButton(onClick = { viewModel.showDeleteConfirm() }, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(22.dp))
-                    }
-                }
-
-                // ── 主图区域 260dp ──
-                BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(260.dp)) {
+                // ── v5.0: Full-bleed 沉浸式照片区 300dp ──
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(300.dp)) {
                     val screenWidth = maxWidth
                     if (data.photos.isNotEmpty()) {
+                        // 全宽横滑照片
                         Row(
                             modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
                         ) {
@@ -95,119 +74,208 @@ fun DetailScreen(
                                 )
                             }
                         }
-                        // 渐变遮罩（过渡到内容卡）
+                        // 底部渐变遮罩
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth().height(72.dp)
+                                .fillMaxWidth().height(80.dp)
                                 .align(Alignment.BottomCenter)
                                 .background(
                                     brush = Brush.verticalGradient(
-                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.35f))
+                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.40f))
                                     )
                                 )
                         )
+                        // 照片计数 pill
                         if (data.photos.size > 1) {
                             Surface(
-                                Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
-                                RoundedCornerShape(10.dp),
+                                Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp),
+                                RoundedCornerShape(12.dp),
                                 color = Color.Black.copy(alpha = 0.35f)
                             ) {
                                 Text(
-                                    "1/${data.photos.size}",
-                                    color = Color.White, fontSize = 12.sp,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    "1 / ${data.photos.size}",
+                                    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
                                 )
                             }
                         }
                     } else {
-                        // 占位渐变
+                        // 占位渐变（暖色调）
                         Box(
                             modifier = Modifier.fillMaxSize().background(
                                 brush = Brush.linearGradient(
-                                    colors = listOf(Color(0xFFFFC090), Color(0xFFFF9D60))
+                                    colors = if (LocalDarkTheme.current)
+                                        listOf(Color(0xFF3D2A1A), Color(0xFF2D2010))
+                                    else
+                                        listOf(Color(0xFFFFD4B8), Color(0xFFFFB890))
                                 )
                             ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = data.item.name.take(1),
-                                fontSize = 80.sp,
+                                fontSize = 90.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.35f),
+                                color = Color.White.copy(alpha = 0.30f),
                                 fontFamily = FredokaFont
                             )
                         }
                     }
+
+                    // ── v5.0: 顶部操作栏（玻璃效果） ──
+                    Row(
+                        Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            onClick = onNavigateBack,
+                            modifier = Modifier.size(40.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.Black.copy(alpha = 0.25f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Filled.ArrowBack, "返回", tint = Color.White, modifier = Modifier.size(20.dp))
+                            }
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Surface(
+                            onClick = { onNavigateToEdit(data.item.id) },
+                            modifier = Modifier.size(40.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.Black.copy(alpha = 0.25f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Filled.Edit, "编辑", tint = Color.White, modifier = Modifier.size(18.dp))
+                            }
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Surface(
+                            onClick = { viewModel.showDeleteConfirm() },
+                            modifier = Modifier.size(40.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.Black.copy(alpha = 0.25f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Filled.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
                 }
 
-                // ── 内容卡片（向上偏移 24dp 重叠主图） ──
-                ClayCard(
-                    modifier = Modifier.padding(horizontal = 16.dp).offset(y = (-24).dp)
+                // ── v5.0: 内容卡片（Bottom Sheet 风格，向上偏移 20dp） ──
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .offset(y = (-20).dp),
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Text(
-                        data.item.name, fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold, color = TextPrimary(),
-                        fontFamily = FredokaFont
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(Modifier.padding(20.dp)) {
+                        // 拖拽手柄
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Surface(
+                                Modifier.width(36.dp).height(5.dp),
+                                RoundedCornerShape(3.dp),
+                                color = Color.Black.copy(alpha = 0.12f)
+                            ) {}
+                        }
+                        Spacer(Modifier.height(16.dp))
 
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (data.category != null) {
-                            Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.10f)) {
+                        Text(
+                            data.item.name, fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold, color = TextPrimary(),
+                            fontFamily = FredokaFont
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (data.category != null) {
+                                Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) {
+                                    Text(
+                                        data.category!!.name, color = Primary(), fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                                    )
+                                }
+                            }
+                            if (data.item.storageLocation.isNotEmpty()) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Filled.LocationOn, null, Modifier.size(14.dp), tint = TextAuxiliary())
+                                    Spacer(Modifier.width(2.dp))
+                                    Text(data.item.storageLocation, fontSize = 13.sp, color = TextSecondary())
+                                }
+                            }
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = TextAuxiliary().copy(alpha = 0.12f))
+
+                        DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}", valueColor = Primary())
+                        DetailRow("购入日期", data.item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "未设置")
+
+                        // 保修状态
+                        val warrantyText = when {
+                            data.isWarrantyExpired -> "已过期"
+                            data.isWarrantyExpiring -> "即将到期"
+                            data.item.warrantyExpiryDate != null -> "保修中 · ${dateFormat.format(Date(data.item.warrantyExpiryDate!!))}"
+                            else -> "无保修"
+                        }
+                        val warrantyColor = when {
+                            data.isWarrantyExpired -> WarrantyExpired
+                            data.isWarrantyExpiring -> WarrantyExpiring
+                            else -> WarrantyActive
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("保修状态", fontSize = 14.sp, color = TextSecondary(), modifier = Modifier.width(72.dp))
+                            Surface(
+                                color = warrantyColor.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
                                 Text(
-                                    data.category!!.name, color = Primary(), fontSize = 13.sp,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    warrantyText, color = warrantyColor, fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
                                 )
                             }
                         }
-                        if (data.item.storageLocation.isNotEmpty()) {
-                            Text(data.item.storageLocation, fontSize = 13.sp, color = TextSecondary())
+
+                        // v5.0: 保修进度条
+                        if (data.item.warrantyExpiryDate != null && !data.isWarrantyExpired && data.item.purchaseDate != null) {
+                            val totalDays = (data.item.warrantyExpiryDate - data.item.purchaseDate) / (24 * 60 * 60 * 1000)
+                            val elapsedDays = (System.currentTimeMillis() - data.item.purchaseDate) / (24 * 60 * 60 * 1000)
+                            val progress = (elapsedDays.toFloat() / totalDays.toFloat()).coerceIn(0f, 1f)
+                            val remainingDays = (data.item.warrantyExpiryDate - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)
+                            Spacer(Modifier.height(8.dp))
+                            Row(Modifier.fillMaxWidth().padding(start = 72.dp), verticalAlignment = Alignment.CenterVertically) {
+                                LinearProgressIndicator(
+                                    progress = { progress },
+                                    modifier = Modifier.weight(1f).height(6.dp),
+                                    color = when {
+                                        remainingDays <= 7 -> WarrantyExpiring
+                                        else -> WarrantyActive
+                                    },
+                                    trackColor = TextAuxiliary().copy(alpha = 0.12f)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text("${remainingDays}天", fontSize = 11.sp, color = warrantyColor, fontWeight = FontWeight.Medium)
+                            }
                         }
-                    }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = TextAuxiliary().copy(alpha = 0.15f))
-
-                    DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}")
-                    DetailRow("购入日期", data.item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "未设置")
-
-                    // 保修 Pill
-                    val warrantyText = when {
-                        data.isWarrantyExpired -> "已过期"
-                        data.isWarrantyExpiring -> "即将到期"
-                        data.item.warrantyExpiryDate != null -> "保修中 · ${dateFormat.format(Date(data.item.warrantyExpiryDate!!))}"
-                        else -> "无保修"
-                    }
-                    val warrantyColor = when {
-                        data.isWarrantyExpired -> WarrantyExpired
-                        data.isWarrantyExpiring -> WarrantyExpiring
-                        else -> WarrantyActive
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("保修状态", fontSize = 14.sp, color = TextSecondary(), modifier = Modifier.width(72.dp))
-                        Surface(
-                            color = warrantyColor.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Text(
-                                warrantyText, color = warrantyColor, fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
-                            )
+                        DetailRow("存放位置", data.item.storageLocation.ifEmpty { "未设置" })
+                        if (data.item.description.isNotEmpty()) {
+                            DetailRow("物品描述", data.item.description)
                         }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = TextAuxiliary().copy(alpha = 0.12f))
+
+                        DetailRow("创建时间", dateFormat.format(Date(data.item.createdAt)), valueColor = TextAuxiliary())
+                        DetailRow("最后修改", dateFormat.format(Date(data.item.updatedAt)), valueColor = TextAuxiliary())
                     }
-
-                    DetailRow("存放位置", data.item.storageLocation.ifEmpty { "未设置" })
-                    if (data.item.description.isNotEmpty()) {
-                        DetailRow("物品描述", data.item.description)
-                    }
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = TextAuxiliary().copy(alpha = 0.15f))
-
-                    DetailRow("创建时间", dateFormat.format(Date(data.item.createdAt)))
-                    DetailRow("最后修改", dateFormat.format(Date(data.item.updatedAt)))
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -218,7 +286,7 @@ fun DetailScreen(
     if (uiState.showDeleteDialog) {
         GlassAlertDialog(
             title = "删除物品",
-            message = "物品将被移入回收站，可在设置中彻底清空。确定删除吗？",
+            message = "物品将被移入回收站，可在回收站中恢复。确定删除吗？",
             confirmText = "删除", dismissText = "取消",
             onConfirm = { viewModel.deleteItem() },
             onDismiss = { viewModel.dismissDeleteDialog() }

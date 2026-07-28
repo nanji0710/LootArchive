@@ -1,7 +1,7 @@
 {
-  "versionName": "4.0.6",
-  "versionCode": 406,
+  "versionName": "5.0.0",
+  "versionCode": 500,
   "updateDate": "2026-07-28",
-  "updateLog": "🔧 修复 4 个问题\n\n• 日期选择器选中项精确居中，不再偏移\n• 选择分类后不再出现多余的标签按钮\n• 保修到期提醒设置现在实际生效，首页和通知同步更新\n• 首页添加按钮增加透明度，视觉更柔和",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.6/LootArchive-release-v4.0.6.apk"
+  "updateLog": "🎨 v5.0.0 全新设计系统\n\n• Warm Glassmorphism 温暖玻璃态取代 Neumorphism\n• 暖象牙白底色 + 琥珀主色 #E8782A\n• Bento Grid 混合布局，物品卡片更有层次\n• 首页 Hero 资产总览 + 水平分类胶囊\n• 统计页 Donut 环形图 + 月度 Sparkline + 分类排行榜\n• 详情页全屏沉浸式照片 + Bottom Sheet 风格信息卡\n• 新增页三步向导：照片 → 详情 → 位置\n• 浮动胶囊式底部导航\n• 所有圆角/间距/阴影统一优化\n• 深色模式对比度重新校准",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.0.0/LootArchive-release-v5.0.0.apk"
 }

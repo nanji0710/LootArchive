@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -57,14 +58,21 @@ fun MyLandingScreen(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // ── 头像和信息区 ──
-        ClayCard(modifier = Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        // ── v5.0 收藏家卡片 ──
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (LocalDarkTheme.current) _CardDark else Color(0xFFFFF8F0)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    modifier = Modifier.size(68.dp),
-                    shape = androidx.compose.foundation.shape.CircleShape,
+                    modifier = Modifier.size(72.dp),
+                    shape = RoundedCornerShape(24.dp),
                     color = Primary().copy(alpha = 0.12f),
-                    shadowElevation = 4.dp
+                    shadowElevation = 2.dp
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (avatarUri.isNotEmpty()) {
@@ -86,65 +94,115 @@ fun MyLandingScreen(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text("你的私人物品资产管理工具", fontSize = 13.sp, color = TextAuxiliary())
+                    Spacer(Modifier.height(4.dp))
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Primary().copy(alpha = 0.10f)
+                    ) {
+                        Text(
+                            "收藏家等级 🌟🌟🌟",
+                            fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                            color = Primary(),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                        )
+                    }
                 }
             }
         }
 
-        // ── 快捷入口 ──
-        ClayCard(modifier = Modifier.fillMaxWidth()) {
-            MyMenuItem(Icons.Outlined.Settings, "设置", "主题模式、提醒、数据备份", onNavigateToSettings)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
-            MyMenuItem(Icons.Outlined.Category, "分类管理", "管理物品分类", onNavigateToCategory)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
-            MyMenuItem(Icons.Outlined.Backup, "备份与恢复", "导出Excel、备份数据", onNavigateToBackup)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
-            MyMenuItem(Icons.Outlined.Delete, "回收站", "查看和还原已删除的物品", onNavigateToRecycleBin)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
-            MyMenuItem(Icons.Outlined.SystemUpdate, "检查更新", "检测GitHub最新版本") {
-                if (!isChecking) {
-                    isChecking = true
-                    scope.launch {
-                        try {
-                            val result = UpdateChecker.check(CURRENT_VERSION_CODE)
-                            result.onSuccess { info ->
-                                if (info != null) { updateInfo = info; showUpdateDialog = true }
-                                else { showNoUpdate = true }
-                            }.onFailure { e -> checkError = e.message }
-                        } catch (e: Exception) { checkError = e.message }
-                        isChecking = false
+        // ── v5.0 收藏亮点 ──
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Card(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("🏆", fontSize = 28.sp)
+                    Text("最贵物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp))
+                    Text("未统计", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                }
+            }
+            Card(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("📅", fontSize = 28.sp)
+                    Text("最老物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp))
+                    Text("未统计", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                }
+            }
+        }
+
+        // ── v5.0 功能入口 ──
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Column {
+                MyMenuItem(Icons.Outlined.Settings, "设置", "主题模式、提醒、数据备份", onNavigateToSettings)
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                MyMenuItem(Icons.Outlined.Category, "分类管理", "管理物品分类", onNavigateToCategory)
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                MyMenuItem(Icons.Outlined.Backup, "备份与恢复", "导出/导入数据", onNavigateToBackup)
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                MyMenuItem(Icons.Outlined.Delete, "回收站", "查看和还原已删除物品", onNavigateToRecycleBin)
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                MyMenuItem(Icons.Outlined.SystemUpdate, "检查更新", "检测GitHub最新版本") {
+                    if (!isChecking) {
+                        isChecking = true
+                        scope.launch {
+                            try {
+                                val result = UpdateChecker.check(CURRENT_VERSION_CODE)
+                                result.onSuccess { info ->
+                                    if (info != null) { updateInfo = info; showUpdateDialog = true }
+                                    else { showNoUpdate = true }
+                                }.onFailure { e -> checkError = e.message }
+                            } catch (e: Exception) { checkError = e.message }
+                            isChecking = false
+                        }
                     }
                 }
             }
         }
 
         // ── 关于 ──
-        ClayCard(modifier = Modifier.fillMaxWidth()) {
-            Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-            Spacer(Modifier.height(4.dp))
-            Text("当前版本 v4.0.6", fontSize = 13.sp, color = TextAuxiliary())
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(Modifier.padding(18.dp)) {
+                Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                Spacer(Modifier.height(4.dp))
+                Text("当前版本 v5.0.0", fontSize = 13.sp, color = TextAuxiliary())
+            }
         }
 
-        // 底部留空，避免被导航栏遮挡
         Spacer(Modifier.height(100.dp))
     }
 
-    // 更新弹窗
+    // ...弹窗保持原有逻辑...
     if (showUpdateDialog && updateInfo != null) {
         AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("发现新版本", fontWeight = FontWeight.Bold) },
+            title = { Text("发现新版本", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
-                Column(
-                    Modifier.verticalScroll(rememberScrollState())
-                        .heightIn(max = 320.dp)
-                ) {
-                    Text("版本：${updateInfo!!.versionName}", fontSize = 16.sp)
+                Column(Modifier.verticalScroll(rememberScrollState()).heightIn(max = 320.dp)) {
+                    Text("版本：${updateInfo!!.versionName}", fontSize = 16.sp, color = TextPrimary())
                     Spacer(Modifier.height(4.dp))
                     Text("更新日期：${updateInfo!!.updateDate}", fontSize = 14.sp, color = TextSecondary())
                     Spacer(Modifier.height(8.dp))
-                    Text("更新内容：", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text("更新内容：", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
                     Text(updateInfo!!.updateLog, fontSize = 13.sp, color = TextSecondary())
                 }
             },
@@ -159,14 +217,14 @@ fun MyLandingScreen(
                             val result = downloader.download(url, fileName) { progress -> downloadProgress = progress }
                             result.onSuccess { file ->
                                 isDownloading = false
-                                if (!downloader.install(file)) downloadError = "无法启动安装器，请检查系统设置"
+                                if (!downloader.install(file)) downloadError = "无法启动安装器"
                             }.onFailure { e ->
                                 isDownloading = false
                                 downloadError = "下载失败: ${e.message ?: "未知错误"}"
                             }
                         }
                     } else { Toast.makeText(context, "暂无下载地址", Toast.LENGTH_SHORT).show() }
-                }) { Text("下载并安装", color = Primary()) }
+                }) { Text("下载并安装", color = Primary(), fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = { TextButton(onClick = { showUpdateDialog = false }) { Text("取消") } }
         )
@@ -175,31 +233,31 @@ fun MyLandingScreen(
     if (showNoUpdate) {
         AlertDialog(
             onDismissRequest = { showNoUpdate = false },
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v4.0.6") },
-            confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
+            title = { Text("已是最新版本", color = TextPrimary()) },
+            text = { Text("当前已是最新版本 v5.0.0", color = TextSecondary()) },
+            confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
 
     if (checkError != null) {
         AlertDialog(
             onDismissRequest = { checkError = null },
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("检查失败") },
-            text = { Text("无法连接到更新服务器：${checkError}") },
-            confirmButton = { TextButton(onClick = { checkError = null }) { Text("确定") } }
+            title = { Text("检查失败", color = TextPrimary()) },
+            text = { Text("无法连接到更新服务器：${checkError}", color = TextSecondary()) },
+            confirmButton = { TextButton(onClick = { checkError = null }) { Text("确定", color = Primary()) } }
         )
     }
 
     if (isChecking) {
         AlertDialog(
             onDismissRequest = {},
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("正在检查更新...") },
+            title = { Text("正在检查更新...", color = TextPrimary()) },
             text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator(color = Primary()) } },
             confirmButton = { }
         )
@@ -208,9 +266,9 @@ fun MyLandingScreen(
     if (isDownloading) {
         AlertDialog(
             onDismissRequest = {},
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("正在下载更新...", fontWeight = FontWeight.Bold) },
+            title = { Text("正在下载更新...", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
                 Column(Modifier.fillMaxWidth()) {
                     LinearProgressIndicator(
@@ -225,14 +283,6 @@ fun MyLandingScreen(
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(downloadProgress.sizeText, fontSize = 12.sp, color = TextAuxiliary())
-                    if (downloadProgress.percentage == 100) {
-                        Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = Primary())
-                            Spacer(Modifier.width(8.dp))
-                            Text("正在准备安装...", fontSize = 13.sp, color = TextAuxiliary())
-                        }
-                    }
                 }
             },
             confirmButton = { },
@@ -243,11 +293,11 @@ fun MyLandingScreen(
     if (downloadError != null) {
         AlertDialog(
             onDismissRequest = { downloadError = null },
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("下载失败") },
-            text = { Text(downloadError!!) },
-            confirmButton = { TextButton(onClick = { downloadError = null }) { Text("确定") } }
+            title = { Text("下载失败", color = TextPrimary()) },
+            text = { Text(downloadError!!, color = TextSecondary()) },
+            confirmButton = { TextButton(onClick = { downloadError = null }) { Text("确定", color = Primary()) } }
         )
     }
 }
@@ -255,9 +305,9 @@ fun MyLandingScreen(
 @Composable
 private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
-        Row(Modifier.padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
-                Modifier.size(36.dp), androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                Modifier.size(38.dp), RoundedCornerShape(12.dp),
                 color = Primary().copy(alpha = 0.10f)
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -266,10 +316,10 @@ private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onCli
             }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
-                Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                Text(subtitle, fontSize = 13.sp, color = TextAuxiliary())
+                Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                Text(subtitle, fontSize = 12.sp, color = TextAuxiliary())
             }
-            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
+            Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
         }
     }
 }

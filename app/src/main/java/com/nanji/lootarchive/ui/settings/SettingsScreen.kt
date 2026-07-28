@@ -27,7 +27,6 @@ import com.nanji.lootarchive.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Suppress("DEPRECATION")
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     isTabMode: Boolean = false,
@@ -61,63 +60,84 @@ fun SettingsScreen(
     Scaffold(containerColor = Color.Transparent) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(scrollState).padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // ── 个性化 ──
+            // ── v5.0 个性化 ──
             SectionHeader(Icons.Filled.Palette, "个性化")
-            ClayCard(modifier = Modifier.fillMaxWidth()) {
-                // 显示模式 — 卡片式选择
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("显示模式", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("system" to "跟随", "light" to "浅色", "dark" to "深色").forEach { (mode, label) ->
-                            FilterChip(
-                                selected = uiState.themeMode == mode,
-                                onClick = { if (uiState.themeMode != mode) viewModel.setThemeMode(mode) },
-                                label = { Text(label, fontSize = 13.sp) },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Primary().copy(alpha = 0.15f),
-                                    selectedLabelColor = Primary()
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column {
+                    // 显示模式
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("显示模式", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("system" to "跟随", "light" to "浅色", "dark" to "深色").forEach { (mode, label) ->
+                                FilterChip(
+                                    selected = uiState.themeMode == mode,
+                                    onClick = { if (uiState.themeMode != mode) viewModel.setThemeMode(mode) },
+                                    label = { Text(label, fontSize = 12.sp) },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                        selectedLabelColor = Primary()
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
-                }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
-                // 自定义头像
-                Row(
-                    Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("自定义头像", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                    if (uiState.avatarUri.isNotEmpty()) {
-                        Surface(
-                            onClick = { viewModel.setAvatarUri("") },
-                            shape = RoundedCornerShape(8.dp),
-                            color = Primary().copy(alpha = 0.1f)
-                        ) {
-                            Text("还原", fontSize = 12.sp, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                    // 自定义头像
+                    Row(
+                        Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("自定义头像", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        if (uiState.avatarUri.isNotEmpty()) {
+                            Surface(
+                                onClick = { viewModel.setAvatarUri("") },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Primary().copy(alpha = 0.10f)
+                            ) {
+                                Text("还原", fontSize = 12.sp, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                            }
+                            Spacer(Modifier.width(8.dp))
                         }
-                        Spacer(Modifier.width(8.dp))
+                        Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
-                    Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
                 }
             }
 
-            // ── 提醒 ──
+            // ── v5.0 提醒 ──
             SectionHeader(Icons.Filled.Notifications, "提醒")
-            ClayCard(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
                 Row(
-                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("保修到期提醒", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                    Text("保修到期提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("提前 ${uiState.warrantyReminderDays} 天", fontSize = 14.sp, color = TextAuxiliary())
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Primary().copy(alpha = 0.10f)
+                        ) {
+                            Text(
+                                "提前 ${uiState.warrantyReminderDays} 天",
+                                fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
                         IconButton(onClick = {
                             editReminderDays = uiState.warrantyReminderDays.toString()
                             showReminderDialog = true
@@ -128,15 +148,20 @@ fun SettingsScreen(
                 }
             }
 
-            // ── 存储 ──
+            // ── v5.0 存储 ──
             SectionHeader(Icons.Filled.Storage, "存储")
-            ClayCard(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
                 Row(
-                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("缓存大小", fontSize = 16.sp, color = TextPrimary())
+                        Text("缓存大小", fontSize = 15.sp, color = TextPrimary())
                         Spacer(Modifier.height(2.dp))
                         if (uiState.isCalculatingCache) {
                             Text("计算中...", fontSize = 13.sp, color = TextAuxiliary())
@@ -147,7 +172,7 @@ fun SettingsScreen(
                     OutlinedButton(
                         onClick = { showClearCacheDialog = true },
                         enabled = !uiState.isClearing,
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         if (uiState.isClearing) {
                             CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = Primary())
@@ -160,25 +185,32 @@ fun SettingsScreen(
                 }
             }
 
-            // ── 关于 ──
+            // ── v5.0 关于 ──
             SectionHeader(Icons.Filled.Info, "关于")
-            ClayCard(modifier = Modifier.fillMaxWidth()) {
-                Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                Spacer(Modifier.height(4.dp))
-                Text("当前版本 v4.0.6", fontSize = 13.sp, color = TextAuxiliary())
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                    Spacer(Modifier.height(4.dp))
+                    Text("当前版本 v5.0.0", fontSize = 13.sp, color = TextAuxiliary())
+                }
             }
 
             Spacer(Modifier.height(24.dp))
         }
     }
 
-    // 弹窗
+    // 弹窗（保持原有逻辑）
     if (showReminderDialog) {
         AlertDialog(
             onDismissRequest = { showReminderDialog = false },
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("保修提醒阈值") },
+            title = { Text("保修提醒阈值", color = TextPrimary(), fontWeight = FontWeight.SemiBold) },
             text = {
                 OutlinedTextField(
                     value = editReminderDays,
@@ -192,19 +224,9 @@ fun SettingsScreen(
                 TextButton(onClick = {
                     editReminderDays.toIntOrNull()?.let { viewModel.setWarrantyReminderDays(it) }
                     showReminderDialog = false
-                }) { Text("确认") }
+                }) { Text("确认", color = Primary()) }
             },
             dismissButton = { TextButton(onClick = { showReminderDialog = false }) { Text("取消") } }
-        )
-    }
-
-    if (showEmptyTrashDialog) {
-        GlassAlertDialog(
-            title = "清空冗余数据",
-            message = "将删除 ${uiState.trashItemCount} 件已删除物品的关联图片，不可恢复。",
-            confirmText = "清空", dismissText = "取消",
-            onConfirm = { viewModel.emptyTrash(); showEmptyTrashDialog = false },
-            onDismiss = { showEmptyTrashDialog = false }
         )
     }
 
@@ -223,17 +245,17 @@ fun SettingsScreen(
 private fun SectionHeader(icon: ImageVector, title: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
+        modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
     ) {
         Surface(
             Modifier.size(30.dp), RoundedCornerShape(9.dp),
-            color = Primary().copy(alpha = 0.12f)
+            color = Primary().copy(alpha = 0.10f)
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Icon(icon, null, tint = Primary(), modifier = Modifier.size(16.dp))
             }
         }
         Spacer(Modifier.width(10.dp))
-        Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
     }
 }
