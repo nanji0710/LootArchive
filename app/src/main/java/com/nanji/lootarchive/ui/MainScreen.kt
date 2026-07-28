@@ -311,7 +311,7 @@ fun MainScreen() {
                             .padding(bottom = 100.dp)
                             .size(56.dp),
                         shape = RoundedCornerShape(18.dp),
-                        containerColor = Primary(),
+                        containerColor = Primary().copy(alpha = 0.88f),
                         contentColor = Color.White,
                         elevation = FloatingActionButtonDefaults.elevation(
                             defaultElevation = 6.dp,
@@ -322,15 +322,6 @@ fun MainScreen() {
                     }
                 }
 
-                // 分类筛选标签
-                if (drawerCategoryFilter != null) {
-                    AssistChip(
-                        onClick={drawerCategoryFilter=null},
-                        label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
-                        trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))},
-                        modifier=Modifier.align(Alignment.TopCenter).padding(top=60.dp)
-                    )
-                }
             }
 
             // ── 底部轻量导航（仅主Tab显示） ──

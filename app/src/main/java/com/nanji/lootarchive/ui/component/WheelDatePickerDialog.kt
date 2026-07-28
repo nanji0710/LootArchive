@@ -163,10 +163,10 @@ private fun WheelColumn(
     val itemHeight = 40
 
     // 初始滚动到选中项（居中显示）
-    // contentPadding 80dp 位于视图顶部和底部,scrollToItem(idx-2) 可使选中项在200dp视口中的>第3行(共5行)居中
+    // 视口 200dp，每项 40dp=5 项可见，contentPadding top 60dp 使 item idx-1 位于顶部、selected 位于中央
     LaunchedEffect(items) {
         val idx = items.indexOf(selected).coerceAtLeast(0)
-        listState.scrollToItem(maxOf(idx - 2, 0))
+        listState.scrollToItem(maxOf(idx - 1, 0))
     }
 
     Box(modifier = modifier) {
@@ -174,7 +174,7 @@ private fun WheelColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(top = 40.dp, bottom = 80.dp)  // 顶部1项空间使初始选中项居中
+            contentPadding = PaddingValues(top = 60.dp, bottom = 80.dp)  // 顶部留1.5项使初始居中
         ) {
             items(items.size) { index ->
                 val item = items[index]
@@ -188,7 +188,7 @@ private fun WheelColumn(
                         .clickable {
                             onSelect(item)
                             scope.launch {
-                                listState.animateScrollToItem(maxOf(index - 2, 0))
+                                listState.animateScrollToItem(maxOf(index - 1, 0))
                             }
                         }
                         .then(
