@@ -18,7 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
-import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.theme.*
 import androidx.compose.ui.graphics.Color
 import java.text.NumberFormat
@@ -155,7 +155,7 @@ private fun TrashItemCard(
     onRestore: () -> Unit,
     onDelete: () -> Unit
 ) {
-    GlassCard(modifier = Modifier.fillMaxWidth()) {
+    ClayCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically

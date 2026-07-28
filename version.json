@@ -1,7 +1,7 @@
 {
-  "versionName": "3.3.1",
-  "versionCode": 331,
+  "versionName": "4.0.0",
+  "versionCode": 400,
   "updateDate": "2026-07-28",
-  "updateLog": "1. 修复新增/编辑按钮导航冲突",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.3.1/LootArchive-release-v3.3.1.apk"
+  "updateLog": "🎨 全新玻璃拟态视觉风格，界面焕然一新！\n\n✨ 全新设计语言\n• 整体采用轻盈通透的玻璃质感，卡片仿佛漂浮在柔光之上\n• 全新蜜橘主题色，温暖明亮又不失年轻活力\n• 引入 Fredoka + Nunito 圆润字体组合，告别生硬的系统默认字体\n• 深色模式下玻璃质感更显高级，光影层次分明\n\n🖐 交互体验升级\n• 底部导航栏更轻量，选中状态一目了然\n• 首页新增顶部搜索入口，查找物品更加顺手\n• 按钮和卡片增加精致触感反馈，操作更跟手\n• 空状态页面增加微动效，等待不再枯燥\n\n📊 视觉细节打磨\n• 物品卡片重新设计，价格标签清晰醒目\n• 详情页排版更舒展，信息层级分明\n• 统计图表配色柔和，柱状图圆角更精致\n• 设置页分组更清晰，开关和选项排列更直观\n• 分类管理、备份恢复、回收站页面统一新风格\n\n🔧 其他改进\n• 修复若干界面细节问题，提升整体精致度\n• 优化深色模式下的文字对比度，夜间使用更舒适",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.0/LootArchive-release-v4.0.0.apk"
 }

@@ -18,8 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
-import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.theme.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
@@ -67,7 +68,7 @@ fun BackupScreen(
             }
 
             item {
-                GlassCard {
+                ClayCard {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -88,7 +89,7 @@ fun BackupScreen(
             }
 
             item {
-                GlassCard {
+                ClayCard {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -211,7 +212,7 @@ private fun BackupRecordItem(
     dateFormat: SimpleDateFormat,
     onDelete: () -> Unit
 ) {
-    GlassCard(modifier = Modifier.fillMaxWidth()) {
+    ClayCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 when (record.backupType) {

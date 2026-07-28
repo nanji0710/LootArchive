@@ -4,7 +4,8 @@
 
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
-[![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-purple)](https://developer.android.com/compose)
+[![Compose](https://img.shields.io/badge/Jetpack%20Compose-Neumorphism-orange)](https://developer.android.com/compose)
+[![Version](https://img.shields.io/badge/Version-4.0.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -182,6 +183,23 @@ Release 使用 debug keystore 签名（`~/.android/debug.keystore`）。如需�
 ---
 
 ## 📝 更新日志
+
+### v4.0.0 (2026-07-28) 🎨 全新视觉
+- **全新现代拟物风格**：柔和光影打造卡片浮起感，界面干净又精致
+- **新字体组合**：Fredoka 圆润标题 + Nunito 柔和正文，告别生硬的系统字体
+- **全新配色**：冷灰基调 + 暖橙点缀，年轻有活力又不失稳重
+- **底部导航更轻量**：选中态一目了然，不再抢占视野
+- **首页增加搜索入口**：顶部搜索栏随手可触，查找物品更快
+- **物品卡片重新设计**：价格标签更清晰，照片区域更宽敞
+- **详情页排版更舒展**：信息层级分明，浏览更轻松
+- **统计图表圆角优化**：柱状图更圆润，配色更柔和
+- **空状态增加微动效**：等待不再枯燥
+- **深色模式对比度优化**：夜间使用更舒适
+- **设置页布局优化**：分组更清晰，选项更直观
+- 分类管理、备份恢复、回收站页面同步新风格
+
+### v3.3.1 (2026-07-28)
+- 修复新增/编辑按钮导航冲突
 
 ### v3.1.4 (2026-07-26)
 - 修复搜索页分类筛选（物品名称/存放位置/备注/保修）不生效

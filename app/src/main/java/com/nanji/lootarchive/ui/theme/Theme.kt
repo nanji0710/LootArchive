@@ -9,50 +9,97 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.graphics.toArgb
 
-// ─── 传递 APP 主题模式和主色给所有子组件 ───
+// ── 传递 APP 主题模式和主色 ──
 val LocalDarkTheme = staticCompositionLocalOf { false }
-val LocalPrimaryColor = staticCompositionLocalOf { Color(0xFFFFA500) }
+val LocalPrimaryColor = staticCompositionLocalOf { Color(0xFFFF7A3D) }
 
+// ══════════════════════════════════════════════════════════════
+//  Light ColorScheme — 现代拟物风 · 冷灰底 + 光影层次
+// ══════════════════════════════════════════════════════════════
 internal val LightColorScheme: ColorScheme
     @Composable
     get() {
         val p = LocalPrimaryColor.current
         return lightColorScheme(
-            primary = p, onPrimary = Color.White,
-            secondary = _TextSecondaryLight, background = _BackgroundLight, surface = _SurfaceLight,
-            surfaceVariant = _GlassBgLight,
-            onBackground = _TextPrimaryLight, onSurface = _TextPrimaryLight, onSurfaceVariant = _TextSecondaryLight,
-            outline = _GlassBorderLight
+            primary = p,
+            onPrimary = Color.White,
+            primaryContainer = p.copy(alpha = 0.12f),
+            onPrimaryContainer = Color(0xFF3D1A00),
+            secondary = _Accent,
+            onSecondary = Color.White,
+            secondaryContainer = _Accent.copy(alpha = 0.12f),
+            onSecondaryContainer = Color(0xFF001540),
+            background = _BackgroundLight,
+            onBackground = _TextPrimaryLight,
+            surface = _SurfaceLight,
+            onSurface = _TextPrimaryLight,
+            surfaceVariant = _CardLight,
+            onSurfaceVariant = _TextSecondaryLight,
+            outline = _TextAuxiliaryLight.copy(alpha = 0.25f),
+            outlineVariant = _TextAuxiliaryLight.copy(alpha = 0.12f),
+            error = WarrantyExpired,
+            onError = Color.White,
+            errorContainer = WarrantyExpired.copy(alpha = 0.12f),
+            onErrorContainer = Color(0xFF410002),
+            inverseSurface = Color(0xFF2D3748),
+            inverseOnSurface = Color(0xFFEDF2F7),
+            inversePrimary = _PrimaryDark,
         )
     }
 
+// ══════════════════════════════════════════════════════════════
+//  Dark ColorScheme — 深灰蓝黑底 + 提亮主色
+// ══════════════════════════════════════════════════════════════
 internal val DarkColorScheme: ColorScheme
     @Composable
     get() {
         val p = LocalPrimaryColor.current
-        // 深色模式下提亮主色
         val bright = brighten(p)
         return darkColorScheme(
-            primary = bright, onPrimary = Color(0xFF1A1A1A),
-            secondary = _TextSecondaryDark, background = _BackgroundDark, surface = _SurfaceDark,
-            surfaceVariant = _GlassBgDark,
-            onBackground = _TextPrimaryDark, onSurface = _TextPrimaryDark, onSurfaceVariant = _TextSecondaryDark,
-            outline = _GlassBorderDark
+            primary = bright,
+            onPrimary = Color(0xFF2D1500),
+            primaryContainer = bright.copy(alpha = 0.15f),
+            onPrimaryContainer = Color(0xFFFFDCC0),
+            secondary = _Accent,
+            onSecondary = Color(0xFF001540),
+            secondaryContainer = _Accent.copy(alpha = 0.15f),
+            onSecondaryContainer = Color(0xFFB0D0FF),
+            background = _BackgroundDark,
+            onBackground = _TextPrimaryDark,
+            surface = _SurfaceDark,
+            onSurface = _TextPrimaryDark,
+            surfaceVariant = _CardDark,
+            onSurfaceVariant = _TextSecondaryDark,
+            outline = _TextAuxiliaryDark.copy(alpha = 0.25f),
+            outlineVariant = _TextAuxiliaryDark.copy(alpha = 0.12f),
+            error = Color(0xFFFF8080),
+            onError = Color(0xFF690005),
+            errorContainer = Color(0xFF93000A),
+            onErrorContainer = Color(0xFFFFDAD6),
+            inverseSurface = Color(0xFFEDF2F7),
+            inverseOnSurface = Color(0xFF2D3748),
+            inversePrimary = _Primary,
         )
     }
 
 private fun brighten(c: Color): Color {
     val hsv = FloatArray(3)
     android.graphics.Color.colorToHSV(c.toArgb(), hsv)
-    hsv[1] = (hsv[1] * 0.7f).coerceIn(0f, 1f)
-    hsv[2] = (hsv[2] * 1.35f).coerceAtMost(1f)
+    hsv[1] = (hsv[1] * 0.65f).coerceIn(0f, 1f)
+    hsv[2] = (hsv[2] * 1.4f).coerceAtMost(1f)
     return Color(android.graphics.Color.HSVToColor(hsv))
 }
 
 @Composable
-fun LootArchiveTheme(themeMode: String = "system", primaryColor: Int = 0xFFFFA500.toInt(), content: @Composable () -> Unit) {
+fun LootArchiveTheme(
+    themeMode: String = "system",
+    primaryColor: Int = 0xFFFF7A3D.toInt(),
+    content: @Composable () -> Unit
+) {
     val darkTheme = when (themeMode) {
-        "dark" -> true; "light" -> false; else -> isSystemInDarkTheme()
+        "dark" -> true
+        "light" -> false
+        else -> isSystemInDarkTheme()
     }
     val view = LocalView.current
     if (!view.isInEditMode) {

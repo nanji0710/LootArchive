@@ -1,6 +1,5 @@
 package com.nanji.lootarchive.ui.settings
 
-import androidx.compose.ui.graphics.Color
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,12 +14,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.theme.*
 
@@ -36,7 +37,6 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
 
-    // 弹窗状态
     var showThemeDialog by remember { mutableStateOf(false) }
     var showReminderDialog by remember { mutableStateOf(false) }
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
@@ -58,67 +58,79 @@ fun SettingsScreen(
         }
     }
 
-    Scaffold(
-        containerColor = Color.Transparent
-    ) { padding ->
+    Scaffold(containerColor = Color.Transparent) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(scrollState).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(scrollState).padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // ─── 卡片1：个性化设置 ───
+            // ── 个性化 ──
             SectionHeader(Icons.Filled.Palette, "个性化")
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                // 显示模式
-                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("显示模式", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            ClayCard(modifier = Modifier.fillMaxWidth()) {
+                // 显示模式 — 卡片式选择
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("显示模式", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf("system" to "跟随", "light" to "浅色", "dark" to "深色").forEach { (mode, label) ->
                             FilterChip(
                                 selected = uiState.themeMode == mode,
                                 onClick = { if (uiState.themeMode != mode) viewModel.setThemeMode(mode) },
                                 label = { Text(label, fontSize = 13.sp) },
+                                shape = RoundedCornerShape(12.dp),
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Primary().copy(alpha = 0.2f),
+                                    selectedContainerColor = Primary().copy(alpha = 0.15f),
                                     selectedLabelColor = Primary()
                                 )
                             )
                         }
                     }
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
+                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
                 // 自定义头像
                 Row(
-                    Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(vertical = 8.dp),
+                    Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("自定义头像", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
+                    Text("自定义头像", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                     if (uiState.avatarUri.isNotEmpty()) {
                         Text("已设置", fontSize = 13.sp, color = TextAuxiliary())
+                        Spacer(Modifier.width(8.dp))
                     }
                     Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
                 }
             }
 
-            // ─── 保修提醒设置 ───
+            // ── 提醒 ──
             SectionHeader(Icons.Filled.Notifications, "提醒")
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("保修到期提醒", fontSize = 16.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
+            ClayCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("保修到期提醒", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("提前 ${uiState.warrantyReminderDays} 天", fontSize = 13.sp, color = TextAuxiliary())
-                        IconButton(onClick = { editReminderDays = uiState.warrantyReminderDays.toString(); showReminderDialog = true }) {
-                            Icon(Icons.Filled.Edit, null, Modifier.size(16.dp), tint = Primary())
+                        Text("提前 ${uiState.warrantyReminderDays} 天", fontSize = 14.sp, color = TextAuxiliary())
+                        IconButton(onClick = {
+                            editReminderDays = uiState.warrantyReminderDays.toString()
+                            showReminderDialog = true
+                        }) {
+                            Icon(Icons.Filled.Edit, null, Modifier.size(18.dp), tint = Primary())
                         }
                     }
                 }
             }
 
-            // ─── 缓存管理 ───
+            // ── 存储 ──
             SectionHeader(Icons.Filled.Storage, "存储")
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            ClayCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Column(Modifier.weight(1f)) {
-                        Text("缓存大小", fontSize = 16.sp, color = TextSecondary())
+                        Text("缓存大小", fontSize = 16.sp, color = TextPrimary())
                         Spacer(Modifier.height(2.dp))
                         if (uiState.isCalculatingCache) {
                             Text("计算中...", fontSize = 13.sp, color = TextAuxiliary())
@@ -129,10 +141,10 @@ fun SettingsScreen(
                     OutlinedButton(
                         onClick = { showClearCacheDialog = true },
                         enabled = !uiState.isClearing,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(10.dp)
                     ) {
                         if (uiState.isClearing) {
-                            CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                            CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = Primary())
                         } else {
                             Icon(Icons.Filled.DeleteSweep, null, Modifier.size(16.dp))
                         }
@@ -142,31 +154,44 @@ fun SettingsScreen(
                 }
             }
 
-            // ─── 关于 ───
+            // ── 关于 ──
             SectionHeader(Icons.Filled.Info, "关于")
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
+            ClayCard(modifier = Modifier.fillMaxWidth()) {
+                Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v3.2.6", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v4.0.0", fontSize = 13.sp, color = TextAuxiliary())
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
         }
     }
 
-    // 提醒天数弹窗
+    // 弹窗
     if (showReminderDialog) {
         AlertDialog(
             onDismissRequest = { showReminderDialog = false },
+            shape = RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("保修提醒阈值") },
-            text = { OutlinedTextField(value = editReminderDays, onValueChange = { editReminderDays = it }, label = { Text("提前天数") }, singleLine = true) },
-            confirmButton = { TextButton(onClick = { editReminderDays.toIntOrNull()?.let { viewModel.setWarrantyReminderDays(it) }; showReminderDialog = false }) { Text("确认") } },
+            text = {
+                OutlinedTextField(
+                    value = editReminderDays,
+                    onValueChange = { editReminderDays = it },
+                    label = { Text("提前天数") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    editReminderDays.toIntOrNull()?.let { viewModel.setWarrantyReminderDays(it) }
+                    showReminderDialog = false
+                }) { Text("确认") }
+            },
             dismissButton = { TextButton(onClick = { showReminderDialog = false }) { Text("取消") } }
         )
     }
 
-    // 清空回收站弹窗
     if (showEmptyTrashDialog) {
         GlassAlertDialog(
             title = "清空冗余数据",
@@ -177,7 +202,6 @@ fun SettingsScreen(
         )
     }
 
-    // 清除缓存弹窗
     if (showClearCacheDialog) {
         GlassAlertDialog(
             title = "清除缓存",
@@ -187,23 +211,23 @@ fun SettingsScreen(
             onDismiss = { showClearCacheDialog = false }
         )
     }
-
 }
 
 @Composable
-private fun SectionHeader(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) {
-        Icon(icon, null, tint = Primary(), modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(8.dp))
-        Text(title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
-    }
-}
-
-@Composable
-private fun DataActionButton(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(10.dp)) {
-        Icon(icon, null, Modifier.size(16.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(label, fontSize = 13.sp)
+private fun SectionHeader(icon: ImageVector, title: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
+    ) {
+        Surface(
+            Modifier.size(30.dp), RoundedCornerShape(9.dp),
+            color = Primary().copy(alpha = 0.12f)
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = Primary(), modifier = Modifier.size(16.dp))
+            }
+        }
+        Spacer(Modifier.width(10.dp))
+        Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
     }
 }

@@ -18,6 +18,7 @@ build/
 *.iws
 *.ipr
 .vscode/settings.json
+.claude/
 
 # Android Studio
 local.properties

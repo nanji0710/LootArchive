@@ -1,12 +1,11 @@
 package com.nanji.lootarchive.ui.statistics
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,16 +13,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.FormatUtil
 import java.text.NumberFormat
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,131 +39,163 @@ fun StatisticsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
 
-    // 每次进入页面重新收集数据
     DisposableEffect(Unit) {
         viewModel.refresh()
         onDispose { }
     }
 
     Scaffold(
-        topBar = { if (!isTabMode) { TopAppBar(title = { Text("资产汇总") }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回") } }) } },
+        topBar = {
+            if (!isTabMode) {
+                TopAppBar(
+                    title = { Text("资产汇总") },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.Filled.ArrowBack, "返回")
+                        }
+                    }
+                )
+            }
+        },
         containerColor = Color.Transparent
     ) { padding ->
         var refreshing by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
         PullToRefreshBox(
             isRefreshing = refreshing,
-            onRefresh = { refreshing = true; scope.launch { kotlinx.coroutines.delay(800); refreshing = false } },
+            onRefresh = { refreshing = true; scope.launch { delay(600); refreshing = false } },
             modifier = Modifier.fillMaxSize().padding(padding).background(Color.Transparent)
         ) {
-        if (uiState.isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        } else if (uiState.categorySummaries.isEmpty()) {
-            EmptyState(
-                icon = { Icon(Icons.Filled.BarChart, null, Modifier.size(100.dp), tint = TextAuxiliary()) },
-                title = "暂无统计数据",
-                subtitle = "添加物品后即可查看统计图表"
-            )
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // ─── 资产总览卡片 ───
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.fillMaxWidth()) {
-                        Column(Modifier.weight(1f)) {
-                            Text("物品总件数", fontSize = 16.sp, color = TextSecondary())
-                            Spacer(Modifier.height(4.dp))
-                            Text("${uiState.totalCount}", fontSize = 24.sp, color = TextPrimary())
-                        }
-                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                            Text("全部资产总价", fontSize = 16.sp, color = TextSecondary())
-                            Spacer(Modifier.height(4.dp))
-                            Text("¥${numberFormat.format(uiState.totalValue)}", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Primary())
+            if (uiState.isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Primary())
+                }
+            } else if (uiState.categorySummaries.isEmpty()) {
+                EmptyState(
+                    icon = { Icon(Icons.Filled.BarChart, null, Modifier.size(90.dp), tint = TextAuxiliary().copy(alpha = 0.5f)) },
+                    title = "暂无统计数据",
+                    subtitle = "添加物品后即可查看统计图表"
+                )
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // ── 资产总览 ──
+                    ClayCard(modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth()) {
+                            Column(Modifier.weight(1f)) {
+                                Text("物品总件数", fontSize = 15.sp, color = TextSecondary())
+                                Spacer(Modifier.height(4.dp))
+                                Text("${uiState.totalCount}", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                            }
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                                Text("全部资产总价", fontSize = 15.sp, color = TextSecondary())
+                                Spacer(Modifier.height(4.dp))
+                                Text("¥${numberFormat.format(uiState.totalValue)}", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+                            }
                         }
                     }
-                }
 
-                // ─── 分类资产概览（价值+数量合并） ───
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Text("分类资产概览", fontSize = 18.sp, color = TextPrimary())
-                    Spacer(Modifier.height(12.dp))
-                    val maxCount = uiState.categorySummaries.maxOfOrNull { it.itemCount }?.coerceAtLeast(1) ?: 1
-                    val maxValue = uiState.categorySummaries.maxOfOrNull { it.totalValue }?.coerceAtLeast(1.0) ?: 1.0
-                    uiState.categorySummaries.forEachIndexed { index, s ->
-                        val pct = if (uiState.totalValue > 0) (s.totalValue / uiState.totalValue * 100).toInt() else 0
-                        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[index % ChartColors.size]) {}
-                                Spacer(Modifier.width(8.dp))
-                                Text(s.category.name, fontSize = 13.sp, color = TextSecondary(), modifier = Modifier.weight(1f))
-                                Text("¥${numberFormat.format(s.totalValue)}", fontSize = 14.sp, color = Primary())
-                                Spacer(Modifier.width(6.dp))
-                                Text("$pct%", fontSize = 12.sp, color = TextAuxiliary())
+                    // ── 分类资产概览（价值+数量合并） ──
+                    ClayCard(modifier = Modifier.fillMaxWidth()) {
+                        Text("分类资产概览", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                        Spacer(Modifier.height(14.dp))
+                        val maxCount = uiState.categorySummaries.maxOfOrNull { it.itemCount }?.coerceAtLeast(1) ?: 1
+                        uiState.categorySummaries.forEachIndexed { index, s ->
+                            val pct = if (uiState.totalValue > 0) (s.totalValue / uiState.totalValue * 100).toInt() else 0
+                            val barColor = ChartColors[index % ChartColors.size]
+                            Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = barColor) {}
+                                    Spacer(Modifier.width(10.dp))
+                                    Text(s.category.name, fontSize = 14.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                                    Text("¥${numberFormat.format(s.totalValue)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Primary())
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("$pct%", fontSize = 12.sp, color = TextAuxiliary())
+                                }
+                                Spacer(Modifier.height(6.dp))
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Spacer(Modifier.width(20.dp))
+                                    Surface(
+                                        Modifier.weight(1f).height(22.dp),
+                                        RoundedCornerShape(5.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    ) {
+                                        Box(Modifier.fillMaxSize()) {
+                                            Surface(
+                                                Modifier.fillMaxHeight()
+                                                    .fillMaxWidth((s.itemCount.toFloat() / maxCount).coerceIn(0f, 1f)),
+                                                RoundedCornerShape(5.dp),
+                                                color = barColor
+                                            ) {}
+                                        }
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("${s.itemCount}件", fontSize = 12.sp, color = TextAuxiliary())
+                                }
                             }
-                            Spacer(Modifier.height(4.dp))
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Spacer(Modifier.width(18.dp))
-                                Surface(Modifier.weight(1f).height(20.dp), RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
-                                    Box(Modifier.fillMaxSize()) {
-                                        Surface(Modifier.fillMaxHeight().fillMaxWidth((s.itemCount.toFloat() / maxCount).coerceIn(0f, 1f)), RoundedCornerShape(4.dp), color = ChartColors[index % ChartColors.size]) {}
+                        }
+                    }
+
+                    // ── 按月购入金额柱形图 ──
+                    ClayCard(modifier = Modifier.fillMaxWidth()) {
+                        Text("按月购入金额趋势", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                        Spacer(Modifier.height(14.dp))
+                        val monthlyData = uiState.items.filter { it.purchaseDate != null }
+                            .groupBy {
+                                java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault())
+                                    .format(java.util.Date(it.purchaseDate!!))
+                            }
+                            .mapValues { it.value.sumOf { item -> item.purchasePrice } }
+                            .toList().sortedBy { it.first }.takeLast(12)
+                        if (monthlyData.isEmpty()) {
+                            Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary())
+                        } else {
+                            val maxVal = monthlyData.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
+                            Row(
+                                Modifier.fillMaxWidth().height(180.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                monthlyData.forEachIndexed { index, (month, total) ->
+                                    val barHeight = ((total / maxVal) * 130).dp.coerceAtLeast(4.dp)
+                                    val barColor = ChartColors[index % ChartColors.size]
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.Bottom
+                                    ) {
+                                        Text(
+                                            FormatUtil.formatPriceShort(total),
+                                            fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        Surface(
+                                            Modifier
+                                                .width(if (monthlyData.size > 6) 20.dp else 26.dp)
+                                                .height(barHeight),
+                                            shape = RoundedCornerShape(
+                                                topStart = 6.dp, topEnd = 6.dp,
+                                                bottomStart = 0.dp, bottomEnd = 0.dp
+                                            ),
+                                            color = barColor
+                                        ) {}
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(
+                                            month.takeLast(2) + "月",
+                                            fontSize = if (monthlyData.size > 8) 9.sp else 11.sp,
+                                            color = TextAuxiliary(), maxLines = 1
+                                        )
                                     }
                                 }
-                                Spacer(Modifier.width(6.dp))
-                                Text("${s.itemCount}件", fontSize = 12.sp, color = TextAuxiliary())
                             }
                         }
                     }
-                }
 
-                // ─── 按月购入金额柱形图 ───
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Text("按月购入金额趋势", fontSize = 18.sp, color = TextPrimary())
-                    Spacer(Modifier.height(12.dp))
-                    val monthlyData = uiState.items.filter { it.purchaseDate != null }
-                        .groupBy { java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }
-                        .mapValues { it.value.sumOf { item -> item.purchasePrice } }
-                        .toList().sortedBy { it.first }.takeLast(12)
-                    if (monthlyData.isEmpty()) {
-                        Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary())
-                    } else {
-                        val maxVal = monthlyData.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
-                        Row(
-                            Modifier.fillMaxWidth().height(180.dp),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            monthlyData.forEachIndexed { index, (month, total) ->
-                                val barHeight = ((total / maxVal) * 130).dp.coerceAtLeast(4.dp)
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.Bottom
-                                ) {
-                                    Text(FormatUtil.formatPriceShort(total), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1)
-                                    Spacer(Modifier.height(3.dp))
-                                    Surface(
-                                        Modifier.width(if (monthlyData.size > 6) 18.dp else 24.dp).height(barHeight),
-                                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
-                                        color = ChartColors[index % ChartColors.size]
-                                    ) {}
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(
-                                        month,
-                                        fontSize = if (monthlyData.size > 8) 9.sp else 10.sp,
-                                        color = TextAuxiliary(),
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    Spacer(Modifier.height(24.dp))
                 }
-
-                Spacer(Modifier.height(16.dp))
             }
-            } // PullToRefreshBox
         }
     }
 }

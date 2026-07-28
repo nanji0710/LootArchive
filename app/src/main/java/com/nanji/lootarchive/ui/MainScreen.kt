@@ -3,6 +3,9 @@ package com.nanji.lootarchive.ui
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
@@ -34,24 +37,24 @@ import com.nanji.lootarchive.data.repository.SettingsRepository
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
 import com.nanji.lootarchive.ui.component.GlassPanel
-import com.nanji.lootarchive.ui.theme.ChartColors
-import com.nanji.lootarchive.ui.theme.LocalDarkTheme
-import com.nanji.lootarchive.ui.theme.Primary
-import com.nanji.lootarchive.ui.theme.TextAuxiliary
-import com.nanji.lootarchive.ui.theme.TextPrimary
+import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.PhotoQueue
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.hazeEffect
 
 enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
     HOME("首页", Icons.Filled.Home, Icons.Outlined.Home),
-    STATS("资产汇总", Icons.Filled.PieChart, Icons.Outlined.PieChart),
+    STATS("汇总", Icons.Filled.PieChart, Icons.Outlined.PieChart),
     MY("我的", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
-// 简易页面路由（替代 NavHost，根除闪退）
-private object Route { const val HOME="home"; const val STATS="stats"; const val MY="my"; const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"; const val SETTINGS="settings"; const val CATEGORY="category"; const val BACKUP="backup"; const val CAMERA="camera"; const val RECYCLEBIN="recyclebin" }
+// 简易页面路由
+private object Route {
+    const val HOME="home"; const val STATS="stats"; const val MY="my"
+    const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"
+    const val SETTINGS="settings"; const val CATEGORY="category"
+    const val BACKUP="backup"; const val CAMERA="camera"; const val RECYCLEBIN="recyclebin"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,24 +89,22 @@ fun MainScreen() {
     }
 
     val isSubPage = currentRoute !in listOf(Route.HOME, Route.STATS, Route.MY)
+    val isHome = currentRoute == Route.HOME
 
-    // 系统返回键：子页面回退，主页不拦截
     BackHandler(enabled = isSubPage) { goBack() }
 
     Scaffold(
-        containerColor = Color.Transparent, // 透明背景，让全局背景图透出
-        topBar = {
-            // 所有Tab页面取消TopBar，按钮改为悬浮
-        },
+        containerColor = Color.Transparent,
+        topBar = { /* 不使用 TopAppBar */ },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
-            // ─── 内容区：hazeSource 提供模糊源 ───
+            // 内容区：hazeSource
             Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
                 AnimatedContent(
                     targetState = currentRoute,
                     transitionSpec = {
-                        (fadeIn() + slideInHorizontally { it / 8 }) togetherWith
-                        (fadeOut() + slideOutHorizontally { -it / 8 })
+                        (fadeIn(animationSpec = tween(220)) + slideInHorizontally { it / 10 }) togetherWith
+                        (fadeOut(animationSpec = tween(180)) + slideOutHorizontally { -it / 10 })
                     },
                     label = "page"
                 ) { route ->
@@ -126,23 +127,36 @@ fun MainScreen() {
                             var timeFilterLabel by remember { mutableStateOf("全部时间") }
                             val statsViewModel: com.nanji.lootarchive.ui.statistics.StatisticsViewModel = hiltViewModel()
                             Box(Modifier.fillMaxSize()) {
-                                StatisticsScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)}, isTabMode=true)
-                                // 悬浮时间筛选按钮
+                                StatisticsScreen(
+                                    onNavigateBack={goBack()},
+                                    onNavigateToDetail={navigate(Route.DETAIL, it)},
+                                    isTabMode=true
+                                )
                                 Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
                                     Box {
                                         TextButton(onClick={showTimeFilter=true}) {
                                             Text(timeFilterLabel, fontSize=14.sp, color=Primary())
                                             Icon(Icons.Filled.ArrowDropDown, null, tint=Primary())
                                         }
-                                        DropdownMenu(expanded=showTimeFilter, onDismissRequest={showTimeFilter=false},
+                                        DropdownMenu(
+                                            expanded=showTimeFilter,
+                                            onDismissRequest={showTimeFilter=false},
                                             containerColor = MaterialTheme.colorScheme.surface
                                         ) {
-                                            listOf("all" to "全部时间", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach{(key,label)->
-                                                DropdownMenuItem(text={Text(label)}, onClick={
-                                                    timeFilterLabel=label
-                                                    statsViewModel.setTimeFilter(key)
-                                                    showTimeFilter=false
-                                                })
+                                            listOf(
+                                                "all" to "全部时间",
+                                                "3months" to "近三月",
+                                                "6months" to "近半年",
+                                                "1year" to "近一年"
+                                            ).forEach{(key,label)->
+                                                DropdownMenuItem(
+                                                    text={Text(label)},
+                                                    onClick={
+                                                        timeFilterLabel=label
+                                                        statsViewModel.setTimeFilter(key)
+                                                        showTimeFilter=false
+                                                    }
+                                                )
                                             }
                                         }
                                     }
@@ -162,9 +176,19 @@ fun MainScreen() {
                             onNavigateToCamera = { navigate(Route.CAMERA) },
                             photoSession = cameraSession
                         )
-                        Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
-                        Route.SEARCH -> SearchScreen(onNavigateBack={goBack()}, onNavigateToDetail={navigate(Route.DETAIL, it)})
-                        Route.SETTINGS -> SettingsScreen(onNavigateBack={goBack()}, onNavigateToCategory={navigate(Route.CATEGORY)})
+                        Route.DETAIL -> DetailScreen(
+                            itemId=detailItemId,
+                            onNavigateBack={goBack()},
+                            onNavigateToEdit={navigate(Route.ADD, it)}
+                        )
+                        Route.SEARCH -> SearchScreen(
+                            onNavigateBack={goBack()},
+                            onNavigateToDetail={navigate(Route.DETAIL, it)}
+                        )
+                        Route.SETTINGS -> SettingsScreen(
+                            onNavigateBack={goBack()},
+                            onNavigateToCategory={navigate(Route.CATEGORY)}
+                        )
                         Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                         Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
                         Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
@@ -179,66 +203,150 @@ fun MainScreen() {
                     }
                 }
 
-                // ─── 首页操作按钮（仅首页显示） ───
-                if (currentRoute == Route.HOME) {
+                // ── 首页：仅保留一个居中新增大按钮 + 顶部搜索/分类入口 ──
+                if (isHome) {
+                    // 顶部：搜索栏 + 分类筛选
                     Row(
-                        Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 90.dp, start = 16.dp, end = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom
+                        Modifier.fillMaxWidth().align(Alignment.TopCenter)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        FloatingActionButton(onClick = { showCategorySheet = true }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Filled.Menu, "分类", tint = Color.White, modifier = Modifier.size(22.dp))
+                        // 搜索栏（轻量圆角框）
+                        Surface(
+                            onClick = { navigate(Route.SEARCH) },
+                            modifier = Modifier.weight(1f).height(42.dp),
+                            shape = RoundedCornerShape(21.dp),
+                            color = if (LocalDarkTheme.current)
+                                Color.White.copy(alpha = 0.10f)
+                            else
+                                Color.Black.copy(alpha = 0.04f)
+                        ) {
+                            Row(
+                                Modifier.fillMaxSize().padding(horizontal = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Search, "搜索",
+                                    Modifier.size(18.dp), tint = TextAuxiliary()
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "搜索物品...",
+                                    fontSize = 14.sp,
+                                    color = TextAuxiliary()
+                                )
+                            }
                         }
-                        FloatingActionButton(onClick = { navigate(Route.ADD) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Filled.Add, "新增", tint = Color.White, modifier = Modifier.size(22.dp))
-                        }
-                        FloatingActionButton(onClick = { navigate(Route.SEARCH) }, containerColor = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary(), modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Filled.Search, "搜索", tint = Color.White, modifier = Modifier.size(22.dp))
+
+                        // 分类按钮
+                        Surface(
+                            onClick = { showCategorySheet = true },
+                            modifier = Modifier.size(42.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (LocalDarkTheme.current)
+                                Primary().copy(alpha = 0.20f)
+                            else
+                                Primary().copy(alpha = 0.10f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Outlined.Category, "分类",
+                                    Modifier.size(20.dp), tint = Primary()
+                                )
+                            }
                         }
                     }
+
+                    // 居中：唯一的新增 FAB
+                    FloatingActionButton(
+                        onClick = { navigate(Route.ADD) },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 80.dp)
+                            .size(56.dp),
+                        shape = RoundedCornerShape(18.dp),
+                        containerColor = Primary(),
+                        contentColor = Color.White,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 10.dp
+                        )
+                    ) {
+                        Icon(Icons.Filled.Add, "新增物品", Modifier.size(26.dp))
+                    }
                 }
+
                 // 分类筛选标签
                 if (drawerCategoryFilter != null) {
-                    AssistChip(onClick={drawerCategoryFilter=null}, label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
-                        trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))}, modifier=Modifier.align(Alignment.TopCenter).padding(top=4.dp))
+                    AssistChip(
+                        onClick={drawerCategoryFilter=null},
+                        label={Text(drawerCategoryFilter!!.second,style=MaterialTheme.typography.labelSmall)},
+                        trailingIcon={Icon(Icons.Filled.Close,null,Modifier.size(14.dp))},
+                        modifier=Modifier.align(Alignment.TopCenter).padding(top=60.dp)
+                    )
                 }
             }
 
-            // ─── 底部毛玻璃导航栏（在 hazeSource 之外，仅模糊内容区） ───
+            // ── 底部轻量导航（仅主Tab显示） ──
             if (!isSubPage) {
                 GlassPanel(
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 20.dp, start = 28.dp, end = 28.dp),
                     hazeState = hazeState,
-                    shape = RoundedCornerShape(26.dp),
-                    containerColor = if (LocalDarkTheme.current) Color.Black.copy(alpha = 0.26f) else Color.White.copy(alpha = 0.26f),
-                    borderColor = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.82f),
-                    shadowElevation = 16.dp
+                    shape = RoundedCornerShape(22.dp),
+                    containerColor = if (LocalDarkTheme.current)
+                        Color.Black.copy(alpha = 0.20f)
+                    else
+                        Color.White.copy(alpha = 0.28f),
+                    borderColor = if (LocalDarkTheme.current)
+                        Color.White.copy(alpha = 0.12f)
+                    else
+                        Color.White.copy(alpha = 0.60f),
+                    shadowElevation = 12.dp,
+                    blurRadius = 20.dp
                 ) {
                     Row(
-                        Modifier.fillMaxWidth(),
+                        Modifier.fillMaxWidth().height(50.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         MainTab.entries.forEachIndexed { index, tab ->
                             val selected = currentTab == index
-                            if (selected) {
-                                Surface(
-                                    onClick = { switchTab(index) },
-                                    shape = RoundedCornerShape(22.dp),
-                                    color = if (LocalDarkTheme.current) Primary().copy(alpha = 0.7f) else Primary()
-                                ) {
-                                    Row(
-                                        Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(tab.selectedIcon, tab.label, tint = Color.White, modifier = Modifier.size(22.dp))
-                                        Spacer(Modifier.width(6.dp))
-                                        Text(tab.label, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Medium)
-                                    }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .width(72.dp)
+                                    .clickable { switchTab(index) }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                // 选中态：顶部小指示线
+                                if (selected) {
+                                    Box(
+                                        Modifier
+                                            .width(20.dp)
+                                            .height(3.dp)
+                                            .background(Primary(), RoundedCornerShape(1.5.dp))
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                } else {
+                                    Spacer(Modifier.height(9.dp))
                                 }
-                            } else {
-                                IconButton(onClick = { switchTab(index) }, modifier = Modifier.size(44.dp)) {
-                                    Icon(tab.unselectedIcon, tab.label, tint = TextAuxiliary(), modifier = Modifier.size(22.dp))
-                                }
+
+                                Icon(
+                                    if (selected) tab.selectedIcon else tab.unselectedIcon,
+                                    tab.label,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selected) Primary() else TextAuxiliary()
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    tab.label,
+                                    fontSize = 11.sp,
+                                    color = if (selected) Primary() else TextAuxiliary(),
+                                    fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+                                )
                             }
                         }
                     }
@@ -251,7 +359,8 @@ fun MainScreen() {
     if (showCategorySheet) {
         ModalBottomSheet(
             onDismissRequest = { showCategorySheet = false },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
         ) {
             CategoryFilterSheet(
                 selectedFilter = drawerCategoryFilter,
@@ -274,17 +383,22 @@ private fun CategoryFilterSheet(
     val state by viewModel.uiState.collectAsState()
 
     Column(Modifier.padding(24.dp).fillMaxWidth()) {
-        Text("物品分类", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
+        Text(
+            "物品分类",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextPrimary(),
+            fontFamily = FredokaFont
+        )
         Spacer(Modifier.height(16.dp))
 
-        // 全部物品
         Surface(
             onClick = { onCategorySelected(-1L, "全部物品") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            color = if (selectedFilter == null) Primary().copy(alpha = 0.12f) else Color.Transparent
+            shape = RoundedCornerShape(14.dp),
+            color = if (selectedFilter == null) Primary().copy(alpha = 0.10f) else Color.Transparent
         ) {
-            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("全部物品", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                 Text("${state.totalItemCount}", fontSize = 13.sp, color = TextAuxiliary())
             }
@@ -298,18 +412,21 @@ private fun CategoryFilterSheet(
             Surface(
                 onClick = { onCategorySelected(cat.id, cat.name) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                color = if (isSelected) color.copy(alpha = 0.12f) else Color.Transparent
+                shape = RoundedCornerShape(14.dp),
+                color = if (isSelected) color.copy(alpha = 0.10f) else Color.Transparent
             ) {
-                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(Modifier.width(4.dp).height(30.dp), RoundedCornerShape(2.dp), color = color) {}
-                    Spacer(Modifier.width(10.dp))
+                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        Modifier.width(4.dp).height(26.dp),
+                        RoundedCornerShape(2.dp),
+                        color = color
+                    ) {}
+                    Spacer(Modifier.width(12.dp))
                     Text(cat.name, fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                 }
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
     }
 }
-

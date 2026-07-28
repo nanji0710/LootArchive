@@ -14,24 +14,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.ItemEntity
-import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
 import java.io.File
 import java.text.NumberFormat
 import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,13 +46,11 @@ fun SearchScreen(
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
-    Scaffold(
-        containerColor = Color.Transparent
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
-            // 搜索栏：返回 + 输入框
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
+    Scaffold(containerColor = Color.Transparent) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp)) {
+            // 搜索栏
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onNavigateBack, modifier = Modifier.size(42.dp)) {
                     Icon(Icons.Filled.ArrowBack, "返回", modifier = Modifier.size(22.dp))
                 }
                 OutlinedTextField(
@@ -62,16 +59,23 @@ fun SearchScreen(
                     placeholder = { Text("搜索物品名称 / 存放位置...", fontSize = 14.sp, color = TextAuxiliary()) },
                     modifier = Modifier.weight(1f).focusRequester(focusRequester),
                     singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(22.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent
                     ),
                     leadingIcon = { Icon(Icons.Filled.Search, null, tint = TextAuxiliary(), modifier = Modifier.size(20.dp)) },
-                    trailingIcon = { if (uiState.query.isNotEmpty()) IconButton(onClick = { viewModel.updateQuery("") }) { Icon(Icons.Filled.Close, "清除", Modifier.size(18.dp)) } }
+                    trailingIcon = {
+                        if (uiState.query.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.updateQuery("") }) {
+                                Icon(Icons.Filled.Close, "清除", Modifier.size(18.dp))
+                            }
+                        }
+                    }
                 )
             }
-            // 筛选标签栏
+
+            // 筛选标签
             LazyRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
@@ -83,21 +87,38 @@ fun SearchScreen(
                     val selected = uiState.activeFilter == filters[index].second
                     TextButton(onClick = { viewModel.setActiveFilter(filters[index].second) }) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(label, fontSize = 14.sp, color = if (selected) Primary() else TextAuxiliary())
-                            if (selected) Spacer(Modifier.width(20.dp).height(2.dp).background(Primary(), RoundedCornerShape(1.dp)))
+                            Text(
+                                label, fontSize = 14.sp,
+                                color = if (selected) Primary() else TextAuxiliary(),
+                                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+                            )
+                            if (selected) {
+                                Spacer(Modifier.width(20.dp).height(2.dp).background(Primary(), RoundedCornerShape(1.dp)))
+                            }
                         }
                     }
                 }
             }
 
-            // 结果统计+排序
+            // 结果统计 + 排序
             if (uiState.query.isNotEmpty() || uiState.activeFilter != null) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("找到 ${uiState.results.size} 件物品", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("找到 ${uiState.results.size} 件物品", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                     var showSort by remember { mutableStateOf(false) }
-                    Box { TextButton(onClick = { showSort = true }) { Text("排序", fontSize = 14.sp, color = Primary()) }
-                        DropdownMenu(expanded = showSort, onDismissRequest = { showSort = false }, containerColor = MaterialTheme.colorScheme.surface) {
-                            listOf("price_desc" to "价格从高到低", "date_new" to "购入时间最新", "warranty" to "保修到期优先").forEach { (key, label) ->
+                    Box {
+                        TextButton(onClick = { showSort = true }) { Text("排序", fontSize = 14.sp, color = Primary()) }
+                        DropdownMenu(
+                            expanded = showSort, onDismissRequest = { showSort = false },
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ) {
+                            listOf(
+                                "price_desc" to "价格从高到低",
+                                "date_new" to "购入时间最新",
+                                "warranty" to "保修到期优先"
+                            ).forEach { (key, label) ->
                                 DropdownMenuItem(text = { Text(label) }, onClick = { viewModel.setSort(key); showSort = false })
                             }
                         }
@@ -105,35 +126,38 @@ fun SearchScreen(
                 }
             }
 
-            // 结果列表 / 搜索历史 / 空状态
+            // 搜索结果 / 搜索历史 / 空状态
             if (uiState.results.isEmpty() && uiState.query.isEmpty() && uiState.activeFilter == null) {
                 if (uiState.recentSearches.isNotEmpty()) {
                     Column(Modifier.padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("最近搜索", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                            Text("最近搜索", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), modifier = Modifier.weight(1f))
                             TextButton(onClick = { viewModel.clearHistory() }) { Text("清空记录", fontSize = 14.sp, color = Primary()) }
                         }
                         Spacer(Modifier.height(8.dp))
                         uiState.recentSearches.forEach { query ->
-                            Surface(onClick = { viewModel.updateQuery(query); viewModel.submitSearch() }, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
-                                Row(Modifier.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                onClick = { viewModel.updateQuery(query); viewModel.submitSearch() },
+                                modifier = Modifier.fillMaxWidth(), color = Color.Transparent
+                            ) {
+                                Row(Modifier.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Filled.History, null, Modifier.size(18.dp), tint = TextAuxiliary())
-                                    Spacer(Modifier.width(12.dp))
-                                    Text(query, fontSize = 16.sp, color = TextSecondary())
+                                    Spacer(Modifier.width(14.dp))
+                                    Text(query, fontSize = 15.sp, color = TextSecondary())
                                 }
                             }
                         }
                     }
                 } else {
                     EmptyState(
-                        icon = { Icon(Icons.Filled.Search, null, Modifier.size(100.dp), tint = TextAuxiliary()) },
+                        icon = { Icon(Icons.Filled.Search, null, Modifier.size(90.dp), tint = TextAuxiliary().copy(alpha = 0.5f)) },
                         title = "搜索物品",
                         subtitle = "输入关键词查找你的物品"
                     )
                 }
             } else if (uiState.results.isEmpty()) {
                 EmptyState(
-                    icon = { Icon(Icons.Filled.SearchOff, null, Modifier.size(100.dp), tint = TextAuxiliary()) },
+                    icon = { Icon(Icons.Filled.SearchOff, null, Modifier.size(90.dp), tint = TextAuxiliary().copy(alpha = 0.5f)) },
                     title = "未找到对应物品",
                     subtitle = "换个关键词试试"
                 )
@@ -141,11 +165,13 @@ fun SearchScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    items(uiState.results, key = { it.item.id }) { result -> SearchItemCard(result.item, result.firstPhotoPath, numberFormat) { onNavigateToDetail(result.item.id) } }
+                    items(uiState.results, key = { it.item.id }) { result ->
+                        SearchItemCard(result.item, result.firstPhotoPath, numberFormat) { onNavigateToDetail(result.item.id) }
+                    }
                 }
             }
         }
@@ -154,22 +180,22 @@ fun SearchScreen(
 
 @Composable
 private fun SearchItemCard(item: ItemEntity, firstPhotoPath: String?, numberFormat: NumberFormat, onClick: () -> Unit) {
-    GlassCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        Surface(Modifier.fillMaxWidth().height(100.dp), RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)) {
+    val dark = LocalDarkTheme.current
+    val cardBg = if (dark) _CardDark else _CardLight
+
+    ClayCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
+        Box(Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(16.dp))) {
             if (firstPhotoPath != null) {
-                AsyncImage(
-                    model = File(firstPhotoPath),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
+                AsyncImage(model = File(firstPhotoPath), contentDescription = null, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)), contentScale = ContentScale.Crop)
             } else {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(32.dp), tint = TextAuxiliary()) }
+                Box(Modifier.fillMaxSize().background(Primary().copy(alpha = 0.08f)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.Image, null, Modifier.size(36.dp), tint = TextAuxiliary().copy(alpha = 0.4f))
+                }
             }
         }
         Spacer(Modifier.height(8.dp))
-        Text(item.name, fontSize = 18.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(item.name, fontSize = 17.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
         Spacer(Modifier.height(4.dp))
-        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary())
+        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
     }
 }

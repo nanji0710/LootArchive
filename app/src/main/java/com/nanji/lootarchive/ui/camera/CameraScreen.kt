@@ -167,7 +167,7 @@ fun CameraScreen(
             Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).clickable { flashEnabled = !flashEnabled }.padding(12.dp)) {
                 Icon(
                     if (flashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                    "闪光灯", tint = if (flashEnabled) Color(0xFFFFA500) else Color.White
+                    "闪光灯", tint = if (flashEnabled) Color(0xFFFF8C42) else Color.White
                 )
             }
         }
@@ -203,7 +203,7 @@ fun CameraScreen(
                         )
                     }, contentAlignment = Alignment.Center) {
                     Box(Modifier.size(60.dp).clip(CircleShape).background(
-                        Brush.linearGradient(listOf(Color(0xFFFFA500), Color(0xFFFFB347)))
+                        Brush.linearGradient(listOf(Color(0xFFFF8C42), Color(0xFFFFB347)))
                     ))
                 }
             }
@@ -212,7 +212,7 @@ fun CameraScreen(
             if (capturedPaths.isNotEmpty()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("${capturedPaths.size} 张照片", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Color(0xFFFFA500))
+                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Color(0xFFFF8C42))
                         .clickable { onPhotoTaken(capturedPaths.toList()) }.padding(horizontal = 20.dp, vertical = 10.dp)) {
                         Text("完成", color = Color.White, fontSize = 14.sp)
                     }

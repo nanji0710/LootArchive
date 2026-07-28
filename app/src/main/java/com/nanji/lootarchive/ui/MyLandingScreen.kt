@@ -1,5 +1,8 @@
 package com.nanji.lootarchive.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,18 +10,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.widget.Toast
 import coil.compose.AsyncImage
-import com.nanji.lootarchive.ui.component.GlassCard
+import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.ApkDownloadManager
 import com.nanji.lootarchive.util.UpdateChecker
@@ -45,7 +47,6 @@ fun MyLandingScreen(
     var showNoUpdate by remember { mutableStateOf(false) }
     var checkError by remember { mutableStateOf<String?>(null) }
 
-    // 下载进度状态
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(ApkDownloadManager.Progress()) }
     var downloadError by remember { mutableStateOf<String?>(null) }
@@ -53,16 +54,17 @@ fun MyLandingScreen(
     val downloader = remember { ApkDownloadManager(context) }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // 头像和信息区
-        GlassCard(modifier = Modifier.fillMaxWidth()) {
+        // ── 头像和信息区 ──
+        ClayCard(modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(68.dp),
                     shape = androidx.compose.foundation.shape.CircleShape,
-                    color = Primary().copy(alpha = 0.15f)
+                    color = Primary().copy(alpha = 0.12f),
+                    shadowElevation = 4.dp
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (avatarUri.isNotEmpty()) {
@@ -72,28 +74,32 @@ fun MyLandingScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Icon(Icons.Filled.Person, null, Modifier.size(36.dp), tint = Primary())
+                            Icon(Icons.Filled.Person, null, Modifier.size(38.dp), tint = Primary())
                         }
                     }
                 }
-                Spacer(Modifier.width(16.dp))
+                Spacer(Modifier.width(18.dp))
                 Column {
-                    Text("拾物集", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
+                    Text(
+                        "拾物集", fontSize = 22.sp, fontWeight = FontWeight.Bold,
+                        color = TextPrimary(), fontFamily = FredokaFont
+                    )
+                    Spacer(Modifier.height(2.dp))
                     Text("你的私人物品资产管理工具", fontSize = 13.sp, color = TextAuxiliary())
                 }
             }
         }
 
-        // 快捷入口卡片
-        GlassCard(modifier = Modifier.fillMaxWidth()) {
-            MyMenuItem(Icons.Outlined.Settings, "设置", "主题模式、提醒、数据备份") { onNavigateToSettings() }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
-            MyMenuItem(Icons.Outlined.Category, "分类管理", "管理物品分类") { onNavigateToCategory() }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
-            MyMenuItem(Icons.Outlined.Backup, "备份与恢复", "导出Excel、备份数据") { onNavigateToBackup() }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
-            MyMenuItem(Icons.Outlined.Delete, "回收站", "查看和还原已删除的物品") { onNavigateToRecycleBin() }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = glassBorderColor())
+        // ── 快捷入口 ──
+        ClayCard(modifier = Modifier.fillMaxWidth()) {
+            MyMenuItem(Icons.Outlined.Settings, "设置", "主题模式、提醒、数据备份", onNavigateToSettings)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
+            MyMenuItem(Icons.Outlined.Category, "分类管理", "管理物品分类", onNavigateToCategory)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
+            MyMenuItem(Icons.Outlined.Backup, "备份与恢复", "导出Excel、备份数据", onNavigateToBackup)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
+            MyMenuItem(Icons.Outlined.Delete, "回收站", "查看和还原已删除的物品", onNavigateToRecycleBin)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
             MyMenuItem(Icons.Outlined.SystemUpdate, "检查更新", "检测GitHub最新版本") {
                 if (!isChecking) {
                     isChecking = true
@@ -111,11 +117,11 @@ fun MyLandingScreen(
             }
         }
 
-        // 关于
-        GlassCard(modifier = Modifier.fillMaxWidth()) {
-            Text("拾物集 ItemGlow", fontSize = 18.sp, color = TextPrimary())
+        // ── 关于 ──
+        ClayCard(modifier = Modifier.fillMaxWidth()) {
+            Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v3.3.1", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v4.0.0", fontSize = 13.sp, color = TextAuxiliary())
         }
     }
 
@@ -123,6 +129,7 @@ fun MyLandingScreen(
     if (showUpdateDialog && updateInfo != null) {
         AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("发现新版本", fontWeight = FontWeight.Bold) },
             text = {
@@ -140,51 +147,40 @@ fun MyLandingScreen(
                     val url = updateInfo!!.apkDownloadUrl
                     val fileName = "LootArchive-v${updateInfo!!.versionName}.apk"
                     if (url.isNotEmpty()) {
-                        showUpdateDialog = false
-                        isDownloading = true
-                        downloadError = null
-                        downloadProgress = ApkDownloadManager.Progress()
+                        showUpdateDialog = false; isDownloading = true
+                        downloadError = null; downloadProgress = ApkDownloadManager.Progress()
                         scope.launch {
-                            val result = downloader.download(url, fileName) { progress ->
-                                downloadProgress = progress
-                            }
+                            val result = downloader.download(url, fileName) { progress -> downloadProgress = progress }
                             result.onSuccess { file ->
                                 isDownloading = false
-                                val installed = downloader.install(file)
-                                if (!installed) {
-                                    downloadError = "无法启动安装器，请检查系统设置"
-                                }
+                                if (!downloader.install(file)) downloadError = "无法启动安装器，请检查系统设置"
                             }.onFailure { e ->
                                 isDownloading = false
                                 downloadError = "下载失败: ${e.message ?: "未知错误"}"
                             }
                         }
-                    } else {
-                        Toast.makeText(context, "暂无下载地址", Toast.LENGTH_SHORT).show()
-                    }
+                    } else { Toast.makeText(context, "暂无下载地址", Toast.LENGTH_SHORT).show() }
                 }) { Text("下载并安装", color = Primary()) }
             },
-            dismissButton = {
-                TextButton(onClick = { showUpdateDialog = false }) { Text("取消") }
-            }
+            dismissButton = { TextButton(onClick = { showUpdateDialog = false }) { Text("取消") } }
         )
     }
 
-    // 已是最新
     if (showNoUpdate) {
         AlertDialog(
             onDismissRequest = { showNoUpdate = false },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v3.3.1") },
+            text = { Text("当前已是最新版本 v4.0.0") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }
 
-    // 检查失败
     if (checkError != null) {
         AlertDialog(
             onDismissRequest = { checkError = null },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("检查失败") },
             text = { Text("无法连接到更新服务器：${checkError}") },
@@ -192,30 +188,29 @@ fun MyLandingScreen(
         )
     }
 
-    // 检查中
     if (isChecking) {
         AlertDialog(
             onDismissRequest = {},
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("正在检查更新...") },
-            text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator() } },
+            text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator(color = Primary()) } },
             confirmButton = { }
         )
     }
 
-    // 下载进度弹窗
     if (isDownloading) {
         AlertDialog(
             onDismissRequest = {},
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("正在下载更新...", fontWeight = FontWeight.Bold) },
             text = {
                 Column(Modifier.fillMaxWidth()) {
                     LinearProgressIndicator(
                         progress = { downloadProgress.percentage / 100f },
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Primary(),
-                        trackColor = Primary().copy(alpha = 0.15f)
+                        modifier = Modifier.fillMaxWidth(), color = Primary(),
+                        trackColor = Primary().copy(alpha = 0.12f)
                     )
                     Spacer(Modifier.height(12.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -239,10 +234,10 @@ fun MyLandingScreen(
         )
     }
 
-    // 下载失败弹窗
     if (downloadError != null) {
         AlertDialog(
             onDismissRequest = { downloadError = null },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("下载失败") },
             text = { Text(downloadError!!) },
@@ -252,11 +247,18 @@ fun MyLandingScreen(
 }
 
 @Composable
-private fun MyMenuItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = androidx.compose.ui.graphics.Color.Transparent) {
-        Row(Modifier.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, Modifier.size(22.dp), tint = Primary())
-            Spacer(Modifier.width(12.dp))
+private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
+        Row(Modifier.padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                Modifier.size(36.dp), androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                color = Primary().copy(alpha = 0.10f)
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(icon, null, Modifier.size(20.dp), tint = Primary())
+                }
+            }
+            Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
                 Text(subtitle, fontSize = 13.sp, color = TextAuxiliary())
