@@ -2,6 +2,6 @@
   "versionName": "4.0.4",
   "versionCode": 404,
   "updateDate": "2026-07-28",
-  "updateLog": "🔧 修复 4 个体验问题\n\n• 底部导航栏点击效果改为圆角，视觉更柔和\n• 首页和汇总页的下拉刷新图标颜色与主题一致\n• 从详情页进入编辑不再出现空白页面，物品信息正确加载\n• 日期选择器打开时选中日期显示在中间位置，更符合直觉",
+  "updateLog": "🔧 修复 3 个体验问题\n\n• 底部导航栏点击效果改为圆角，视觉更柔和\n• 从详情页进入编辑不再出现空白页面，物品信息正确加载\n• 日期选择器打开时选中日期显示在中间位置，更符合直觉",
   "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.4/LootArchive-release-v4.0.4.apk"
 }
