@@ -75,18 +75,26 @@ fun DetailScreen(
                 }
 
                 // ── 主图区域 300dp ──
-                Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .background(Color(0xFF1A1A1A))  // 暗底，避免 Fit 留白突兀
+                ) {
                     if (data.photos.isNotEmpty()) {
                         // 水平滚动浏览所有照片
                         Row(
-                            modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
+                            modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState()),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             data.photos.forEach { photo ->
                                 AsyncImage(
                                     model = File(photo.photoPath),
                                     contentDescription = null,
-                                    modifier = Modifier.fillMaxHeight().fillMaxWidth(),
-                                    contentScale = ContentScale.Crop
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(),
+                                    contentScale = ContentScale.Fit  // 居中完整显示，保持比例
                                 )
                             }
                         }
