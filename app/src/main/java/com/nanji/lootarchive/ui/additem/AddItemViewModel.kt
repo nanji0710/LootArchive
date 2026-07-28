@@ -56,7 +56,8 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun initEditMode(itemId: Long?) {
-        // ViewModel 存活期只初始化一次，避免从相机返回时重复 resetForm 清空照片
+        // 关键修复：每次进入页面都重置加载状态，不再依赖 onScreenDisposed
+        // formInitialized 仅用于防止同一次进入中 LaunchedEffect 重复触发
         if (formInitialized) return
         formInitialized = true
         if (itemId == null) { resetForm(); return }

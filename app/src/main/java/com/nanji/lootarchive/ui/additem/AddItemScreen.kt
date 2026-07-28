@@ -62,6 +62,12 @@ fun AddItemScreen(
     LaunchedEffect(editItemId) {
         if (!didInit) { viewModel.initEditMode(editItemId); didInit = true }
     }
+
+    // 离开页面时重置 ViewModel，保证下次进入可正常加载编辑内容
+    DisposableEffect(Unit) {
+        onDispose { viewModel.resetForm() }
+    }
+
     LaunchedEffect(photoSession) {
         if (photoSession > 0) {
             val paths = com.nanji.lootarchive.util.PhotoQueue.consume()

@@ -162,10 +162,14 @@ private fun WheelColumn(
     val listState = rememberLazyListState()
     val itemHeight = 40
 
-    // 初始滚动到选中项
+    // 初始滚动到选中项（居中显示）
     LaunchedEffect(items) {
         val idx = items.indexOf(selected).coerceAtLeast(0)
-        listState.scrollToItem(maxOf(idx - 2, 0))
+        // 将选中项滚动到视图第3行（5行视图中的正中间）
+        val targetIdx = maxOf(idx - 2, 0)
+        scope.launch {
+            listState.scrollToItem(targetIdx)
+        }
     }
 
     Box(modifier = modifier) {

@@ -1,7 +1,7 @@
 {
-  "versionName": "4.0.3",
-  "versionCode": 403,
+  "versionName": "4.0.4",
+  "versionCode": 404,
   "updateDate": "2026-07-28",
-  "updateLog": "🔧 优化底部导航栏显示效果\n\n• 底部导航栏更通透：修复毛玻璃效果过实的问题，还原轻盈质感\n• 导航栏更紧凑：去掉顶部装饰线，降低整体高度\n• 我的页面底部版本号不再被导航栏遮挡\n• 自定义头像支持一键还原为默认头像\n• 修复设置页缓存大小始终显示为零的问题\n• 各页面版本号显示统一\n• 首页搜索框更显眼，方便快速找到物品",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.3/LootArchive-release-v4.0.3.apk"
+  "updateLog": "🔧 修复 4 个体验问题\n\n• 底部导航栏点击效果改为圆角，视觉更柔和\n• 首页和汇总页的下拉刷新图标颜色与主题一致\n• 从详情页进入编辑不再出现空白页面，物品信息正确加载\n• 日期选择器打开时选中日期显示在中间位置，更符合直觉",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.4/LootArchive-release-v4.0.4.apk"
 }

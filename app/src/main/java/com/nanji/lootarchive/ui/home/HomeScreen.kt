@@ -79,7 +79,7 @@ fun HomeScreen(
             isRefreshing = true
             scope.launch { delay(600); isRefreshing = false }
         },
-        modifier = Modifier.fillMaxSize().background(Color.Transparent),
+        modifier = Modifier.fillMaxSize().background(Color.Transparent)
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),

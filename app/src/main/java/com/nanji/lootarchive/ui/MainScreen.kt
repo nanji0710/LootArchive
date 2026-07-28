@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -318,6 +319,7 @@ fun MainScreen() {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
                                     .width(72.dp)
+                                    .clip(RoundedCornerShape(16.dp))
                                     .clickable { switchTab(index) }
                                     .padding(vertical = 2.dp)
                             ) {
