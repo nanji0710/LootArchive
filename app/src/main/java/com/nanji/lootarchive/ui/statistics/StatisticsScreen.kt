@@ -109,7 +109,7 @@ fun StatisticsScreen(
                             val colW = 48.dp
                             // 数据少时居中，数据多时横向滚动
                             if (md.size <= 7) {
-                                Row(Modifier.fillMaxWidth().height(150.dp).padding(top = 20.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
+                                Row(Modifier.fillMaxWidth().height(160.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
                                     md.forEachIndexed { i, (ym, t) ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(colW)) {
                                             Text(FormatUtil.formatPriceShort(t), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
@@ -122,7 +122,7 @@ fun StatisticsScreen(
                                     }
                                 }
                             } else {
-                                Row(Modifier.fillMaxWidth().height(150.dp).padding(top = 20.dp).horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.Bottom) {
+                                Row(Modifier.fillMaxWidth().height(160.dp).horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.Bottom) {
                                     md.forEachIndexed { i, (ym, t) ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(colW)) {
                                             Text(FormatUtil.formatPriceShort(t), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)

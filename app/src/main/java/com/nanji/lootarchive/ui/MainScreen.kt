@@ -214,7 +214,7 @@ fun MainScreen() {
                         onClick = { navigate(Route.ADD) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 110.dp),
+                            .padding(bottom = 90.dp),
                         shape = RoundedCornerShape(28.dp),
                         color = Primary(),
                         shadowElevation = 8.dp
@@ -265,11 +265,11 @@ fun MainScreen() {
                                     .weight(1f)
                                     .clip(RoundedCornerShape(16.dp))
                                     .clickable { switchTab(index) }
-                                    .padding(vertical = 6.dp)
+                                    .padding(vertical = 3.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(if (selected) 34.dp else 30.dp)
+                                        .size(if (selected) 30.dp else 26.dp)
                                         .then(
                                             if (selected)
                                                 Modifier.background(
@@ -287,10 +287,10 @@ fun MainScreen() {
                                         tint = if (selected) Primary() else TextAuxiliary()
                                     )
                                 }
-                                Spacer(Modifier.height(2.dp))
+                                Spacer(Modifier.height(1.dp))
                                 Text(
                                     tab.label,
-                                    fontSize = 11.sp,
+                                    fontSize = 10.sp,
                                     color = if (selected) Primary() else TextAuxiliary(),
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )
