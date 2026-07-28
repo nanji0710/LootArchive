@@ -19,6 +19,7 @@ data class HomeUiState(
     val totalCount: Int = 0,
     val totalValue: Double = 0.0,
     val warrantyExpiringCount: Int = 0,
+    val warrantyReminderDays: Int = 7,
     val currency: String = "CNY",
     val appName: String = "拾物集"
 )
@@ -61,7 +62,8 @@ class HomeViewModel @Inject constructor(
                     HomeUiState(
                         isLoading = false, items = quintet.first, photoPaths = paths,
                         totalCount = quintet.second, totalValue = quintet.third,
-                        warrantyExpiringCount = quintet.fourth, currency = quintet.fifth, appName = appName
+                        warrantyExpiringCount = quintet.fourth, warrantyReminderDays = reminderDays.toInt(),
+                        currency = quintet.fifth, appName = appName
                     )
                 }.catch { _uiState.value = _uiState.value.copy(isLoading = false) }
                  .collect { state -> _uiState.value = state }

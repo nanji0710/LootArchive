@@ -126,45 +126,11 @@ fun MainScreen() {
                             )
                         }
                         Route.STATS -> {
-                            var showTimeFilter by remember { mutableStateOf(false) }
-                            var timeFilterLabel by remember { mutableStateOf("全部时间") }
-                            val statsViewModel: com.nanji.lootarchive.ui.statistics.StatisticsViewModel = hiltViewModel()
-                            Box(Modifier.fillMaxSize()) {
-                                StatisticsScreen(
-                                    onNavigateBack={goBack()},
-                                    onNavigateToDetail={navigate(Route.DETAIL, it)},
-                                    isTabMode=true
-                                )
-                                Row(Modifier.align(Alignment.TopEnd).padding(top=4.dp, end=12.dp)) {
-                                    Box {
-                                        TextButton(onClick={showTimeFilter=true}) {
-                                            Text(timeFilterLabel, fontSize=14.sp, color=Primary())
-                                            Icon(Icons.Rounded.ArrowDropDown, null, tint=Primary())
-                                        }
-                                        DropdownMenu(
-                                            expanded=showTimeFilter,
-                                            onDismissRequest={showTimeFilter=false},
-                                            containerColor = MaterialTheme.colorScheme.surface
-                                        ) {
-                                            listOf(
-                                                "all" to "全部时间",
-                                                "3months" to "近三月",
-                                                "6months" to "近半年",
-                                                "1year" to "近一年"
-                                            ).forEach{(key,label)->
-                                                DropdownMenuItem(
-                                                    text={Text(label)},
-                                                    onClick={
-                                                        timeFilterLabel=label
-                                                        statsViewModel.setTimeFilter(key)
-                                                        showTimeFilter=false
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            StatisticsScreen(
+                                onNavigateBack={goBack()},
+                                onNavigateToDetail={navigate(Route.DETAIL, it)},
+                                isTabMode=true
+                            )
                         }
                         Route.MY -> MyLandingScreen(
                             avatarUri = avatarUri.avatarUri,
@@ -212,12 +178,11 @@ fun MainScreen() {
                     Row(
                         Modifier.fillMaxWidth().align(Alignment.TopCenter)
                             .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(
                             onClick = { navigate(Route.SEARCH) },
-                            modifier = Modifier.weight(1f).height(44.dp),
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
                             shape = RoundedCornerShape(22.dp),
                             color = if (LocalDarkTheme.current)
                                 Color.White.copy(alpha = 0.12f)
@@ -242,70 +207,9 @@ fun MainScreen() {
                             }
                         }
 
-                        // 分类按钮
-                        Box {
-                            Surface(
-                                onClick = { showCategorySheet = true },
-                                modifier = Modifier.size(44.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                color = if (LocalDarkTheme.current)
-                                    Primary().copy(alpha = 0.18f)
-                                else
-                                    Primary().copy(alpha = 0.10f),
-                                shadowElevation = 1.dp
-                            ) {
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        Icons.Outlined.FilterAlt, "分类筛选",
-                                        Modifier.size(20.dp), tint = Primary()
-                                    )
-                                }
-                            }
-
-                            DropdownMenu(
-                                expanded = showCategorySheet,
-                                onDismissRequest = { showCategorySheet = false },
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("全部物品") },
-                                    onClick = {
-                                        drawerCategoryFilter = null
-                                        showCategorySheet = false
-                                    },
-                                    leadingIcon = {
-                                        if (drawerCategoryFilter == null)
-                                            Icon(Icons.Rounded.Check, null, Modifier.size(18.dp), tint = Primary())
-                                    }
-                                )
-                                val viewModel: CategoryDrawerViewModel = hiltViewModel()
-                                val catState by viewModel.uiState.collectAsState()
-                                catState.categories.forEach { cat ->
-                                    val color = ChartColors[catState.categories.indexOf(cat) % ChartColors.size]
-                                    val selected = drawerCategoryFilter?.first == cat.id
-                                    DropdownMenuItem(
-                                        text = { Text(cat.name) },
-                                        onClick = {
-                                            drawerCategoryFilter = Pair(cat.id, cat.name)
-                                            showCategorySheet = false
-                                        },
-                                        leadingIcon = {
-                                            Surface(
-                                                Modifier.size(10.dp), RoundedCornerShape(5.dp), color = color
-                                            ) {}
-                                        },
-                                        trailingIcon = {
-                                            if (selected)
-                                                Icon(Icons.Rounded.Check, null, Modifier.size(16.dp), tint = Primary())
-                                        }
-                                    )
-                                }
-                            }
-                        }
                     }
 
-                    // v5.0 胶囊形 FAB（居中，简洁）
+                    // v5.0 胶囊形 FAB
                     Surface(
                         onClick = { navigate(Route.ADD) },
                         modifier = Modifier
@@ -358,20 +262,19 @@ fun MainScreen() {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
-                                    .width(72.dp)
+                                    .weight(1f)
                                     .clip(RoundedCornerShape(16.dp))
                                     .clickable { switchTab(index) }
-                                    .padding(vertical = 4.dp)
+                                    .padding(vertical = 8.dp)
                             ) {
-                                // v5.0: 选中态加圆形背景
                                 Box(
                                     modifier = Modifier
-                                        .size(if (selected) 36.dp else 28.dp)
+                                        .size(if (selected) 44.dp else 38.dp)
                                         .then(
                                             if (selected)
                                                 Modifier.background(
                                                     Primary().copy(alpha = 0.12f),
-                                                    RoundedCornerShape(12.dp)
+                                                    RoundedCornerShape(14.dp)
                                                 )
                                             else Modifier
                                         ),
@@ -380,14 +283,14 @@ fun MainScreen() {
                                     Icon(
                                         if (selected) tab.selectedIcon else tab.unselectedIcon,
                                         tab.label,
-                                        modifier = Modifier.size(18.dp),
+                                        modifier = Modifier.size(24.dp),
                                         tint = if (selected) Primary() else TextAuxiliary()
                                     )
                                 }
-                                Spacer(Modifier.height(2.dp))
+                                Spacer(Modifier.height(3.dp))
                                 Text(
                                     tab.label,
-                                    fontSize = 10.sp,
+                                    fontSize = 12.sp,
                                     color = if (selected) Primary() else TextAuxiliary(),
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )

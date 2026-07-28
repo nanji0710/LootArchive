@@ -172,7 +172,7 @@ private fun TrashItemCard(
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Surface(
                     onClick = onRestore,
                     shape = RoundedCornerShape(10.dp),
@@ -184,6 +184,7 @@ private fun TrashItemCard(
                         Text("还原", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary())
                     }
                 }
+                Spacer(Modifier.width(4.dp))
                 Surface(
                     onClick = onDelete,
                     shape = RoundedCornerShape(10.dp),

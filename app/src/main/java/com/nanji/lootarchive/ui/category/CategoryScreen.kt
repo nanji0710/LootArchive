@@ -186,7 +186,7 @@ private fun CategoryGridCard(
             Spacer(Modifier.height(4.dp))
             Text("$itemCount 件物品", fontSize = 12.sp, color = TextAuxiliary())
             Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.Center) {
                 IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Rounded.Edit, "编辑", tint = Primary(), modifier = Modifier.size(16.dp))
                 }

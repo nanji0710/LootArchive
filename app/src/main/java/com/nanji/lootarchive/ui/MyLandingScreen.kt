@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.nanji.lootarchive.ui.component.ClayCard
+import java.text.NumberFormat
+
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.ApkDownloadManager
 import com.nanji.lootarchive.util.UpdateChecker
@@ -55,6 +57,9 @@ fun MyLandingScreen(
 
     val downloader = remember { ApkDownloadManager(context) }
 
+    val homeVM: com.nanji.lootarchive.ui.home.HomeViewModel = hiltViewModel()
+    val homeState by homeVM.uiState.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
@@ -64,13 +69,13 @@ fun MyLandingScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (LocalDarkTheme.current) _CardDark else Color(0xFFFFF8F0)
+                containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    modifier = Modifier.size(72.dp),
+                    modifier = Modifier.size(68.dp),
                     shape = RoundedCornerShape(24.dp),
                     color = Primary().copy(alpha = 0.12f),
                     shadowElevation = 2.dp
@@ -83,7 +88,7 @@ fun MyLandingScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Icon(Icons.Rounded.Person, null, Modifier.size(38.dp), tint = Primary())
+                            Icon(Icons.Rounded.Person, null, Modifier.size(40.dp), tint = Primary())
                         }
                     }
                 }
@@ -122,7 +127,7 @@ fun MyLandingScreen(
                 Column(Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("🏆", fontSize = 28.sp)
                     Text("最贵物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp))
-                    Text("未统计", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Text(if (homeState.items.isNotEmpty()) "¥${NumberFormat.getNumberInstance().format(homeState.items.maxByOrNull { it.purchasePrice }?.purchasePrice ?: 0)}" else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
                 }
             }
             Card(
@@ -134,7 +139,7 @@ fun MyLandingScreen(
                 Column(Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("📅", fontSize = 28.sp)
                     Text("最老物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp))
-                    Text("未统计", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest?.purchaseDate!!)) + "年购入" } else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
                 }
             }
         }
@@ -178,7 +183,7 @@ fun MyLandingScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
