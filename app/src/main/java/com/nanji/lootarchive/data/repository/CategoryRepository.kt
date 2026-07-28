@@ -32,12 +32,12 @@ class CategoryRepository @Inject constructor(
     }
 
     /**
-     * 如果分类表为空，填充内置10大分类
-     */
-    /**
-     * 批量插入内置10大分类（INSERT OR IGNORE，已存在则跳过）
+     * 如果分类表为空则填充内置10大分类（仅首次运行）
      */
     suspend fun seedDefaultCategoriesIfEmpty() {
+        val count = categoryDao.getCount()
+        if (count > 0) return  // 已有分类，跳过
+
         val defaults = listOf(
             "食品饮料" to "restaurant",
             "药品保健" to "medical_services",

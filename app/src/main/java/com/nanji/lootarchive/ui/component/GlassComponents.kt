@@ -43,25 +43,25 @@ fun NeoCard(
 
     // 拟物双层阴影：亮面（左上）+ 暗面（右下）= 凸起深度
     val shadowColor = if (dark)
-        Color.Black.copy(alpha = 0.40f)
+        Color.Black.copy(alpha = 0.45f)
     else
-        Color.Black.copy(alpha = 0.07f)
+        Color.Black.copy(alpha = 0.10f)
 
     val highlightColor = if (dark)
-        Color.White.copy(alpha = 0.04f)
+        Color.White.copy(alpha = 0.05f)
     else
-        Color.White.copy(alpha = 0.90f)
+        Color.White.copy(alpha = 0.85f)
 
     Card(
         modifier = modifier
             .shadow(
-                elevation = 4.dp,
+                elevation = 6.dp,
                 shape = CardShape,
                 ambientColor = highlightColor,
                 spotColor = shadowColor
             )
             .shadow(
-                elevation = 1.dp,
+                elevation = 1.5.dp,
                 shape = CardShape,
                 ambientColor = highlightColor.copy(alpha = 0.5f),
                 spotColor = shadowColor.copy(alpha = 0.5f)

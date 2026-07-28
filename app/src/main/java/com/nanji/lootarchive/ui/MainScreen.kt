@@ -263,7 +263,7 @@ fun MainScreen() {
                         onClick = { navigate(Route.ADD) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 80.dp)
+                            .padding(bottom = 100.dp)
                             .size(56.dp),
                         shape = RoundedCornerShape(18.dp),
                         containerColor = Primary(),
@@ -297,9 +297,9 @@ fun MainScreen() {
                     hazeState = hazeState,
                     shape = RoundedCornerShape(22.dp),
                     containerColor = if (LocalDarkTheme.current)
-                        Color.Black.copy(alpha = 0.20f)
+                        Color.Black.copy(alpha = 0.28f)
                     else
-                        Color.White.copy(alpha = 0.28f),
+                        Color.White.copy(alpha = 0.35f),
                     borderColor = if (LocalDarkTheme.current)
                         Color.White.copy(alpha = 0.12f)
                     else
@@ -308,7 +308,7 @@ fun MainScreen() {
                     blurRadius = 20.dp
                 ) {
                     Row(
-                        Modifier.fillMaxWidth().height(50.dp),
+                        Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {

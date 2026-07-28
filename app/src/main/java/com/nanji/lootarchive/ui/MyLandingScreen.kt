@@ -133,7 +133,10 @@ fun MyLandingScreen(
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("发现新版本", fontWeight = FontWeight.Bold) },
             text = {
-                Column {
+                Column(
+                    Modifier.verticalScroll(rememberScrollState())
+                        .heightIn(max = 320.dp)
+                ) {
                     Text("版本：${updateInfo!!.versionName}", fontSize = 16.sp)
                     Spacer(Modifier.height(4.dp))
                     Text("更新日期：${updateInfo!!.updateDate}", fontSize = 14.sp, color = TextSecondary())

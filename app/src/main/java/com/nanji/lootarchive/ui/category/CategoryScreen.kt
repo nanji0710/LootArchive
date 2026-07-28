@@ -41,12 +41,13 @@ fun CategoryScreen(
             }
         }
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(18.dp)) {
+        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp)) {
+            Spacer(Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onNavigateBack) { Icon(Icons.Filled.ArrowBack, "返回", tint = TextPrimary()) }
                 Text("分类管理", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
             }
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
         if (uiState.categories.isEmpty() && !uiState.isLoading) {
             EmptyState(
                 icon = { Icon(Icons.Filled.Category, null, modifier = Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.5f)) },

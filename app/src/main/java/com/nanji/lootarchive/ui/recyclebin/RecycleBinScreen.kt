@@ -50,9 +50,9 @@ fun RecycleBinScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
         ) {
-            // 顶部栏
+            // 顶部栏（减少顶部间距）
             Row(
-                Modifier.fillMaxWidth().padding(top = 8.dp),
+                Modifier.fillMaxWidth().padding(top = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {

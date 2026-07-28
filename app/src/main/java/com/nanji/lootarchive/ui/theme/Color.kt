@@ -25,8 +25,8 @@ val _BackgroundDark = Color(0xFF1A1D23)     // 深灰蓝黑底
 val _SurfaceLight = Color(0xFFEEF0F4)       // 与背景同色 — 影子区分层级
 val _SurfaceDark = Color(0xFF242830)        // 比背景略亮
 
-val _CardLight = Color(0xFFF2F4F7)          // 卡片略亮于背景 — 微妙的层次
-val _CardDark = Color(0xFF2A2E36)
+val _CardLight = Color(0xFFF8F9FB)          // 卡片明显亮于背景 — 清晰层次
+val _CardDark = Color(0xFF2E323A)
 
 // ── 导航栏（略不透以保持可用性） ──
 val _NavGlassLight = Color(0xFFEEF0F4)
