@@ -2,6 +2,7 @@ package com.nanji.lootarchive.ui.statistics
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -105,17 +106,28 @@ fun StatisticsScreen(
                         if (md.isEmpty()) Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
                         else {
                             val mv = md.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
-                            // v5.0: taller chart area for readability
-                            Row(Modifier.fillMaxWidth().height(140.dp).padding(top = 20.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
+                            // 水平滚动：每个柱子固定48dp宽，确保所有月份标签完整显示
+                            Row(
+                                Modifier.fillMaxWidth().height(150.dp).padding(top = 20.dp)
+                                    .horizontalScroll(rememberScrollState()),
+                                verticalAlignment = Alignment.Bottom
+                            ) {
                                 md.forEachIndexed { i, (ym, t) ->
                                     val barH = ((t / mv) * 100).dp.coerceAtLeast(4.dp)
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.width(48.dp)
+                                    ) {
                                         Text(FormatUtil.formatPriceShort(t), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
                                         Spacer(Modifier.height(4.dp))
-                                        Surface(Modifier.width(22.dp).height(barH), shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp), color = ChartColors[i % ChartColors.size]) {}
+                                        Surface(Modifier.width(24.dp).height(barH), shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp), color = ChartColors[i % ChartColors.size]) {}
                                         Spacer(Modifier.height(6.dp))
                                         val pts = ym.split("-")
-                                        Text(if (pts.size == 2) "${pts[0].takeLast(2)}/${pts[1]}" else ym, fontSize = 9.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                        Text(
+                                            if (pts.size == 2) "${pts[0].takeLast(2)}/${pts[1]}" else ym,
+                                            fontSize = 10.sp, color = TextAuxiliary(), fontFamily = FredokaFont,
+                                            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
+                                        )
                                     }
                                 }
                             }
