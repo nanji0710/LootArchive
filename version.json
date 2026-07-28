@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.17",
-  "versionCode": 117,
+  "versionName": "3.2.18",
+  "versionCode": 118,
   "updateDate": "2026-07-28",
-  "updateLog": "1. 物品详情页图片居中铺满显示，保持比例",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.17/LootArchive-release-v3.2.17.apk"
+  "updateLog": "1. 详情页图片真正居中显示",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.18/LootArchive-release-v3.2.18.apk"
 }
