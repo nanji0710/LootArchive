@@ -201,4 +201,3 @@ fun HomeScreen(
         }, confirmButton = { TextButton(onClick = { showWarrantyDialog = false }) { Text("关闭", color = Primary()) } })
     }
 }
-	}
