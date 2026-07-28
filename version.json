@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.14",
-  "versionCode": 114,
-  "updateDate": "2026-07-27",
-  "updateLog": "1. 修复拍照照片不回传（session计数器）\n2. 新增闪光灯开关 + 点击对焦",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.14/LootArchive-release-v3.2.14.apk"
+  "versionName": "3.2.15",
+  "versionCode": 115,
+  "updateDate": "2026-07-28",
+  "updateLog": "1. 修复拍照照片不回传：PhotoQueue绕过Compose快照",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.15/LootArchive-release-v3.2.15.apk"
 }

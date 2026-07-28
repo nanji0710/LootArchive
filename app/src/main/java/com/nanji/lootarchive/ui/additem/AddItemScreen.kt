@@ -39,7 +39,6 @@ fun AddItemScreen(
     editItemId: Long? = null,
     onNavigateBack: () -> Unit,
     onNavigateToCamera: () -> Unit = {},
-    initialPhotoPaths: List<String> = emptyList(),
     photoSession: Int = 0,
     viewModel: AddItemViewModel = hiltViewModel()
 ) {
@@ -62,13 +61,11 @@ fun AddItemScreen(
         }
     }
 
-    // 处理从 CameraScreen 返回的照片路径
-    // 注意：不能用 initialPhotoPaths 做 key（Compose 组合时机问题），用 photoSession 计数器触发
-    var lastSession by remember { mutableIntStateOf(0) }
+    // 从 CameraScreen/相册返回的照片路径 — 通过 PhotoQueue 传递，绕过 Compose 快照限制
     LaunchedEffect(photoSession) {
-        if (photoSession > lastSession && initialPhotoPaths.isNotEmpty()) {
-            initialPhotoPaths.forEach { path -> viewModel.addPhotoPath(path) }
-            lastSession = photoSession
+        if (photoSession > 0) {
+            val paths = com.nanji.lootarchive.util.PhotoQueue.consume()
+            paths.forEach { path -> viewModel.addPhotoPath(path) }
         }
     }
 

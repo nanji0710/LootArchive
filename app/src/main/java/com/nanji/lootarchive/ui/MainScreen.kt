@@ -39,6 +39,7 @@ import com.nanji.lootarchive.ui.theme.LocalDarkTheme
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
 import com.nanji.lootarchive.ui.theme.TextPrimary
+import com.nanji.lootarchive.util.PhotoQueue
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.hazeEffect
@@ -61,7 +62,6 @@ fun MainScreen() {
     var editItemId by remember { mutableStateOf<Long?>(null) }
 
     val mainContext = LocalContext.current
-    var cameraPhotoPaths by remember { mutableStateOf<List<String>>(emptyList()) }
     var cameraSession by remember { mutableIntStateOf(0) }
 
     val settingsVM: com.nanji.lootarchive.ui.settings.SettingsViewModel = hiltViewModel()
@@ -157,7 +157,6 @@ fun MainScreen() {
                             editItemId = editItemId,
                             onNavigateBack = { editItemId = null; goBack() },
                             onNavigateToCamera = { navigate(Route.CAMERA) },
-                            initialPhotoPaths = cameraPhotoPaths,
                             photoSession = cameraSession
                         )
                         Route.DETAIL -> DetailScreen(itemId=detailItemId, onNavigateBack={goBack()}, onNavigateToEdit={navigate(Route.ADD, it)})
@@ -169,7 +168,7 @@ fun MainScreen() {
                         Route.CAMERA -> CameraScreen(
                             onBack = { goBack() },
                             onPhotoTaken = { paths ->
-                                cameraPhotoPaths = paths
+                                PhotoQueue.enqueue(paths)
                                 cameraSession++
                                 goBack()
                             }
