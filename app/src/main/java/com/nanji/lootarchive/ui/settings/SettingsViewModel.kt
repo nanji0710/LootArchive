@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import javax.inject.Inject
 
 data class SettingsUiState(
@@ -76,7 +75,6 @@ class SettingsViewModel @Inject constructor(
                     avatarUri = avatarUri,
                     appName = appName,
                     trashItemCount = trashCount,
-                    // 保留缓存相关字段，避免被流覆盖
                     cacheSize = current.cacheSize,
                     cacheSizeFormatted = current.cacheSizeFormatted,
                     isCalculatingCache = current.isCalculatingCache,
@@ -148,10 +146,11 @@ class SettingsViewModel @Inject constructor(
             _uiState.update { it.copy(isCalculatingCache = true) }
             try {
                 val size = withContext(Dispatchers.IO) {
-                    dirSize(app.cacheDir) + dirSize(app.codeCacheDir)
+                    dirSizeSafe(app.cacheDir) + dirSizeSafe(app.codeCacheDir)
                 }
                 _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = FormatUtil.formatSize(size), isCalculatingCache = false) }
             } catch (e: Exception) {
+                android.util.Log.e("SettingsVM", "计算缓存失败", e)
                 _uiState.update { it.copy(cacheSizeFormatted = "无法获取", isCalculatingCache = false) }
             }
         }
@@ -162,16 +161,14 @@ class SettingsViewModel @Inject constructor(
             _uiState.update { it.copy(isClearing = true) }
             try {
                 withContext(Dispatchers.IO) {
-                    // 仅清除缓存目录（cacheDir + codeCacheDir），不影响数据库/preferences/filesDir
                     listOf(app.cacheDir, app.codeCacheDir).forEach { dir ->
                         dir.listFiles()?.forEach { f ->
                             if (f.isDirectory) f.deleteRecursively() else f.delete()
                         }
                     }
                 }
-                // 重新计算清除后的缓存大小
                 val size = withContext(Dispatchers.IO) {
-                    dirSize(app.cacheDir) + dirSize(app.codeCacheDir)
+                    dirSizeSafe(app.cacheDir) + dirSizeSafe(app.codeCacheDir)
                 }
                 _uiState.update { it.copy(cacheSize = size, cacheSizeFormatted = FormatUtil.formatSize(size), isClearing = false, message = "缓存已清除") }
             } catch (e: Exception) {
@@ -180,13 +177,26 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun dirSize(dir: java.io.File): Long {
+    // 手动递归遍历替代 walkTopDown，避免 java.nio.file.Files.walk 在 Android 上的兼容性问题
+    private fun dirSizeSafe(dir: java.io.File): Long {
         if (!dir.exists()) return 0L
-        return dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+        var total = 0L
+        val stack = ArrayDeque<java.io.File>()
+        stack.add(dir)
+        while (stack.isNotEmpty()) {
+            val current = stack.removeLast()
+            val children = try { current.listFiles() } catch (_: Exception) { null } ?: continue
+            for (child in children) {
+                try {
+                    if (child.isFile) total += child.length()
+                    else if (child.isDirectory) stack.add(child)
+                } catch (_: Exception) {}
+            }
+        }
+        return total
     }
 
     fun clearMessage() {
         _uiState.update { it.copy(message = null) }
     }
-
 }

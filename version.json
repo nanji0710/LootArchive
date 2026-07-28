@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.19",
-  "versionCode": 119,
+  "versionName": "3.2.20",
+  "versionCode": 120,
   "updateDate": "2026-07-28",
-  "updateLog": "1. 详情页图片背景毛玻璃效果，不再纯黑",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.19/LootArchive-release-v3.2.19.apk"
+  "updateLog": "1. 修复缓存大小始终显示0B",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.20/LootArchive-release-v3.2.20.apk"
 }
