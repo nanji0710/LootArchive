@@ -218,9 +218,9 @@ fun MainScreen() {
                             modifier = Modifier.weight(1f).height(42.dp),
                             shape = RoundedCornerShape(21.dp),
                             color = if (LocalDarkTheme.current)
-                                Color.White.copy(alpha = 0.10f)
+                                Color.White.copy(alpha = 0.14f)
                             else
-                                Color.Black.copy(alpha = 0.04f)
+                                Color.Black.copy(alpha = 0.08f)
                         ) {
                             Row(
                                 Modifier.fillMaxSize().padding(horizontal = 14.dp),
@@ -297,9 +297,9 @@ fun MainScreen() {
                     hazeState = hazeState,
                     shape = RoundedCornerShape(22.dp),
                     containerColor = if (LocalDarkTheme.current)
-                        Color.Black.copy(alpha = 0.28f)
+                        Color.Black.copy(alpha = 0.38f)
                     else
-                        Color.White.copy(alpha = 0.35f),
+                        Color.White.copy(alpha = 0.45f),
                     borderColor = if (LocalDarkTheme.current)
                         Color.White.copy(alpha = 0.12f)
                     else
@@ -319,31 +319,18 @@ fun MainScreen() {
                                 modifier = Modifier
                                     .width(72.dp)
                                     .clickable { switchTab(index) }
-                                    .padding(vertical = 4.dp)
+                                    .padding(vertical = 2.dp)
                             ) {
-                                // 选中态：顶部小指示线
-                                if (selected) {
-                                    Box(
-                                        Modifier
-                                            .width(20.dp)
-                                            .height(3.dp)
-                                            .background(Primary(), RoundedCornerShape(1.5.dp))
-                                    )
-                                    Spacer(Modifier.height(6.dp))
-                                } else {
-                                    Spacer(Modifier.height(9.dp))
-                                }
-
                                 Icon(
                                     if (selected) tab.selectedIcon else tab.unselectedIcon,
                                     tab.label,
-                                    modifier = Modifier.size(22.dp),
+                                    modifier = Modifier.size(20.dp),
                                     tint = if (selected) Primary() else TextAuxiliary()
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
                                     tab.label,
-                                    fontSize = 11.sp,
+                                    fontSize = 10.sp,
                                     color = if (selected) Primary() else TextAuxiliary(),
                                     fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
                                 )

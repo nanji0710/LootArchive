@@ -121,8 +121,11 @@ fun MyLandingScreen(
         ClayCard(modifier = Modifier.fillMaxWidth()) {
             Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
             Spacer(Modifier.height(4.dp))
-            Text("当前版本 v4.0.0", fontSize = 13.sp, color = TextAuxiliary())
+            Text("当前版本 v4.0.2", fontSize = 13.sp, color = TextAuxiliary())
         }
+
+        // 底部留空，避免被导航栏遮挡
+        Spacer(Modifier.height(100.dp))
     }
 
     // 更新弹窗
@@ -175,7 +178,7 @@ fun MyLandingScreen(
             shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本") },
-            text = { Text("当前已是最新版本 v4.0.0") },
+            text = { Text("当前已是最新版本 v4.0.2") },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的") } }
         )
     }

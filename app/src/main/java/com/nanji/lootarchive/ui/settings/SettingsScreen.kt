@@ -90,12 +90,18 @@ fun SettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = TextAuxiliary().copy(alpha = 0.12f))
                 // 自定义头像
                 Row(
-                    Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(vertical = 12.dp),
+                    Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("自定义头像", fontSize = 16.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                     if (uiState.avatarUri.isNotEmpty()) {
-                        Text("已设置", fontSize = 13.sp, color = TextAuxiliary())
+                        Surface(
+                            onClick = { viewModel.setAvatarUri("") },
+                            shape = RoundedCornerShape(8.dp),
+                            color = Primary().copy(alpha = 0.1f)
+                        ) {
+                            Text("还原", fontSize = 12.sp, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                        }
                         Spacer(Modifier.width(8.dp))
                     }
                     Icon(Icons.Filled.ChevronRight, null, tint = TextAuxiliary())
@@ -159,7 +165,7 @@ fun SettingsScreen(
             ClayCard(modifier = Modifier.fillMaxWidth()) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v4.0.0", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v4.0.2", fontSize = 13.sp, color = TextAuxiliary())
             }
 
             Spacer(Modifier.height(24.dp))

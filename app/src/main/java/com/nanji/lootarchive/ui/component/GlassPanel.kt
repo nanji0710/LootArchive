@@ -34,7 +34,7 @@ fun GlassPanel(
     modifier: Modifier = Modifier,
     hazeState: HazeState,
     shape: Shape = RoundedCornerShape(20.dp),
-    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
     containerColor: Color = Color(0xFFEEF0F4),
     borderColor: Color = Color.White.copy(alpha = 0.65f),
     shadowElevation: Dp = 10.dp,

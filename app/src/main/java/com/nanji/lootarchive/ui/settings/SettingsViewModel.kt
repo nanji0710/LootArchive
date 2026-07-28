@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.util.FormatUtil
-import com.nanji.lootarchive.util.Quad
-import com.nanji.lootarchive.util.Sextet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -44,45 +42,50 @@ class SettingsViewModel @Inject constructor(
 
     init {
         calculateCacheSize()
+        // 监听设置变更，使用 update{} 避免覆盖缓存/消息等独立状态
         viewModelScope.launch {
-            combine(
-                combine(
-                    settingsRepository.currency,
-                    settingsRepository.warrantyReminderDays,
-                    settingsRepository.backupReminderEnabled,
-                    settingsRepository.backupReminderDay,
-                    settingsRepository.themeMode
-                ) { currency, reminderDays, backupEnabled, backupDay, theme ->
-                    Sextet(currency, reminderDays, backupEnabled, backupDay, theme, Unit)
-                },
-                combine(
-                    settingsRepository.appName,
-                    itemRepository.getDeletedItems(),
-                    settingsRepository.primaryColor,
-                    settingsRepository.avatarUri
-                ) { appName, deletedItems, primaryColor, avatarUri ->
-                    Quad(appName, deletedItems.size, primaryColor, avatarUri)
-                }
-            ) { sextet, (appName, trashCount, primaryColor, avatarUri) ->
-                val current = _uiState.value
-                SettingsUiState(
-                    currency = sextet.first,
-                    warrantyReminderDays = sextet.second,
-                    backupReminderEnabled = sextet.third,
-                    backupReminderDay = sextet.fourth,
-                    themeMode = sextet.fifth,
-                    primaryColor = primaryColor,
-                    avatarUri = avatarUri,
-                    appName = appName,
-                    trashItemCount = trashCount,
-                    cacheSize = current.cacheSize,
-                    cacheSizeFormatted = current.cacheSizeFormatted,
-                    isCalculatingCache = current.isCalculatingCache,
-                    isClearing = current.isClearing,
-                    message = current.message
-                )
-            }.collect { state ->
-                _uiState.value = state
+            settingsRepository.themeMode.collect { mode ->
+                _uiState.update { it.copy(themeMode = mode) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.warrantyReminderDays.collect { days ->
+                _uiState.update { it.copy(warrantyReminderDays = days) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.currency.collect { currency ->
+                _uiState.update { it.copy(currency = currency) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.backupReminderEnabled.collect { enabled ->
+                _uiState.update { it.copy(backupReminderEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.backupReminderDay.collect { day ->
+                _uiState.update { it.copy(backupReminderDay = day) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.appName.collect { name ->
+                _uiState.update { it.copy(appName = name) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.primaryColor.collect { color ->
+                _uiState.update { it.copy(primaryColor = color) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.avatarUri.collect { uri ->
+                _uiState.update { it.copy(avatarUri = uri) }
+            }
+        }
+        viewModelScope.launch {
+            itemRepository.getDeletedItems().collect { deleted ->
+                _uiState.update { it.copy(trashItemCount = deleted.size) }
             }
         }
     }
@@ -177,7 +180,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    // 手动递归遍历替代 walkTopDown，避免 java.nio.file.Files.walk 在 Android 上的兼容性问题
     private fun dirSizeSafe(dir: java.io.File): Long {
         if (!dir.exists()) return 0L
         var total = 0L

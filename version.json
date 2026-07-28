@@ -1,7 +1,7 @@
 {
-  "versionName": "4.0.1",
-  "versionCode": 401,
+  "versionName": "4.0.2",
+  "versionCode": 402,
   "updateDate": "2026-07-28",
-  "updateLog": "🔧 修复 7 个界面细节问题，体验更顺畅\n\n• 底部导航栏文字不再被裁切，图标和文字完整显示\n• 更新日志弹窗内容太长时现在可以上下滑动了\n• 卡片与背景颜色区分更明显，层次更清晰\n• 修正分类列表出现重复条目的问题\n• 分类管理、备份恢复、回收站页面顶部不留大片空白\n• 底部导航栏轻微增加不透明度，视觉效果更好\n• 首页新增按钮不再与底部导航栏重叠",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.1/LootArchive-release-v4.0.1.apk"
+  "updateLog": "🔧 修复 7 个界面细节问题，体验更顺畅\n\n• 底部导航栏更紧凑，去掉多余装饰线，视觉更清爽\n• 「我的」页面可正常滑动，底部版本号不再被遮挡\n• 自定义头像支持一键还原为默认头像\n• 修复设置页缓存大小始终显示为零的问题\n• 版本号在各页面显示一致\n• 首页搜索框更显眼，方便快速找到\n• 底部导航栏更通透，毛玻璃质感更明显",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V4.0.2/LootArchive-release-v4.0.2.apk"
 }
