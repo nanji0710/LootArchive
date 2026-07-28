@@ -61,7 +61,7 @@ class StatisticsViewModel @Inject constructor(
                 val summaries = categories.map { cat ->
                     val catItems = filteredItems.filter { it.categoryId == cat.id }
                     CategorySummary(cat, catItems.size, catItems.sumOf { it.purchasePrice })
-                }
+                }.filter { it.totalValue > 0 } // 只展示有金额的分类
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = filteredItems.size,
