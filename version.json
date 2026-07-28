@@ -1,7 +1,7 @@
 {
-  "versionName": "3.2.13",
-  "versionCode": 113,
+  "versionName": "3.2.14",
+  "versionCode": 114,
   "updateDate": "2026-07-27",
   "updateLog": "1. 修复拍照照片不回传（session计数器）\n2. 新增闪光灯开关 + 点击对焦",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.13/LootArchive-release-v3.2.13.apk"
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V3.2.14/LootArchive-release-v3.2.14.apk"
 }
