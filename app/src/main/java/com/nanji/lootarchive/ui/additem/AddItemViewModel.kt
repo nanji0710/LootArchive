@@ -39,8 +39,7 @@ data class AddItemUiState(
 @HiltViewModel
 class AddItemViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
-    private val categoryRepository: CategoryRepository,
-    private val expService: com.nanji.lootarchive.data.ExpService? = null
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddItemUiState())
@@ -260,9 +259,6 @@ class AddItemViewModel @Inject constructor(
                 }
 
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
-                if (editingItemId == null) {
-                    expService?.recordAddItem(savedId, price, state.description.isNotBlank(), state.photoPaths.size)
-                }
                 formInitialized = false  // 允许下次新增物品时重新初始化表单
             } catch (e: Exception) {
                 _uiState.update {
