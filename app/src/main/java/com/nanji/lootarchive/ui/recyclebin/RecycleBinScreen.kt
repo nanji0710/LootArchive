@@ -165,10 +165,12 @@ private fun TrashItemCard(
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.Medium)
-                    Spacer(Modifier.width(10.dp))
+                    Spacer(Modifier.width(8.dp))
                     Text(
                         item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: "",
-                        fontSize = 11.sp, color = TextAuxiliary()
+                        fontSize = 11.sp, color = TextAuxiliary(),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                 }
             }
