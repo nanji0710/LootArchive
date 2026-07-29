@@ -13,8 +13,11 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import android.content.Intent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -193,6 +196,77 @@ fun StatisticsScreen(
                         }
                     }
                 }
+                // ── v5.4 标签资产分布 ──
+                val tagData = uiState.items
+                    .flatMap { item -> item.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }.map { it to item.purchasePrice } }
+                    .groupBy { it.first }
+                    .mapValues { e -> e.value.sumOf { it.second } }
+                    .entries.sortedByDescending { it.value }.take(8)
+                if (tagData.isNotEmpty()) {
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                        Column(Modifier.padding(CardPadding)) {
+                            Text("标签资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                            Spacer(Modifier.height(12.dp))
+                            val maxTagVal = tagData.maxOf { it.value }.coerceAtLeast(1.0)
+                            tagData.forEachIndexed { i, (tag, value) ->
+                                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(tag, fontSize = 12.sp, color = TextPrimary(), modifier = Modifier.width(56.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Spacer(Modifier.width(8.dp))
+                                    Box(Modifier.weight(1f).height(18.dp).clip(RoundedCornerShape(6.dp)).background(TextAuxiliary().copy(alpha = 0.08f))) {
+                                        Box(Modifier.fillMaxHeight().width(((value / maxTagVal) * 200).dp.coerceAtLeast(4.dp)).clip(RoundedCornerShape(6.dp)).background(ChartColors[i % ChartColors.size]))
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("¥${numberFormat.format(value)}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── v5.4 导出CSV ──
+                val context = LocalContext.current
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                    Column(Modifier.padding(CardPadding)) {
+                        Text("数据导出", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                        Spacer(Modifier.height(12.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Button(
+                                onClick = {
+                                    val csv = buildString {
+                                        appendLine("名称,分类,价格,位置,购入日期,状态,标签")
+                                        uiState.items.forEach { item ->
+                                            val cat = uiState.categorySummaries.find { it.category.id == item.categoryId }?.category?.name ?: "未知"
+                                            val date = item.purchaseDate?.let { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: ""
+                                            appendLine("${item.name},$cat,${item.purchasePrice},${item.storageLocation},$date,${item.status},${item.tags}")
+                                        }
+                                    }
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                        type = "text/csv"
+                                        putExtra(android.content.Intent.EXTRA_TEXT, csv)
+                                        putExtra(android.content.Intent.EXTRA_SUBJECT, "物品资产导出_${java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(java.util.Date())}.csv")
+                                    }
+                                    context.startActivity(android.content.Intent.createChooser(intent, "导出资产数据"))
+                                },
+                                modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Primary())
+                            ) {
+                                Icon(Icons.Rounded.FileDownload, null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("分享CSV", fontWeight = FontWeight.Medium)
+                            }
+                            OutlinedButton(
+                                onClick = { /* 预留PDF导出 */ },
+                                modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
+                                enabled = false
+                            ) {
+                                Icon(Icons.Rounded.PictureAsPdf, null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("PDF报告")
+                            }
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(100.dp))
             }
         }
