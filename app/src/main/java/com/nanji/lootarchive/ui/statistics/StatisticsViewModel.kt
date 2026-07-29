@@ -82,6 +82,7 @@ class StatisticsViewModel @Inject constructor(
     fun setTimeFilter(filter: String) {
         _uiState.update { it.copy(isLoading = true) }
         _timeFilter.value = filter
+        _refreshCounter.value++ // 防止重复点击同一按钮导致 loading 卡死
     }
 
     fun selectCategorySummary(summary: CategorySummary) {
