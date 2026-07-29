@@ -55,11 +55,22 @@ fun MyLandingScreen(
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(ApkDownloadManager.Progress()) }
     var downloadError by remember { mutableStateOf<String?>(null) }
+    var showLevelDialog by remember { mutableStateOf(false) }
 
     val downloader = remember { ApkDownloadManager(context) }
 
     val homeVM: com.nanji.lootarchive.ui.home.HomeViewModel = hiltViewModel()
     val homeState by homeVM.uiState.collectAsState()
+    val collectorLevel = remember(homeState.totalCount, homeState.totalValue) {
+        when {
+            homeState.totalCount >= 100 || homeState.totalValue >= 500_000 -> "🌟🌟🌟🌟🌟"
+            homeState.totalCount >= 50 || homeState.totalValue >= 100_000 -> "🌟🌟🌟🌟"
+            homeState.totalCount >= 20 || homeState.totalValue >= 10_000 -> "🌟🌟🌟"
+            homeState.totalCount >= 5 -> "🌟🌟"
+            homeState.totalCount > 0 -> "🌟"
+            else -> ""
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
@@ -102,16 +113,19 @@ fun MyLandingScreen(
                     Spacer(Modifier.height(2.dp))
                     Text("你的私人物品资产管理工具", fontSize = 13.sp, color = TextAuxiliary())
                     Spacer(Modifier.height(4.dp))
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Primary().copy(alpha = 0.10f)
-                    ) {
-                        Text(
-                            "收藏家等级 🌟🌟🌟",
-                            fontSize = 11.sp, fontWeight = FontWeight.Medium,
-                            color = Primary(),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
-                        )
+                    if (collectorLevel.isNotEmpty()) {
+                        Surface(
+                            onClick = { showLevelDialog = true },
+                            shape = RoundedCornerShape(12.dp),
+                            color = Primary().copy(alpha = 0.10f)
+                        ) {
+                            Text(
+                                "收藏家等级 $collectorLevel",
+                                fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                color = Primary(),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -189,7 +203,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.1.0", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v5.0.8", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -243,7 +257,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.1.0", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v5.0.8", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
@@ -307,6 +321,32 @@ fun MyLandingScreen(
             confirmButton = { TextButton(onClick = { downloadError = null }) { Text("确定", color = Primary()) } }
         )
     }
+
+    if (showLevelDialog) {
+        AlertDialog(
+            onDismissRequest = { showLevelDialog = false },
+            shape = RoundedCornerShape(28.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text("收藏家等级说明", fontWeight = FontWeight.Bold, color = TextPrimary()) },
+            text = {
+                Column {
+                    Text("当前进度", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Spacer(Modifier.height(8.dp))
+                    Text("物品数量：${homeState.totalCount} 件", fontSize = 14.sp, color = TextPrimary())
+                    Text("资产总值：¥${java.text.NumberFormat.getNumberInstance().format(homeState.totalValue)}", fontSize = 14.sp, color = TextPrimary())
+                    Spacer(Modifier.height(12.dp))
+                    Text("等级规则", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Spacer(Modifier.height(6.dp))
+                    LevelRule("🌟", "登记 1 件以上物品")
+                    LevelRule("🌟🌟", "登记 5 件以上物品")
+                    LevelRule("🌟🌟🌟", "登记 20 件以上，或总资产过万")
+                    LevelRule("🌟🌟🌟🌟", "登记 50 件以上，或总资产过十万")
+                    LevelRule("🌟🌟🌟🌟🌟", "登记 100 件以上，或总资产过五十万")
+                }
+            },
+            confirmButton = { TextButton(onClick = { showLevelDialog = false }) { Text("知道了", color = Primary()) } }
+        )
+    }
 }
 
 @Composable
@@ -328,5 +368,14 @@ private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onCli
             }
             Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
         }
+    }
+}
+
+@Composable
+private fun LevelRule(level: String, condition: String) {
+    Row(modifier = Modifier.padding(vertical = 3.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(level, fontSize = 14.sp)
+        Spacer(Modifier.width(8.dp))
+        Text(condition, fontSize = 13.sp, color = TextSecondary())
     }
 }

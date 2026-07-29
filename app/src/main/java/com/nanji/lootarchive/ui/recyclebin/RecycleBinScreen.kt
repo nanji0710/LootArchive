@@ -157,32 +157,33 @@ private fun TrashItemCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 左：名称 + 金额（同一行）
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.name, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.Medium)
+                    Text(item.name, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     Spacer(Modifier.width(8.dp))
-                    Text(
-                        item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: "",
-                        fontSize = 11.sp, color = TextAuxiliary(),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
+                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.SemiBold)
                 }
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: "",
+                    fontSize = 11.sp, color = TextAuxiliary(),
+                    maxLines = 1
+                )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // 右：还原 + 删除按钮
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(
                     onClick = onRestore,
                     shape = RoundedCornerShape(10.dp),
                     color = Primary().copy(alpha = 0.10f)
                 ) {
-                    Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Restore, "还原", tint = Primary(), modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(4.dp))
+                        Spacer(Modifier.width(3.dp))
                         Text("还原", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary())
                     }
                 }

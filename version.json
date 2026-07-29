@@ -1,7 +1,7 @@
 {
-  "versionName": "5.1.0",
-  "versionCode": 511,
+  "versionName": "5.1.1",
+  "versionCode": 512,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.1.0\n• 回收站删除时间不再换行显示\n\nv5.0.9\n• 月度趋势柱子自动居中，数量多时横向滚动\n• 时间筛选按钮反复点击不再加载卡死\n• 导航栏更矮更轻量，新增按钮不再被遮挡\n• 版本号显示全部统一",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.1.0/LootArchive-release-v5.1.0.apk"
+  "updateLog": "v5.1.1\n• 回收站布局优化：物品名称和金额同行，删除时间单行完整显示\n• 收藏家等级动态计算，点击可查看等级规则和当前进度\n\nv5.1.0\n• 回收站删除时间不再换行显示",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.1.1/LootArchive-release-v5.1.1.apk"
 }
