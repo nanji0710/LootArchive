@@ -175,83 +175,68 @@ fun MainScreen() {
                         )
                     }
                 }
+                } // close CompositionLocalProvider
+            } // close hazeSource Box
 
-                // ── v5.0 首页：Hero 搜索栏 + 分类入口 + 胶囊FAB ──
-                if (isHome) {
-                    // 顶部搜索栏（玻璃模糊效果）
-                    val hs = LocalHazeState.current
-                    val dark = LocalDarkTheme.current
-                    val searchGlassColor = if (dark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.55f)
-                    val searchGlassStyle = HazeStyle(
-                        backgroundColor = Color.Transparent,
-                        tints = listOf(
-                            HazeTint(searchGlassColor),
-                            HazeTint(if (dark) Color.White.copy(alpha = 0.02f) else Color.White.copy(alpha = 0.06f))
-                        ),
-                        blurRadius = 20.dp,
-                        noiseFactor = 0f,
-                        fallbackTint = HazeTint(searchGlassColor)
-                    )
+            // ── v5.1.4 首页悬浮搜索栏（Haze 玻璃模糊，在 hazeSource 之上）──
+            if (isHome) {
+                val dark = LocalDarkTheme.current
+                val searchGlassColor = if (dark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.55f)
+                val searchGlassStyle = HazeStyle(
+                    backgroundColor = Color.Transparent,
+                    tints = listOf(
+                        HazeTint(searchGlassColor),
+                        HazeTint(if (dark) Color.White.copy(alpha = 0.02f) else Color.White.copy(alpha = 0.06f))
+                    ),
+                    blurRadius = 20.dp,
+                    noiseFactor = 0f,
+                    fallbackTint = HazeTint(searchGlassColor)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .height(44.dp)
+                        .shadow(
+                            elevation = 4.dp,
+                            shape = RoundedCornerShape(22.dp),
+                            ambientColor = if (dark) Color.Black.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.04f),
+                            spotColor = if (dark) Color.Black.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.04f)
+                        )
+                        .clip(RoundedCornerShape(22.dp))
+                        .hazeEffect(state = hazeState, style = searchGlassStyle)
+                        .clickable { navigate(Route.SEARCH) }
+                ) {
                     Row(
-                        Modifier.fillMaxWidth().align(Alignment.TopCenter)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        Modifier.fillMaxSize().padding(horizontal = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(44.dp)
-                                .shadow(
-                                    elevation = 4.dp,
-                                    shape = RoundedCornerShape(22.dp),
-                                    ambientColor = if (dark) Color.Black.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.04f),
-                                    spotColor = if (dark) Color.Black.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.04f)
-                                )
-                                .clip(RoundedCornerShape(22.dp))
-                                .then(if (hs != null) Modifier.hazeEffect(state = hs, style = searchGlassStyle) else Modifier.background(searchGlassColor))
-                                .clickable { navigate(Route.SEARCH) }
-                        ) {
-                            Row(
-                                Modifier.fillMaxSize().padding(horizontal = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Search, "搜索",
-                                    Modifier.size(18.dp), tint = TextAuxiliary()
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    "搜索物品...",
-                                    fontSize = 14.sp,
-                                    color = TextAuxiliary()
-                                )
-                            }
-                        }
+                        Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
+                        Spacer(Modifier.width(8.dp))
+                        Text("搜索物品...", fontSize = 14.sp, color = TextAuxiliary())
                     }
+                }
 
-                    // v5.1.4 胶囊形 FAB（缩小版）
-                    Surface(
-                        onClick = { navigate(Route.ADD) },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 90.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        color = Primary(),
-                        shadowElevation = 6.dp
+                // v5.1.4 胶囊形 FAB（缩小版）
+                Surface(
+                    onClick = { navigate(Route.ADD) },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 90.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = Primary(),
+                    shadowElevation = 6.dp
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Color.White)
-                            Spacer(Modifier.width(4.dp))
-                            Text("新增物品", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                        }
+                        Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Color.White)
+                        Spacer(Modifier.width(4.dp))
+                        Text("新增物品", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
-                }
-
-            } // close CompositionLocalProvider
+            }
 
             // ── v5.0 浮动胶囊式底部导航 ──
             if (!isSubPage) {
