@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,12 +31,18 @@ class MyLandingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            userProfileDao.getProfile().collect { profile ->
+            userProfileDao.getProfile().catch { e ->
+                android.util.Log.e("MyLandingVM", "profile flow error", e)
+                emit(null)
+            }.collect { profile ->
                 _uiState.value = _uiState.value.copy(profile = profile, isLoading = false)
             }
         }
         viewModelScope.launch {
-            achievementDao.getAllAchievements().collect { achievements ->
+            achievementDao.getAllAchievements().catch { e ->
+                android.util.Log.e("MyLandingVM", "achievements flow error", e)
+                emit(emptyList())
+            }.collect { achievements ->
                 _uiState.value = _uiState.value.copy(achievements = achievements)
             }
         }

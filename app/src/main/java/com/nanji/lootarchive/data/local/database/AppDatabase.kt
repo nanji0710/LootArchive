@@ -77,6 +77,7 @@ abstract class AppDatabase : RoomDatabase() {
                         createdAt INTEGER NOT NULL DEFAULT 0
                     )
                 """)
+                try {
                 val now = System.currentTimeMillis()
                 // Seed 13 achievements
                 val achs = listOf(
@@ -98,6 +99,9 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL("INSERT OR IGNORE INTO achievements (`key`,title,description,category,target) VALUES ('${a[0]}','${a[1]}','${a[2]}','${a[3]}',${a[4]})")
                 }
                 db.execSQL("INSERT OR IGNORE INTO user_profile (id,exp,level) VALUES (1,0,1)")
+                } catch (_: Exception) {
+                    // 种子数据插入失败不影响数据库升级
+                }
             }
         }
     }

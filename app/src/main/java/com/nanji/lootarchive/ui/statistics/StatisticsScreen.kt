@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.component.RadarAxis
+import com.nanji.lootarchive.ui.component.RadarChart
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.FormatUtil
 import java.text.NumberFormat
@@ -94,6 +96,41 @@ fun StatisticsScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                         uiState.categorySummaries.forEachIndexed { i, s -> Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.width(10.dp)); Text(s.category.name, fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(s.totalValue)}", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (uiState.totalValue > 0) (s.totalValue / uiState.totalValue * 100).toInt() else 0}%", fontSize = 11.sp, color = TextAuxiliary(), fontFamily = FredokaFont) } }
+                    }
+                }
+
+                // ── v5.4 分类多维雷达图 ──
+                val topSums = uiState.categorySummaries.take(5)
+                if (topSums.size >= 2) {
+                    val maxV = topSums.maxOf { it.totalValue }.toFloat().coerceAtLeast(1f)
+                    val radarAxes = topSums.map { cs ->
+                        RadarAxis(cs.category.name.take(4), cs.totalValue.toFloat(), maxV)
+                    }
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                        Column(Modifier.padding(CardPadding)) {
+                            Text("分类多维对比", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                            Spacer(Modifier.height(12.dp))
+                            RadarChart(radarAxes, Modifier.fillMaxWidth(), sizeDp = 240f)
+                        }
+                    }
+                }
+
+                // ── v5.4 资产净值趋势折线图 ──
+                val trendPoints = uiState.items
+                    .filter { it.purchaseDate != null }
+                    .groupBy { java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }
+                    .mapValues { it.value.sumOf { i -> i.purchasePrice } }
+                    .toList()
+                    .sortedBy { it.first }
+                    .takeLast(8)
+                    .map { (label, value) -> com.nanji.lootarchive.ui.component.TrendPoint(label.takeLast(7), value) }
+                if (trendPoints.size >= 2) {
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                        Column(Modifier.padding(CardPadding)) {
+                            Text("资产净值趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                            Spacer(Modifier.height(8.dp))
+                            com.nanji.lootarchive.ui.component.TrendLineChart(trendPoints, Modifier.fillMaxWidth(), sizeDp = 200f)
+                        }
                     }
                 }
 
