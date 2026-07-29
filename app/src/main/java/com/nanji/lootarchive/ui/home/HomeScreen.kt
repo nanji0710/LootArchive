@@ -92,7 +92,7 @@ fun HomeScreen(
                     Column {
                         Text("全部资产", fontSize = 13.sp, color = TextAuxiliary())
                         Spacer(Modifier.height(4.dp))
-                        Text(FormatUtil.formatPriceShort(animValue.toDouble()), fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+                        Text("¥${numberFormat.format(animValue)}", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
                         Spacer(Modifier.height(14.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(Primary().copy(alpha = 0.06f)).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {

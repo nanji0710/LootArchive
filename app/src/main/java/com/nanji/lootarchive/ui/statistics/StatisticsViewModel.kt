@@ -62,10 +62,11 @@ class StatisticsViewModel @Inject constructor(
                     val catItems = filteredItems.filter { it.categoryId == cat.id }
                     CategorySummary(cat, catItems.size, catItems.sumOf { it.purchasePrice })
                 }.filter { it.totalValue > 0 } // 只展示有金额的分类
+                val filteredTotalValue = filteredItems.sumOf { it.purchasePrice }
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = filteredItems.size,
-                    totalValue = totalValue,
+                    totalValue = filteredTotalValue,
                     categorySummaries = summaries,
                     items = filteredItems,
                     timeFilter = filter

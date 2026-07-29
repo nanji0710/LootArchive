@@ -180,7 +180,7 @@ fun MyLandingScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column {
-                MyMenuItem(Icons.Rounded.Settings, "设置", "主题模式、提醒、数据备份", onNavigateToSettings)
+                MyMenuItem(Icons.Rounded.Settings, "设置", "主题模式、提醒", onNavigateToSettings)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                 MyMenuItem(Icons.Rounded.Category, "分类管理", "管理物品分类", onNavigateToCategory)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
@@ -216,7 +216,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.1.2", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v5.1.3", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -270,7 +270,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.1.2", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v5.1.3", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
