@@ -57,6 +57,12 @@ interface ItemDao {
     @Query("SELECT COALESCE(SUM(purchasePrice), 0) FROM items WHERE isDeleted = 0")
     fun getTotalValue(): Flow<Double>
 
+    @Query("SELECT COUNT(*) FROM items WHERE isDeleted = 0")
+    suspend fun getTotalCountSync(): Int
+
+    @Query("SELECT COALESCE(SUM(purchasePrice), 0) FROM items WHERE isDeleted = 0")
+    suspend fun getTotalValueSync(): Double
+
     @Query("SELECT COALESCE(SUM(purchasePrice), 0) FROM items WHERE isDeleted = 0 AND categoryId = :categoryId")
     suspend fun getCategoryTotalValue(categoryId: Long): Double
 

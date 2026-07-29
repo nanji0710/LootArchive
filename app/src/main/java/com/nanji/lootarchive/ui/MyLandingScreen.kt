@@ -3,11 +3,13 @@ package com.nanji.lootarchive.ui
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -61,6 +63,8 @@ fun MyLandingScreen(
 
     val homeVM: com.nanji.lootarchive.ui.home.HomeViewModel = hiltViewModel()
     val homeState by homeVM.uiState.collectAsState()
+    val profileVM: MyLandingViewModel = hiltViewModel()
+    val profileState by profileVM.uiState.collectAsState()
     // ── 双维度收藏家等级 ──
     val (levelStars, levelTitle, isValueBadge) = remember(homeState.totalCount, homeState.totalValue) {
         val tc = homeState.totalCount.toDouble()
@@ -140,6 +144,87 @@ fun MyLandingScreen(
                             )
                         }
                     }
+                    // v5.3 EXP 进度条
+                    val profile = profileState.profile
+                    if (profile != null && profile.exp > 0) {
+                        Spacer(Modifier.height(10.dp))
+                        val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(profile.exp)
+                        val nextExp = com.nanji.lootarchive.util.ExpCalculator.getNextLevelExp(profile.exp)
+                        val nextTitle = com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level + 1)
+                        Column {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("EXP ${profile.exp}", fontSize = 11.sp, color = TextAuxiliary())
+                                Text("Lv.${profile.level} → $nextTitle", fontSize = 11.sp, color = Primary())
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            LinearProgressIndicator(
+                                progress = { expProgress },
+                                modifier = Modifier.fillMaxWidth().height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
+                                color = Primary(),
+                                trackColor = Primary().copy(alpha = 0.10f)
+                            )
+                            if (nextExp < Int.MAX_VALUE) {
+                                Spacer(Modifier.height(2.dp))
+                                Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 10.sp, color = TextAuxiliary())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── v5.3 成就徽章 ──
+        val achievements = profileState.achievements
+        if (achievements.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(Modifier.padding(18.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("成就徽章", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
+                        Text("${achievements.count { it.isUnlocked }}/${achievements.size}", fontSize = 13.sp, color = TextAuxiliary())
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    val cols = 3
+                    achievements.chunked(cols).forEach { row ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            row.forEach { ach ->
+                                Column(
+                                    Modifier.weight(1f).padding(vertical = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box(
+                                        Modifier.size(40.dp)
+                                            .background(
+                                                if (ach.isUnlocked) Primary().copy(alpha = 0.10f)
+                                                else TextAuxiliary().copy(alpha = 0.06f),
+                                                RoundedCornerShape(12.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            if (ach.isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒",
+                                            fontSize = 20.sp
+                                        )
+                                    }
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        ach.title,
+                                        fontSize = 10.sp,
+                                        color = if (ach.isUnlocked) TextPrimary() else TextAuxiliary(),
+                                        fontWeight = if (ach.isUnlocked) FontWeight.Medium else FontWeight.Normal,
+                                        maxLines = 1,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                            repeat(cols - row.size) { Spacer(Modifier.weight(1f)) }
+                        }
+                    }
                 }
             }
         }
@@ -216,7 +301,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.2.0", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v5.3.0", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -270,7 +355,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.2.0", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v5.3.0", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }

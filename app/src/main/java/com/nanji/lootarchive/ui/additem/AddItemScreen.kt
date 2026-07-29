@@ -270,7 +270,7 @@ fun AddItemScreen(
                     Spacer(Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         listOf("active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失").forEach { (key, label) ->
                             FilterChip(

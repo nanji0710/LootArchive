@@ -30,7 +30,7 @@ object DatabaseModule {
                     seedDefaultCategories(db)
                 }
             })
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .build()
     }
 
@@ -62,4 +62,13 @@ object DatabaseModule {
 
     @Provides
     fun provideBackupRecordDao(db: AppDatabase): BackupRecordDao = db.backupRecordDao()
+
+    @Provides
+    fun provideUserProfileDao(db: AppDatabase): UserProfileDao = db.userProfileDao()
+
+    @Provides
+    fun provideAchievementDao(db: AppDatabase): AchievementDao = db.achievementDao()
+
+    @Provides
+    fun provideExperienceLogDao(db: AppDatabase): ExperienceLogDao = db.experienceLogDao()
 }

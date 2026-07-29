@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -180,8 +181,8 @@ fun HomeScreen(
                                 // v5.2 状态圆点（左下角）
                                 if (item.status != "active") {
                                     Surface(
-                                        Modifier.padding(10.dp).align(Alignment.BottomStart).size(18.dp),
-                                        RoundedCornerShape(9.dp),
+                                        Modifier.padding(10.dp).align(Alignment.BottomStart).size(20.dp),
+                                        RoundedCornerShape(10.dp),
                                         color = statusColor(item.status).copy(alpha = 0.88f)
                                     ) {
                                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -189,7 +190,9 @@ fun HomeScreen(
                                                 statusLabel(item.status).take(1),
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = Color.White
+                                                color = Color.White,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1
                                             )
                                         }
                                     }
