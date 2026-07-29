@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,6 +19,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -174,21 +178,38 @@ fun MainScreen() {
 
                 // ── v5.0 首页：Hero 搜索栏 + 分类入口 + 胶囊FAB ──
                 if (isHome) {
-                    // 顶部搜索栏（精简圆角玻璃框）
+                    // 顶部搜索栏（玻璃模糊效果）
+                    val hs = LocalHazeState.current
+                    val dark = LocalDarkTheme.current
+                    val searchGlassColor = if (dark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.55f)
+                    val searchGlassStyle = HazeStyle(
+                        backgroundColor = Color.Transparent,
+                        tints = listOf(
+                            HazeTint(searchGlassColor),
+                            HazeTint(if (dark) Color.White.copy(alpha = 0.02f) else Color.White.copy(alpha = 0.06f))
+                        ),
+                        blurRadius = 20.dp,
+                        noiseFactor = 0f,
+                        fallbackTint = HazeTint(searchGlassColor)
+                    )
                     Row(
                         Modifier.fillMaxWidth().align(Alignment.TopCenter)
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Surface(
-                            onClick = { navigate(Route.SEARCH) },
-                            modifier = Modifier.fillMaxWidth().height(44.dp),
-                            shape = RoundedCornerShape(22.dp),
-                            color = if (LocalDarkTheme.current)
-                                Color.White.copy(alpha = 0.12f)
-                            else
-                                Color.White.copy(alpha = 0.85f),
-                            shadowElevation = 2.dp
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(44.dp)
+                                .shadow(
+                                    elevation = 4.dp,
+                                    shape = RoundedCornerShape(22.dp),
+                                    ambientColor = if (dark) Color.Black.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.04f),
+                                    spotColor = if (dark) Color.Black.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.04f)
+                                )
+                                .clip(RoundedCornerShape(22.dp))
+                                .then(if (hs != null) Modifier.hazeEffect(state = hs, style = searchGlassStyle) else Modifier.background(searchGlassColor))
+                                .clickable { navigate(Route.SEARCH) }
                         ) {
                             Row(
                                 Modifier.fillMaxSize().padding(horizontal = 14.dp),
@@ -206,26 +227,25 @@ fun MainScreen() {
                                 )
                             }
                         }
-
                     }
 
-                    // v5.0 胶囊形 FAB
+                    // v5.1.4 胶囊形 FAB（缩小版）
                     Surface(
                         onClick = { navigate(Route.ADD) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 90.dp),
-                        shape = RoundedCornerShape(28.dp),
+                        shape = RoundedCornerShape(24.dp),
                         color = Primary(),
-                        shadowElevation = 8.dp
+                        shadowElevation = 6.dp
                     ) {
                         Row(
-                            Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
+                            Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Rounded.Add, "新增物品", Modifier.size(22.dp), tint = Color.White)
-                            Spacer(Modifier.width(6.dp))
-                            Text("新增物品", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Color.White)
+                            Spacer(Modifier.width(4.dp))
+                            Text("新增物品", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }

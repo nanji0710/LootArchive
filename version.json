@@ -1,7 +1,7 @@
 {
-  "versionName": "5.1.3",
-  "versionCode": 514,
+  "versionName": "5.1.4",
+  "versionCode": 515,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.1.3\n• 首页总资产显示精确金额（不再缩写为\"万\"）\n• 统计页饼图和总资产值根据时间区间动态变化\n• 我的页面设置备注移除\"数据备份\"\n\nv5.1.2\n• 全新双维度收藏家等级系统\n  数量线（收藏广度）和价值线（藏品深度）独立计算\n  星级取两条线最高一档，价值达人加✨珍品标记\n  点击等级可查看完整规则和当前进度",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.1.3/LootArchive-release-v5.1.3.apk"
+  "updateLog": "v5.1.4\n• 首页胶囊FAB缩小（更简洁精致）\n• 首页搜索栏改为Haze玻璃模糊效果（与导航栏一致）\n\nv5.1.3\n• 首页总资产显示精确金额（不再缩写为\"万\"）\n• 统计页饼图和总资产值根据时间区间动态变化\n• 我的页面设置备注移除\"数据备份\"",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.1.4/LootArchive-release-v5.1.4.apk"
 }
