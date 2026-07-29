@@ -2,7 +2,7 @@ package com.nanji.lootarchive.ui.component
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -23,20 +23,21 @@ data class RadarAxis(val label: String, val value: Float, val maxValue: Float)
 fun RadarChart(
     axes: List<RadarAxis>,
     modifier: Modifier = Modifier,
-    fillColor: Color = Primary().copy(alpha = 0.15f),
+    fillColor: Color = Primary().copy(alpha = 0.30f),
     strokeColor: Color = Primary(),
     sizeDp: Float = 280f
 ) {
     if (axes.size < 3) return
-    val gridColor = TextAuxiliary().copy(alpha = 0.12f)
-    val axisColor = TextAuxiliary().copy(alpha = 0.18f)
-    val labelArgb = if (com.nanji.lootarchive.ui.theme.LocalDarkTheme.current) 0xFFA8A29E.toInt() else 0xFF78716C.toInt()
+    val dark = LocalDarkTheme.current
+    val gridColor = if (dark) Color.White.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.12f)
+    val axisColor = if (dark) Color.White.copy(alpha = 0.22f) else Color.Black.copy(alpha = 0.16f)
+    val labelColor = if (dark) 0xFFD6D0C8.toInt() else 0xFF44403C.toInt()
 
     Canvas(modifier = modifier.size(sizeDp.dp)) {
         val cx = size.width / 2f; val cy = size.height / 2f
         val r = size.width * 0.30f; val n = axes.size
         val step = (2 * Math.PI / n).toFloat()
-        val labelR = r * 1.30f // radius where labels sit
+        val labelR = r * 1.30f
 
         // Grid polygons (3 levels)
         for (lvl in 1..3) {
@@ -46,13 +47,13 @@ fun RadarChart(
                 if (i == 0) path.moveTo(cx + lr * cos(a), cy + lr * sin(a))
                 else path.lineTo(cx + lr * cos(a), cy + lr * sin(a))
             }
-            path.close(); drawPath(path, gridColor, style = Stroke(1.5f))
+            path.close(); drawPath(path, gridColor, style = Stroke(2f))
         }
 
-        // Axis lines from center to label radius
+        // Axis lines
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
-            drawLine(axisColor, Offset(cx, cy), Offset(cx + r * cos(a), cy + r * sin(a)), strokeWidth = 1f)
+            drawLine(axisColor, Offset(cx, cy), Offset(cx + r * cos(a), cy + r * sin(a)), strokeWidth = 1.5f)
         }
 
         // Data polygon
@@ -63,26 +64,23 @@ fun RadarChart(
             if (i == 0) dp.moveTo(cx + vr * cos(a), cy + vr * sin(a))
             else dp.lineTo(cx + vr * cos(a), cy + vr * sin(a))
         }
-        dp.close(); drawPath(dp, fillColor); drawPath(dp, strokeColor, style = Stroke(2.5f))
+        dp.close(); drawPath(dp, fillColor); drawPath(dp, strokeColor, style = Stroke(3f))
 
-        // Dots at data vertices
+        // Dots
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
             val vr = r * (axes[i].value / axes[i].maxValue).coerceIn(0f, 1f)
-            drawCircle(strokeColor, 4f, Offset(cx + vr * cos(a), cy + vr * sin(a)))
+            drawCircle(strokeColor, 5f, Offset(cx + vr * cos(a), cy + vr * sin(a)))
         }
 
-        // Labels at polygon corners
+        // Labels at corners
         val paint = Paint().apply {
-            color = labelArgb
-            textSize = 28f
-            isAntiAlias = true
-            textAlign = Paint.Align.CENTER
+            color = labelColor; textSize = 30f; isAntiAlias = true; textAlign = Paint.Align.CENTER
         }
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
             val lx = cx + labelR * cos(a)
-            val ly = cy + labelR * sin(a) + 10f // baseline offset
+            val ly = cy + labelR * sin(a) + 10f
             drawContext.canvas.nativeCanvas.drawText(axes[i].label, lx, ly, paint)
         }
     }

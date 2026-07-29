@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.nanji.lootarchive.data.local.database.AppDatabase
 import com.nanji.lootarchive.data.local.dao.*
+import com.nanji.lootarchive.util.Quintet
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -54,14 +55,24 @@ object DatabaseModule {
     private fun seedAchievementsAndProfile(db: SupportSQLiteDatabase) {
         try {
             db.execSQL("INSERT OR IGNORE INTO user_profile (id,exp,level) VALUES (1,0,1)")
+            // (key, title, description, target)
             val seeds = listOf(
-                "items_5" to "初级收藏", "items_20" to "中级收藏家", "items_50" to "高级收藏家",
-                "items_100" to "百物之主", "value_10000" to "万元户", "value_100000" to "小富翁",
-                "value_500000" to "财富自由", "photos_10" to "随手拍", "photos_50" to "摄影师",
-                "desc_10" to "细节控", "desc_50" to "文字家", "streak_7" to "坚持一周", "streak_30" to "月常打卡"
+                Quintet("items_5","初级收藏","收集5件物品","collection",5),
+                Quintet("items_20","中级收藏家","收集20件物品","collection",20),
+                Quintet("items_50","高级收藏家","收集50件物品","collection",50),
+                Quintet("items_100","百物之主","收集100件物品","collection",100),
+                Quintet("value_10000","万元户","总资产超过1万","value",10000),
+                Quintet("value_100000","小富翁","总资产超过10万","value",100000),
+                Quintet("value_500000","财富自由","总资产超过50万","value",500000),
+                Quintet("photos_10","随手拍","拍摄10张照片","photo",10),
+                Quintet("photos_50","摄影师","拍摄50张照片","photo",50),
+                Quintet("desc_10","细节控","完善10件物品描述","detail",10),
+                Quintet("desc_50","文字家","完善50件物品描述","detail",50),
+                Quintet("streak_7","坚持一周","连续7天活跃","streak",7),
+                Quintet("streak_30","月常打卡","连续30天活跃","streak",30)
             )
-            seeds.forEach { (k, t) ->
-                db.execSQL("INSERT OR IGNORE INTO achievements (\"key\",title,description,target) VALUES ('$k','$t','',1)")
+            seeds.forEach { seed ->
+                db.execSQL("INSERT OR REPLACE INTO achievements (\"key\",title,description,category,target,icon) VALUES ('${seed.first}','${seed.second}','${seed.third}','${seed.fourth}',${seed.fifth},'')")
             }
         } catch (_: Exception) { }
     }

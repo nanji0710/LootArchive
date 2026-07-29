@@ -1,7 +1,7 @@
 {
-  "versionName": "5.5.0",
-  "versionCode": 550,
+  "versionName": "5.5.1",
+  "versionCode": 551,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.5.0\n• 雷达图标签修正：分类名定位到多边形顶点\n• 趋势折线图改为累计净值（持续向上）\n• CSV导出改为真实CSV文件（FileProvider分享）\n• 修复EXP体系：新物品自动获得经验值\n• 备份导出导入兼容status/tags/lastStatusChangedAt新字段\n\nv5.4.0\n• 全新分类多维雷达图+资产净值趋势折线图+标签资产分布柱状图\n• CSV数据导出\n\nv5.3.0\n• 全新收藏家等级v2：EXP经验值体系+10级等级阶梯+13个成就徽章",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.0/LootArchive-release-v5.5.0.apk"
+  "updateLog": "v5.5.1\n• 雷达图颜色加深：浅色/深色模式均可清晰辨识\n• EXP进度条始终可见（Lv.1入门也可看到入口）\n• 成就徽章种子数据修复（正确target+category值）\n• 新增物品即触发EXP计算和成就解锁检查\n\nv5.5.0\n• 雷达图标签定位到多边形顶点+趋势折线图累计净值\n• CSV文件导出(FileProvider)+备份兼容status/tags新字段\n\nv5.4.0\n• 全新分类多维雷达图+资产净值趋势折线图+标签资产分布柱状图",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.1/LootArchive-release-v5.5.1.apk"
 }

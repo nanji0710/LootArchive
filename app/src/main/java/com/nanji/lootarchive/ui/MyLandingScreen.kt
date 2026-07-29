@@ -146,15 +146,16 @@ fun MyLandingScreen(
                     }
                     // v5.3 EXP 进度条
                     val profile = profileState.profile
-                    if (profile != null && profile.exp > 0) {
+                    if (profile != null) {
                         Spacer(Modifier.height(10.dp))
                         val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(profile.exp)
                         val nextExp = com.nanji.lootarchive.util.ExpCalculator.getNextLevelExp(profile.exp)
-                        val nextTitle = com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level + 1)
+                        val currentTitle = com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level)
+                        val nextTitle = if (profile.level < 10) com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level + 1) else "满级"
                         Column {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("EXP ${profile.exp}", fontSize = 11.sp, color = TextAuxiliary())
-                                Text("Lv.${profile.level} → $nextTitle", fontSize = 11.sp, color = Primary())
+                                Text("Lv.${profile.level} $currentTitle" + if (profile.level < 10) " → $nextTitle" else "", fontSize = 11.sp, color = Primary())
                             }
                             Spacer(Modifier.height(4.dp))
                             LinearProgressIndicator(
@@ -164,9 +165,12 @@ fun MyLandingScreen(
                                 color = Primary(),
                                 trackColor = Primary().copy(alpha = 0.10f)
                             )
-                            if (nextExp < Int.MAX_VALUE) {
+                            if (nextExp < Int.MAX_VALUE && profile.level < 10) {
                                 Spacer(Modifier.height(2.dp))
                                 Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 10.sp, color = TextAuxiliary())
+                            } else if (profile.level >= 10) {
+                                Spacer(Modifier.height(2.dp))
+                                Text("已达最高等级 🎉", fontSize = 10.sp, color = Primary())
                             }
                         }
                     }
@@ -301,7 +305,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.5.0", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v5.5.1", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -355,7 +359,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.5.0", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v5.5.1", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
