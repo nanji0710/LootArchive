@@ -1,7 +1,7 @@
 {
-  "versionName": "5.5.1",
-  "versionCode": 551,
+  "versionName": "5.5.2",
+  "versionCode": 552,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.5.1\n• 雷达图颜色加深：浅色/深色模式均可清晰辨识\n• EXP进度条始终可见（Lv.1入门也可看到入口）\n• 成就徽章种子数据修复（正确target+category值）\n• 新增物品即触发EXP计算和成就解锁检查\n\nv5.5.0\n• 雷达图标签定位到多边形顶点+趋势折线图累计净值\n• CSV文件导出(FileProvider)+备份兼容status/tags新字段\n\nv5.4.0\n• 全新分类多维雷达图+资产净值趋势折线图+标签资产分布柱状图",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.1/LootArchive-release-v5.5.1.apk"
+  "updateLog": "v5.5.2\n• 导入数据后自动刷新EXP和成就\n• EXP显示精简+点击弹出等级详情弹窗\n• 趋势图Y轴标尺+金额标签+优化横轴间距\n\nv5.5.1\n• 雷达图颜色加深+EXP始终可见+成就种子数据修复\n\nv5.5.0\n• 雷达图标签定位到多边形顶点+趋势折线图累计净值\n• CSV文件导出(FileProvider)+备份兼容新字段",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.2/LootArchive-release-v5.5.2.apk"
 }

@@ -58,6 +58,7 @@ fun MyLandingScreen(
     var downloadProgress by remember { mutableStateOf(ApkDownloadManager.Progress()) }
     var downloadError by remember { mutableStateOf<String?>(null) }
     var showLevelDialog by remember { mutableStateOf(false) }
+    var showExpDialog by remember { mutableStateOf(false) }
 
     val downloader = remember { ApkDownloadManager(context) }
 
@@ -144,33 +145,35 @@ fun MyLandingScreen(
                             )
                         }
                     }
-                    // v5.3 EXP 进度条
+                    // v5.5 EXP 进度条（可点击查看详情）
                     val profile = profileState.profile
                     if (profile != null) {
                         Spacer(Modifier.height(10.dp))
                         val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(profile.exp)
                         val nextExp = com.nanji.lootarchive.util.ExpCalculator.getNextLevelExp(profile.exp)
                         val currentTitle = com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level)
-                        val nextTitle = if (profile.level < 10) com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level + 1) else "满级"
-                        Column {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("EXP ${profile.exp}", fontSize = 11.sp, color = TextAuxiliary())
-                                Text("Lv.${profile.level} $currentTitle" + if (profile.level < 10) " → $nextTitle" else "", fontSize = 11.sp, color = Primary())
-                            }
-                            Spacer(Modifier.height(4.dp))
-                            LinearProgressIndicator(
-                                progress = { expProgress },
-                                modifier = Modifier.fillMaxWidth().height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp)),
-                                color = Primary(),
-                                trackColor = Primary().copy(alpha = 0.10f)
-                            )
-                            if (nextExp < Int.MAX_VALUE && profile.level < 10) {
-                                Spacer(Modifier.height(2.dp))
-                                Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 10.sp, color = TextAuxiliary())
-                            } else if (profile.level >= 10) {
-                                Spacer(Modifier.height(2.dp))
-                                Text("已达最高等级 🎉", fontSize = 10.sp, color = Primary())
+                        Surface(
+                            onClick = { showExpDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = Primary().copy(alpha = 0.06f)
+                        ) {
+                            Column(Modifier.padding(12.dp)) {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Lv.${profile.level} $currentTitle", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                                    if (profile.level < 10) {
+                                        Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 10.sp, color = TextAuxiliary())
+                                    } else {
+                                        Text("已达最高", fontSize = 10.sp, color = Primary())
+                                    }
+                                }
+                                Spacer(Modifier.height(6.dp))
+                                LinearProgressIndicator(
+                                    progress = { expProgress },
+                                    modifier = Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp)),
+                                    color = Primary(),
+                                    trackColor = Primary().copy(alpha = 0.10f)
+                                )
                             }
                         }
                     }
@@ -305,7 +308,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.5.1", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v5.5.2", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -359,7 +362,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.5.1", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v5.5.2", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
@@ -460,6 +463,56 @@ fun MyLandingScreen(
                 }
             },
             confirmButton = { TextButton(onClick = { showLevelDialog = false }) { Text("知道了", color = Primary()) } }
+        )
+    }
+
+    // v5.5 EXP 详情弹窗
+    if (showExpDialog && profileState.profile != null) {
+        val p = profileState.profile!!
+        AlertDialog(
+            onDismissRequest = { showExpDialog = false },
+            shape = RoundedCornerShape(28.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text("收藏家详情", fontWeight = FontWeight.Bold, color = TextPrimary()) },
+            text = {
+                Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
+                    val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(p.exp)
+                    Text("当前等级", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Spacer(Modifier.height(6.dp))
+                    Text("Lv.${p.level} ${com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(p.level)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
+                    Spacer(Modifier.height(4.dp))
+                    LinearProgressIndicator(
+                        progress = { expProgress },
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        color = Primary(), trackColor = Primary().copy(alpha = 0.10f)
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    if (p.level < 10) {
+                        val nextExp = com.nanji.lootarchive.util.ExpCalculator.getNextLevelExp(p.exp)
+                        Text("距下一级还需 ${nextExp - p.exp} EXP", fontSize = 12.sp, color = TextAuxiliary())
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Text("等级数据", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Spacer(Modifier.height(4.dp))
+                    Text("物品新增：${p.totalItemsAdded} 件", fontSize = 13.sp, color = TextSecondary())
+                    Text("照片拍摄：${p.totalPhotosAdded} 张", fontSize = 13.sp, color = TextSecondary())
+                    Text("描述完善：${p.totalDescriptionsFilled} 件", fontSize = 13.sp, color = TextSecondary())
+                    Text("连续活跃：${p.streakDays} 天", fontSize = 13.sp, color = TextSecondary())
+                    Spacer(Modifier.height(12.dp))
+                    Text("等级阶梯", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Spacer(Modifier.height(4.dp))
+                    com.nanji.lootarchive.util.ExpCalculator.LEVELS.forEachIndexed { i, (exp, title) ->
+                        val achieved = p.level > i + 1
+                        Row(Modifier.padding(vertical = 2.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text("Lv.${i + 1}", fontSize = 11.sp, color = if (achieved) Primary() else TextAuxiliary(), fontFamily = FredokaFont, modifier = Modifier.width(40.dp))
+                            Text(title, fontSize = 12.sp, color = if (achieved) TextPrimary() else TextAuxiliary(), fontWeight = if (p.level == i + 1) FontWeight.Bold else FontWeight.Normal)
+                            Spacer(Modifier.weight(1f))
+                            Text(if (exp == 0) "起始" else "${exp} EXP", fontSize = 11.sp, color = TextAuxiliary())
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showExpDialog = false }) { Text("知道了", color = Primary()) } }
         )
     }
 }

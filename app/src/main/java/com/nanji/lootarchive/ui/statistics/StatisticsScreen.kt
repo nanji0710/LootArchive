@@ -119,16 +119,16 @@ fun StatisticsScreen(
                 }
 
                 // ── v5.4 资产净值趋势折线图（累计值）──
-                val sortedItems = uiState.items.filter { it.purchaseDate != null }.sortedBy { it.purchaseDate }
-                val trendPoints = if (sortedItems.size >= 2) {
+                val monthlyData = uiState.items
+                    .filter { it.purchaseDate != null }
+                    .groupBy { java.text.SimpleDateFormat("yy/MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }
+                    .mapValues { it.value.sumOf { i -> i.purchasePrice } }
+                    .toList().sortedBy { it.first }
+                val trendPoints = if (monthlyData.size >= 2) {
                     var runningTotal = 0.0
-                    sortedItems.map { item ->
-                        runningTotal += item.purchasePrice
-                        val label = java.text.SimpleDateFormat("yy/MM", java.util.Locale.getDefault()).format(java.util.Date(item.purchaseDate!!))
+                    monthlyData.map { (label, monthValue) ->
+                        runningTotal += monthValue
                         com.nanji.lootarchive.ui.component.TrendPoint(label, runningTotal)
-                    }.let { pts ->
-                        // 去重：同一月份取最新值
-                        pts.reversed().distinctBy { it.label.take(5) }.reversed()
                     }
                 } else emptyList()
                 if (trendPoints.size >= 2) {

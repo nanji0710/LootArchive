@@ -31,7 +31,8 @@ class BackupViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val backupRepository: BackupRepository,
     private val itemRepository: ItemRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val expService: com.nanji.lootarchive.data.ExpService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BackupUiState())
@@ -118,6 +119,7 @@ class BackupViewModel @Inject constructor(
                         itemRepository.addPhotosForItem(itemId, ii.photoFiles)
                         photoCount += ii.photoFiles.size
                     }
+                    expService.recordAddItem(itemId, itemToSave.purchasePrice, itemToSave.description.isNotBlank(), ii.photoFiles.size)
                     itemCount++
                 }
                 _uiState.update {
