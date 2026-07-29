@@ -15,6 +15,7 @@ data class DetailUiState(
     val itemWithPhotos: ItemWithPhotos? = null,
     val currency: String = "CNY",
     val showDeleteDialog: Boolean = false,
+    val showStatusSheet: Boolean = false,
     val isDeleted: Boolean = false,
     val errorMessage: String? = null
 )
@@ -66,6 +67,26 @@ class DetailViewModel @Inject constructor(
                 _uiState.update { it.copy(showDeleteDialog = false, isDeleted = true) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = "删除失败: ${e.message}") }
+            }
+        }
+    }
+
+    fun showStatusSheet() {
+        _uiState.update { it.copy(showStatusSheet = true) }
+    }
+
+    fun dismissStatusSheet() {
+        _uiState.update { it.copy(showStatusSheet = false) }
+    }
+
+    fun updateItemStatus(status: String) {
+        viewModelScope.launch {
+            try {
+                itemRepository.updateItemStatus(currentItemId, status)
+                loadItem(currentItemId)
+                dismissStatusSheet()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "状态更新失败: ${e.message}") }
             }
         }
     }

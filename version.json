@@ -1,7 +1,7 @@
 {
-  "versionName": "5.1.5",
-  "versionCode": 516,
+  "versionName": "5.2.0",
+  "versionCode": 520,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.1.5\n• 搜索栏玻璃模糊效果修复（提升到hazeSource之上）\n• 首页胶囊FAB缩小（更简洁精致）\n\nv5.1.3\n• 首页总资产显示精确金额（不再缩写为\"万\"）\n• 统计页饼图和总资产值根据时间区间动态变化\n• 我的页面设置备注移除\"数据备份\"",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.1.5/LootArchive-release-v5.1.5.apk"
+  "updateLog": "v5.2.0\n• 物品状态管理：在用/闲置/已出/待修/丢失五种状态\n• 标签系统：自定义标签，支持搜索和筛选\n• 物品卡片左下角状态标签+标签胶囊展示\n• 详情页可随时变更物品状态\n• 搜索页新增状态筛选维度\n\nv5.1.5\n• 搜索栏玻璃模糊效果修复（移至hazeSource之上）\n• 首页胶囊FAB缩小（更简洁精致）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.2.0/LootArchive-release-v5.2.0.apk"
 }

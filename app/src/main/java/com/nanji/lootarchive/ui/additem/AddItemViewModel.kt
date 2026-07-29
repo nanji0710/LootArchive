@@ -27,6 +27,9 @@ data class AddItemUiState(
     val warrantyPeriodDays: String = "",
     val description: String = "",
     val photoPaths: List<String> = emptyList(),
+    val status: String = "active",
+    val tags: String = "",
+    val tagInput: String = "",
     // 表单校验
     val nameError: String? = null,
     val priceError: String? = null,
@@ -77,7 +80,9 @@ class AddItemViewModel @Inject constructor(
                     warrantyExpiryDate = item.warrantyExpiryDate,
                     warrantyPeriodDays = item.warrantyPeriodDays?.toString() ?: "",
                     description = item.description,
-                    photoPaths = itemWithPhotos.photos.map { it.photoPath }
+                    photoPaths = itemWithPhotos.photos.map { it.photoPath },
+                    status = item.status,
+                    tags = item.tags
                 )
             }
         }
@@ -138,6 +143,31 @@ class AddItemViewModel @Inject constructor(
         _uiState.update { it.copy(description = desc) }
     }
 
+    fun updateStatus(status: String) {
+        _uiState.update { it.copy(status = status) }
+    }
+
+    fun updateTagInput(input: String) {
+        _uiState.update { it.copy(tagInput = input) }
+    }
+
+    fun addTag(tag: String) {
+        val trimmed = tag.trim()
+        if (trimmed.isEmpty()) return
+        val current = _uiState.value.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toMutableList()
+        if (trimmed !in current) {
+            current.add(trimmed)
+            _uiState.update { it.copy(tags = current.joinToString(","), tagInput = "") }
+        } else {
+            _uiState.update { it.copy(tagInput = "") }
+        }
+    }
+
+    fun removeTag(tag: String) {
+        val current = _uiState.value.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() && it != tag }
+        _uiState.update { it.copy(tags = current.joinToString(",")) }
+    }
+
     fun addPhotoPath(path: String) {
         _uiState.update { it.copy(photoPaths = it.photoPaths + path) }
     }
@@ -192,6 +222,8 @@ class AddItemViewModel @Inject constructor(
                     warrantyExpiryDate = expiryDate,
                     warrantyPeriodDays = periodDays,
                     description = state.description.trim(),
+                    status = state.status,
+                    tags = state.tags,
                     updatedAt = System.currentTimeMillis()
                 )
 

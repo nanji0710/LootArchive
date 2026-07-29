@@ -9,6 +9,7 @@ import com.nanji.lootarchive.domain.model.ItemWithPhotos
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -156,4 +157,18 @@ class ItemRepository @Inject constructor(
     // ========== 回收站 ==========
 
     fun getDeletedItems(): Flow<List<ItemEntity>> = itemDao.getDeletedItems()
+
+    // ========== v5.2 状态 & 标签 ==========
+
+    fun getItemsByStatus(status: String): Flow<List<ItemEntity>> = itemDao.getItemsByStatus(status)
+
+    fun getItemsByTag(tag: String): Flow<List<ItemEntity>> = itemDao.getItemsByTag(tag)
+
+    fun getAllTags(): Flow<List<String>> = itemDao.getAllTagsRaw().map { rawList ->
+        rawList.flatMap { it.split(",") }.map { it.trim() }.filter { it.isNotEmpty() }.distinct().sorted()
+    }
+
+    suspend fun updateItemStatus(itemId: Long, status: String) = itemDao.updateItemStatus(itemId, status)
+
+    fun searchItemsWithTags(keyword: String): Flow<List<ItemEntity>> = itemDao.searchItemsWithTags(keyword)
 }

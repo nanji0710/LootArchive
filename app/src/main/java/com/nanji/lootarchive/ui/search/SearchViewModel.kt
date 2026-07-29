@@ -25,7 +25,9 @@ data class SearchUiState(
     val activeFilter: String? = null,
     val sort: String = "date_new",
     val isLoading: Boolean = false,
-    val recentSearches: List<String> = emptyList()
+    val recentSearches: List<String> = emptyList(),
+    val statusFilter: String? = null,
+    val tagFilter: String? = null
 )
 
 @HiltViewModel
@@ -73,6 +75,8 @@ class SearchViewModel @Inject constructor(
 
     fun setActiveFilter(filter: String?) { _uiState.update { it.copy(activeFilter = filter) }; doSearch() }
     fun setSort(sort: String) { _uiState.update { it.copy(sort = sort) }; doSearch() }
+    fun setStatusFilter(status: String?) { _uiState.update { it.copy(statusFilter = status) }; doSearch() }
+    fun setTagFilter(tag: String?) { _uiState.update { it.copy(tagFilter = tag) }; doSearch() }
 
     private fun doSearch() {
         val q = _uiState.value.query
@@ -83,7 +87,7 @@ class SearchViewModel @Inject constructor(
     private fun executeSearch(q: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            itemRepository.searchItems(q.ifBlank { "" }).catch {}.collect { items ->
+            itemRepository.searchItemsWithTags(q.ifBlank { "" }).catch {}.collect { items ->
                 val filter = _uiState.value.activeFilter
                 // 按筛选字段过滤
                 val filtered = when (filter) {
@@ -98,12 +102,18 @@ class SearchViewModel @Inject constructor(
                     }
                     else -> items // "全部"
                 }
+                // v5.2 状态筛选
+                val statusF = _uiState.value.statusFilter
+                val statusFiltered = if (statusF != null) filtered.filter { it.status == statusF } else filtered
+                // v5.2 标签筛选
+                val tagF = _uiState.value.tagFilter
+                val tagFiltered = if (tagF != null) statusFiltered.filter { it.tags.split(",").any { t -> t.trim() == tagF } } else statusFiltered
                 val sort = _uiState.value.sort
                 val sorted = when (sort) {
-                    "price_desc" -> filtered.sortedByDescending { it.purchasePrice }
-                    "date_new" -> filtered.sortedByDescending { it.purchaseDate ?: 0L }
-                    "warranty" -> filtered.sortedBy { it.warrantyExpiryDate ?: Long.MAX_VALUE }
-                    else -> filtered
+                    "price_desc" -> tagFiltered.sortedByDescending { it.purchasePrice }
+                    "date_new" -> tagFiltered.sortedByDescending { it.purchaseDate ?: 0L }
+                    "warranty" -> tagFiltered.sortedBy { it.warrantyExpiryDate ?: Long.MAX_VALUE }
+                    else -> tagFiltered
                 }
                 val results = sorted.map { item ->
                     SearchResultItem(item = item, firstPhotoPath = itemRepository.getFirstPhotoPath(item.id))

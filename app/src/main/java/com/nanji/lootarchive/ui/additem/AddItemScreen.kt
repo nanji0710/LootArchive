@@ -264,6 +264,75 @@ fun AddItemScreen(
                     }
                 }
 
+                // v5.2 物品状态选择器
+                ClayCard {
+                    Text("物品状态", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf("active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失").forEach { (key, label) ->
+                            FilterChip(
+                                selected = uiState.status == key,
+                                onClick = { viewModel.updateStatus(key) },
+                                label = { Text(label, fontSize = 12.sp) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = statusColor(key).copy(alpha = 0.15f),
+                                    selectedLabelColor = statusColor(key)
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // v5.2 标签输入
+                ClayCard {
+                    Text("标签", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                    Spacer(Modifier.height(10.dp))
+                    val existingTags = uiState.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    if (existingTags.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            existingTags.forEach { tag ->
+                                InputChip(
+                                    selected = false,
+                                    onClick = { viewModel.removeTag(tag) },
+                                    label = { Text(tag, fontSize = 12.sp) },
+                                    trailingIcon = {
+                                        Icon(Icons.Rounded.Close, "移除$tag", Modifier.size(14.dp))
+                                    },
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.tagInput,
+                            onValueChange = viewModel::updateTagInput,
+                            placeholder = { Text("输入标签，如 蓝牙、EDC") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        IconButton(
+                            onClick = { viewModel.addTag(uiState.tagInput) },
+                            enabled = uiState.tagInput.isNotBlank()
+                        ) {
+                            Icon(Icons.Rounded.AddCircle, "添加标签", tint = Primary())
+                        }
+                    }
+                }
+
                 // 购入价格
                 ClayCard {
                     OutlinedTextField(

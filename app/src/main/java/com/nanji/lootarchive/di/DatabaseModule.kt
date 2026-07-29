@@ -30,7 +30,7 @@ object DatabaseModule {
                     seedDefaultCategories(db)
                 }
             })
-            .fallbackToDestructiveMigration()
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
     }
 

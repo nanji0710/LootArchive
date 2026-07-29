@@ -67,6 +67,33 @@ val WarrantyExpiring = Color(0xFFF59E0B)
 val WarrantyExpired = Color(0xFFEF4444)
 val SemanticInfo = Color(0xFF3B82F6)
 
+// ── v5.2 物品状态色板 ──
+val StatusActive = Color(0xFF10B981)     // 在用 — 绿
+val StatusIdle = Color(0xFF9CA3AF)       // 闲置 — 灰
+val StatusSold = Color(0xFFF59E0B)       // 已出 — 琥珀
+val StatusRepair = Color(0xFFEF4444)     // 待修 — 红
+val StatusLost = Color(0xFF6B7280)       // 丢失 — 深灰
+
+@Composable
+fun statusColor(status: String): Color = when (status) {
+    "active" -> StatusActive
+    "idle" -> StatusIdle
+    "sold" -> StatusSold
+    "repair" -> StatusRepair
+    "lost" -> StatusLost
+    else -> StatusActive
+}
+
+@Composable
+fun statusLabel(status: String): String = when (status) {
+    "active" -> "在用"
+    "idle" -> "闲置"
+    "sold" -> "已出"
+    "repair" -> "待修"
+    "lost" -> "丢失"
+    else -> "在用"
+}
+
 // ── 图表色板 (12色，暖色调优先) ──
 val ChartColors = listOf(
     Color(0xFFE8782A), Color(0xFF7C3AED), Color(0xFF10B981),

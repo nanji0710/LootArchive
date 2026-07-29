@@ -90,4 +90,25 @@ interface ItemDao {
 
     @Query("DELETE FROM items WHERE isDeleted = 1")
     suspend fun emptyTrash()
+
+    // ========== v5.2 状态 & 标签 ==========
+
+    @Query("SELECT * FROM items WHERE isDeleted = 0 AND status = :status ORDER BY updatedAt DESC")
+    fun getItemsByStatus(status: String): Flow<List<ItemEntity>>
+
+    @Query("SELECT * FROM items WHERE isDeleted = 0 AND tags LIKE '%' || :tag || '%' ORDER BY updatedAt DESC")
+    fun getItemsByTag(tag: String): Flow<List<ItemEntity>>
+
+    @Query("SELECT DISTINCT tags FROM items WHERE isDeleted = 0 AND tags != ''")
+    fun getAllTagsRaw(): Flow<List<String>>
+
+    @Query("UPDATE items SET status = :status, lastStatusChangedAt = :changedAt WHERE id = :itemId")
+    suspend fun updateItemStatus(itemId: Long, status: String, changedAt: Long = System.currentTimeMillis())
+
+    @Query("""
+        SELECT * FROM items WHERE isDeleted = 0
+        AND (:keyword = '' OR name LIKE '%' || :keyword || '%' OR storageLocation LIKE '%' || :keyword || '%' OR description LIKE '%' || :keyword || '%' OR tags LIKE '%' || :keyword || '%')
+        ORDER BY updatedAt DESC
+    """)
+    fun searchItemsWithTags(keyword: String): Flow<List<ItemEntity>>
 }

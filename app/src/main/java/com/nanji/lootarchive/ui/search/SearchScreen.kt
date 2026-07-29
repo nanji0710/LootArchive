@@ -107,6 +107,29 @@ fun SearchScreen(
                 }
             }
 
+            // v5.2 状态筛选
+            LazyRow(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 4.dp)
+            ) {
+                val statuses = listOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修")
+                items(statuses.size) { index ->
+                    val (key, label) = statuses[index]
+                    val selected = uiState.statusFilter == key
+                    FilterChip(
+                        selected = selected,
+                        onClick = { viewModel.setStatusFilter(key) },
+                        label = { Text(label, fontSize = 11.sp) },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = if (key != null) statusColor(key).copy(alpha = 0.15f) else Primary().copy(alpha = 0.15f),
+                            selectedLabelColor = if (key != null) statusColor(key) else Primary()
+                        )
+                    )
+                }
+            }
+
             // 结果统计 + 排序
             if (uiState.query.isNotEmpty() || uiState.activeFilter != null) {
                 Row(

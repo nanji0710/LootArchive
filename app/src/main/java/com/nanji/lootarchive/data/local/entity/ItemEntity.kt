@@ -9,7 +9,8 @@ import androidx.room.PrimaryKey
     indices = [
         Index("categoryId"),
         Index("name"),
-        Index("isDeleted")
+        Index("isDeleted"),
+        Index("status")
     ]
 )
 data class ItemEntity(
@@ -27,5 +28,8 @@ data class ItemEntity(
     val isDeleted: Boolean = false,           // 回收站标记
     val deletedAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val status: String = "active",            // active|idle|sold|repair|lost
+    val tags: String = "",                    // comma-separated tag names
+    val lastStatusChangedAt: Long? = null     // epoch millis
 )

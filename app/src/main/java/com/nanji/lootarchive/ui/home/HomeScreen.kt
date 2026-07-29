@@ -177,12 +177,44 @@ fun HomeScreen(
                                 }
                                 if (System.currentTimeMillis() - item.createdAt < 7*24*60*60*1000 && item.warrantyExpiryDate == null)
                                     Surface(Modifier.padding(10.dp).align(Alignment.TopStart), RoundedCornerShape(6.dp), color = Primary().copy(alpha = 0.85f)) { Text("NEW", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
+                                // v5.2 状态圆点（左下角）
+                                if (item.status != "active") {
+                                    Surface(
+                                        Modifier.padding(10.dp).align(Alignment.BottomStart).size(18.dp),
+                                        RoundedCornerShape(9.dp),
+                                        color = statusColor(item.status).copy(alpha = 0.88f)
+                                    ) {
+                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            Text(
+                                                statusLabel(item.status).take(1),
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
                             }
                             Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
                                 Text(item.name, fontSize = nameSz, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(6.dp))
                                 Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) {
                                     Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
+                                }
+                                // v5.2 标签胶囊
+                                val itemTags = item.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                                if (itemTags.isNotEmpty()) {
+                                    Spacer(Modifier.height(6.dp))
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        itemTags.take(2).forEach { tag ->
+                                            Surface(shape = RoundedCornerShape(6.dp), color = Primary().copy(alpha = 0.08f)) {
+                                                Text(tag, fontSize = 10.sp, color = Primary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                            }
+                                        }
+                                        if (itemTags.size > 2) {
+                                            Text("+${itemTags.size - 2}", fontSize = 10.sp, color = TextAuxiliary())
+                                        }
+                                    }
                                 }
                             }
                         }

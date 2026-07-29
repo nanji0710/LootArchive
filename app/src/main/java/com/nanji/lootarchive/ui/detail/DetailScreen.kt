@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -59,6 +60,36 @@ fun DetailScreen(
                     if (data.category != null) { Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) { Text(data.category!!.name, color = Primary(), fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) } }
                     if (data.item.storageLocation.isNotEmpty()) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Rounded.LocationOn, null, Modifier.size(14.dp), tint = TextAuxiliary()); Spacer(Modifier.width(2.dp)); Text(data.item.storageLocation, fontSize = 13.sp, color = TextSecondary()) } }
                 }
+                // v5.2 物品状态
+                Spacer(Modifier.height(10.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("物品状态", fontSize = 14.sp, color = TextSecondary(), modifier = Modifier.width(72.dp))
+                    Surface(
+                        onClick = { viewModel.showStatusSheet() },
+                        shape = RoundedCornerShape(10.dp),
+                        color = statusColor(data.item.status).copy(alpha = 0.12f)
+                    ) {
+                        Row(Modifier.padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(8.dp).background(statusColor(data.item.status), CircleShape))
+                            Spacer(Modifier.width(6.dp))
+                            Text(statusLabel(data.item.status), color = statusColor(data.item.status), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Spacer(Modifier.width(4.dp))
+                            Icon(Icons.Rounded.UnfoldMore, null, Modifier.size(14.dp), tint = statusColor(data.item.status))
+                        }
+                    }
+                }
+                // v5.2 标签
+                val itemTags = data.item.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                if (itemTags.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        itemTags.forEach { tag ->
+                            Surface(shape = RoundedCornerShape(8.dp), color = Primary().copy(alpha = 0.08f)) {
+                                Text(tag, fontSize = 11.sp, color = Primary(), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                            }
+                        }
+                    }
+                }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = TextAuxiliary().copy(alpha = 0.12f))
                 DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}", valueColor = Primary())
                 DetailRow("购入日期", data.item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "未设置")
@@ -111,6 +142,41 @@ fun DetailScreen(
         }
     }
     if (uiState.showDeleteDialog) GlassAlertDialog(title = "删除物品", message = "物品将被移入回收站，可在回收站中恢复。确定删除吗？", confirmText = "删除", dismissText = "取消", onConfirm = { viewModel.deleteItem() }, onDismiss = { viewModel.dismissDeleteDialog() })
+
+    // v5.2 状态变更 BottomSheet
+    if (uiState.showStatusSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.dismissStatusSheet() },
+            containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        ) {
+            Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                Text("更改物品状态", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                Spacer(Modifier.height(16.dp))
+                listOf("active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失").forEach { (key, label) ->
+                    Surface(
+                        onClick = { viewModel.updateItemStatus(key) },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (data.item.status == key) statusColor(key).copy(alpha = 0.12f) else Color.Transparent
+                    ) {
+                        Row(
+                            Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(Modifier.size(10.dp).background(statusColor(key), CircleShape))
+                            Spacer(Modifier.width(12.dp))
+                            Text(label, fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                            if (data.item.status == key) {
+                                Icon(Icons.Rounded.Check, null, Modifier.size(20.dp), tint = statusColor(key))
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(32.dp))
+            }
+        }
+    }
 }
 
 @Composable
