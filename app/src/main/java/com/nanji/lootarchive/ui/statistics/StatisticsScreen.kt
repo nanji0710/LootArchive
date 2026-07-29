@@ -118,15 +118,19 @@ fun StatisticsScreen(
                     }
                 }
 
-                // ── v5.4 资产净值趋势折线图 ──
-                val trendPoints = uiState.items
-                    .filter { it.purchaseDate != null }
-                    .groupBy { java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }
-                    .mapValues { it.value.sumOf { i -> i.purchasePrice } }
-                    .toList()
-                    .sortedBy { it.first }
-                    .takeLast(8)
-                    .map { (label, value) -> com.nanji.lootarchive.ui.component.TrendPoint(label.takeLast(7), value) }
+                // ── v5.4 资产净值趋势折线图（累计值）──
+                val sortedItems = uiState.items.filter { it.purchaseDate != null }.sortedBy { it.purchaseDate }
+                val trendPoints = if (sortedItems.size >= 2) {
+                    var runningTotal = 0.0
+                    sortedItems.map { item ->
+                        runningTotal += item.purchasePrice
+                        val label = java.text.SimpleDateFormat("yy/MM", java.util.Locale.getDefault()).format(java.util.Date(item.purchaseDate!!))
+                        com.nanji.lootarchive.ui.component.TrendPoint(label, runningTotal)
+                    }.let { pts ->
+                        // 去重：同一月份取最新值
+                        pts.reversed().distinctBy { it.label.take(5) }.reversed()
+                    }
+                } else emptyList()
                 if (trendPoints.size >= 2) {
                     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                         Column(Modifier.padding(CardPadding)) {
@@ -229,9 +233,10 @@ fun StatisticsScreen(
                     Column(Modifier.padding(CardPadding)) {
                         Text("数据导出", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Button(
-                                onClick = {
+                        var showExportDone by remember { mutableStateOf(false) }
+                        Button(
+                            onClick = {
+                                try {
                                     val csv = buildString {
                                         appendLine("名称,分类,价格,位置,购入日期,状态,标签")
                                         uiState.items.forEach { item ->
@@ -240,29 +245,31 @@ fun StatisticsScreen(
                                             appendLine("${item.name},$cat,${item.purchasePrice},${item.storageLocation},$date,${item.status},${item.tags}")
                                         }
                                     }
+                                    val fileName = "物品资产_${java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())}.csv"
+                                    val file = java.io.File(context.cacheDir, fileName)
+                                    file.writeText(csv, java.nio.charset.Charset.forName("UTF-8"))
+                                    val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
                                     val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                                         type = "text/csv"
-                                        putExtra(android.content.Intent.EXTRA_TEXT, csv)
-                                        putExtra(android.content.Intent.EXTRA_SUBJECT, "物品资产导出_${java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(java.util.Date())}.csv")
+                                        putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                     }
-                                    context.startActivity(android.content.Intent.createChooser(intent, "导出资产数据"))
-                                },
-                                modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Primary())
-                            ) {
-                                Icon(Icons.Rounded.FileDownload, null, Modifier.size(16.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text("分享CSV", fontWeight = FontWeight.Medium)
-                            }
-                            OutlinedButton(
-                                onClick = { /* 预留PDF导出 */ },
-                                modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
-                                enabled = false
-                            ) {
-                                Icon(Icons.Rounded.PictureAsPdf, null, Modifier.size(16.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text("PDF报告")
-                            }
+                                    context.startActivity(android.content.Intent.createChooser(intent, "导出CSV文件"))
+                                    showExportDone = true
+                                } catch (e: Exception) {
+                                    android.widget.Toast.makeText(context, "导出失败: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary())
+                        ) {
+                            Icon(Icons.Rounded.FileDownload, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("导出CSV文件", fontWeight = FontWeight.Medium)
+                        }
+                        if (showExportDone) {
+                            Spacer(Modifier.height(6.dp))
+                            Text("CSV已生成，请选择分享方式", fontSize = 11.sp, color = Primary())
                         }
                     }
                 }

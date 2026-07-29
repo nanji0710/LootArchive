@@ -107,6 +107,9 @@ object BackupUtil {
                     ei.item.warrantyExpiryDate?.let { put("warrantyExpiryDate", it) }
                     ei.item.warrantyPeriodDays?.let { put("warrantyPeriodDays", it) }
                     put("description", ei.item.description)
+                    put("status", ei.item.status)
+                    put("tags", ei.item.tags)
+                    ei.item.lastStatusChangedAt?.let { put("lastStatusChangedAt", it) }
                     put("photos", photoNames)
                 }
                 manifestItems.put(itemJson)
@@ -125,9 +128,9 @@ object BackupUtil {
 
             // 4. manifest.json
             val manifest = JSONObject().apply {
-                put("version", 2)
+                put("version", 3)
                 put("exportDate", dateFormat.format(Date()))
-                put("appVersion", "3.0.0")
+                put("appVersion", "5.5.0")
                 put("itemCount", items.size)
                 put("categoryCount", categories.size)
                 put("categories", manifestCategories)
@@ -207,7 +210,10 @@ object BackupUtil {
                 purchaseDate = if (obj.has("purchaseDate")) obj.optLong("purchaseDate") else null,
                 warrantyExpiryDate = if (obj.has("warrantyExpiryDate")) obj.optLong("warrantyExpiryDate") else null,
                 warrantyPeriodDays = if (obj.has("warrantyPeriodDays")) obj.optInt("warrantyPeriodDays").takeIf { it > 0 } else null,
-                description = obj.optString("description", "")
+                description = obj.optString("description", ""),
+                status = obj.optString("status", "active"),
+                tags = obj.optString("tags", ""),
+                lastStatusChangedAt = if (obj.has("lastStatusChangedAt")) obj.optLong("lastStatusChangedAt") else null
             )
 
             // Extract photos
