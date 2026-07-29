@@ -1,7 +1,7 @@
 {
-  "versionName": "5.4.1",
-  "versionCode": 541,
+  "versionName": "5.4.2",
+  "versionCode": 542,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.4.1\n• 紧急修复启动闪退（DB migration schema 冲突）\n• 新增分类多维雷达图：五维资产对比可视化\n• 资产净值趋势折线图：月度资产变化一目了然\n• 标签资产分布：Top标签价值横向柱状图\n• CSV数据导出：一键分享物品清单\n\nv5.4.0\n• 全新收藏家等级v2：EXP经验值体系+10级等级阶梯\n• 13个成就徽章：收藏/价值/照片/描述/活跃五大类",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.4.1/LootArchive-release-v5.4.1.apk"
+  "updateLog": "v5.4.2\n• 紧急修复启动闪退：移除手写DB Migration改用Room自动建表+destructiveFallback\n• DB升级v4，覆盖所有损坏场景（v1/v2/v3残留均可重建）\n\nv5.4.0\n• 全新分类多维雷达图+资产净值趋势折线图+标签资产分布柱状图\n• CSV数据导出：一键分享物品清单\n\nv5.3.0\n• 全新收藏家等级v2：EXP经验值体系+10级等级阶梯+13个成就徽章",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.4.2/LootArchive-release-v5.4.2.apk"
 }
