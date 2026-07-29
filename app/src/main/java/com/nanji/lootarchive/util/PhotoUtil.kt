@@ -30,7 +30,8 @@ object PhotoUtil {
      */
     fun generatePhotoFileName(): String {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmssSSS", Locale.getDefault()).format(Date())
-        return "IMG_$timestamp.jpg"
+        val uuid = UUID.randomUUID().toString().take(6)
+        return "IMG_${timestamp}_$uuid.jpg"
     }
 
     /**

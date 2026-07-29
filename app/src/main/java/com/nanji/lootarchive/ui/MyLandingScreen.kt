@@ -94,7 +94,7 @@ fun MyLandingScreen(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // ── v5.0 收藏家卡片 ──
+        // ── v5.5 收藏家卡片（方案A：双行分区）──
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -103,34 +103,28 @@ fun MyLandingScreen(
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
-            Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(68.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    color = if (LocalDarkTheme.current) Primary().copy(alpha = 0.15f) else Color(0xFFFFEDE0),
-                    shadowElevation = 2.dp
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        if (avatarUri.isNotEmpty()) {
-                            AsyncImage(
-                                model = Uri.parse(avatarUri),
-                                contentDescription = "头像",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            Icon(Icons.Rounded.Person, null, Modifier.size(44.dp), tint = Primary())
+            Column(Modifier.padding(20.dp)) {
+                // Row 1: 身份行 — 头像 + 名称 + 收藏等级右对齐
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (LocalDarkTheme.current) Primary().copy(alpha = 0.15f) else Color(0xFFFFEDE0),
+                        shadowElevation = 2.dp
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            if (avatarUri.isNotEmpty()) {
+                                AsyncImage(model = Uri.parse(avatarUri), contentDescription = "头像", modifier = Modifier.fillMaxSize())
+                            } else {
+                                Icon(Icons.Rounded.Person, null, Modifier.size(36.dp), tint = Primary())
+                            }
                         }
                     }
-                }
-                Spacer(Modifier.width(18.dp))
-                Column {
-                    Text(
-                        "拾物集", fontSize = 22.sp, fontWeight = FontWeight.Bold,
-                        color = TextPrimary(), fontFamily = FredokaFont
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text("你的私人物品资产管理工具", fontSize = 13.sp, color = TextAuxiliary())
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("拾物集", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                        Text("你的私人物品资产管理工具", fontSize = 12.sp, color = TextAuxiliary())
+                    }
                     if (levelStars.isNotEmpty()) {
                         Surface(
                             onClick = { showLevelDialog = true },
@@ -141,40 +135,44 @@ fun MyLandingScreen(
                                 "${if (isValueBadge) "✨ " else ""}$levelStars $levelTitle",
                                 fontSize = 11.sp, fontWeight = FontWeight.Medium,
                                 color = Primary(),
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
                     }
-                    // v5.5 EXP 进度条（可点击查看详情）
-                    val profile = profileState.profile
-                    if (profile != null) {
-                        Spacer(Modifier.height(10.dp))
-                        val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(profile.exp)
-                        val nextExp = com.nanji.lootarchive.util.ExpCalculator.getNextLevelExp(profile.exp)
-                        val currentTitle = com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level)
-                        Surface(
-                            onClick = { showExpDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            color = Primary().copy(alpha = 0.06f)
-                        ) {
-                            Column(Modifier.padding(12.dp)) {
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("Lv.${profile.level} $currentTitle", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Primary())
-                                    if (profile.level < 10) {
-                                        Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 10.sp, color = TextAuxiliary())
-                                    } else {
-                                        Text("已达最高", fontSize = 10.sp, color = Primary())
-                                    }
+                }
+
+                // Separator + EXP 行
+                val profile = profileState.profile
+                if (profile != null) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        color = TextAuxiliary().copy(alpha = 0.12f)
+                    )
+                    val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(profile.exp)
+                    val nextExp = com.nanji.lootarchive.util.ExpCalculator.getNextLevelExp(profile.exp)
+                    val currentTitle = com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(profile.level)
+                    Surface(
+                        onClick = { showExpDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        color = Primary().copy(alpha = 0.05f)
+                    ) {
+                        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Lv.${profile.level} $currentTitle", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                                if (profile.level < 10) {
+                                    Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 10.sp, color = TextAuxiliary())
+                                } else {
+                                    Text("已达最高", fontSize = 10.sp, color = Primary())
                                 }
-                                Spacer(Modifier.height(6.dp))
-                                LinearProgressIndicator(
-                                    progress = { expProgress },
-                                    modifier = Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp)),
-                                    color = Primary(),
-                                    trackColor = Primary().copy(alpha = 0.10f)
-                                )
                             }
+                            Spacer(Modifier.height(5.dp))
+                            LinearProgressIndicator(
+                                progress = { expProgress },
+                                modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                                color = Primary(),
+                                trackColor = Primary().copy(alpha = 0.10f)
+                            )
                         }
                     }
                 }
@@ -308,7 +306,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.5.2", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v5.5.3", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -362,7 +360,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.5.2", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v5.5.3", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
@@ -502,7 +500,7 @@ fun MyLandingScreen(
                     Text("等级阶梯", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
                     Spacer(Modifier.height(4.dp))
                     com.nanji.lootarchive.util.ExpCalculator.LEVELS.forEachIndexed { i, (exp, title) ->
-                        val achieved = p.level > i + 1
+                        val achieved = p.level >= i + 1
                         Row(Modifier.padding(vertical = 2.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text("Lv.${i + 1}", fontSize = 11.sp, color = if (achieved) Primary() else TextAuxiliary(), fontFamily = FredokaFont, modifier = Modifier.width(40.dp))
                             Text(title, fontSize = 12.sp, color = if (achieved) TextPrimary() else TextAuxiliary(), fontWeight = if (p.level == i + 1) FontWeight.Bold else FontWeight.Normal)
