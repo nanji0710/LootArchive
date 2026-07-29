@@ -1,7 +1,7 @@
 {
-  "versionName": "5.1.1",
-  "versionCode": 512,
+  "versionName": "5.1.2",
+  "versionCode": 513,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.1.1\n• 回收站布局优化：物品名称和金额同行，删除时间单行完整显示\n• 收藏家等级动态计算，点击可查看等级规则和当前进度\n\nv5.1.0\n• 回收站删除时间不再换行显示",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.1.1/LootArchive-release-v5.1.1.apk"
+  "updateLog": "v5.1.2\n• 全新双维度收藏家等级系统\n  数量线（收藏广度）和价值线（藏品深度）独立计算\n  星级取两条线最高一档，价值达人加✨珍品标记\n  点击等级可查看完整规则和当前进度\n\nv5.1.1\n• 回收站布局优化：物品名称和金额同行\n• 删除时间单行完整显示不换行",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.1.2/LootArchive-release-v5.1.2.apk"
 }

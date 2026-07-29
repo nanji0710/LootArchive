@@ -61,15 +61,28 @@ fun MyLandingScreen(
 
     val homeVM: com.nanji.lootarchive.ui.home.HomeViewModel = hiltViewModel()
     val homeState by homeVM.uiState.collectAsState()
-    val collectorLevel = remember(homeState.totalCount, homeState.totalValue) {
-        when {
-            homeState.totalCount >= 100 || homeState.totalValue >= 500_000 -> "🌟🌟🌟🌟🌟"
-            homeState.totalCount >= 50 || homeState.totalValue >= 100_000 -> "🌟🌟🌟🌟"
-            homeState.totalCount >= 20 || homeState.totalValue >= 10_000 -> "🌟🌟🌟"
-            homeState.totalCount >= 5 -> "🌟🌟"
-            homeState.totalCount > 0 -> "🌟"
+    // ── 双维度收藏家等级 ──
+    val (levelStars, levelTitle, isValueBadge) = remember(homeState.totalCount, homeState.totalValue) {
+        val tc = homeState.totalCount.toDouble()
+        val tv = homeState.totalValue
+
+        // 数量线星级
+        val countStar = when { tc >= 100 -> 5; tc >= 50 -> 4; tc >= 20 -> 3; tc >= 5 -> 2; tc >= 2 -> 1; else -> 0 }
+        // 价值线星级
+        val valueStar = when { tv >= 500_000 -> 5; tv >= 100_000 -> 4; tv >= 10_000 -> 3; else -> countStar }
+
+        val finalStar = maxOf(countStar, valueStar)
+        val stars = "⭐".repeat(finalStar)
+        val valueBadge = valueStar >= finalStar && finalStar >= 3 // 价值驱动
+        val title = when (finalStar) {
+            5 -> if (valueBadge) "典藏大师" else "博物大家"
+            4 -> if (valueBadge) "珍品收藏家" else "藏品达人"
+            3 -> if (valueBadge) "资深鉴藏家" else "收纳爱好者"
+            2 -> "小小收藏家"
+            1 -> "入门收纳家"
             else -> ""
         }
+        Triple(stars, title, valueBadge)
     }
 
     Column(
@@ -113,14 +126,14 @@ fun MyLandingScreen(
                     Spacer(Modifier.height(2.dp))
                     Text("你的私人物品资产管理工具", fontSize = 13.sp, color = TextAuxiliary())
                     Spacer(Modifier.height(4.dp))
-                    if (collectorLevel.isNotEmpty()) {
+                    if (levelStars.isNotEmpty()) {
                         Surface(
                             onClick = { showLevelDialog = true },
                             shape = RoundedCornerShape(12.dp),
                             color = Primary().copy(alpha = 0.10f)
                         ) {
                             Text(
-                                "收藏家等级 $collectorLevel",
+                                "${if (isValueBadge) "✨ " else ""}$levelStars $levelTitle",
                                 fontSize = 11.sp, fontWeight = FontWeight.Medium,
                                 color = Primary(),
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
@@ -203,7 +216,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.0.8", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v5.1.2", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -257,7 +270,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.0.8", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v5.1.2", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
@@ -327,21 +340,34 @@ fun MyLandingScreen(
             onDismissRequest = { showLevelDialog = false },
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("收藏家等级说明", fontWeight = FontWeight.Bold, color = TextPrimary()) },
+            title = { Text("收藏家等级", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
-                Column {
+                Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
                     Text("当前进度", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
                     Spacer(Modifier.height(8.dp))
                     Text("物品数量：${homeState.totalCount} 件", fontSize = 14.sp, color = TextPrimary())
                     Text("资产总值：¥${java.text.NumberFormat.getNumberInstance().format(homeState.totalValue)}", fontSize = 14.sp, color = TextPrimary())
+                    if (isValueBadge) {
+                        Spacer(Modifier.height(4.dp))
+                        Surface(shape = RoundedCornerShape(8.dp), color = Color(0xFFFFF3E0)) {
+                            Text("✨ 珍品收藏家 — 藏品价值卓越", fontSize = 12.sp, color = Color(0xFFE65100), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), fontWeight = FontWeight.Medium)
+                        }
+                    }
                     Spacer(Modifier.height(12.dp))
-                    Text("等级规则", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Text("数量线（收藏广度）", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
                     Spacer(Modifier.height(6.dp))
-                    LevelRule("🌟", "登记 1 件以上物品")
-                    LevelRule("🌟🌟", "登记 5 件以上物品")
-                    LevelRule("🌟🌟🌟", "登记 20 件以上，或总资产过万")
-                    LevelRule("🌟🌟🌟🌟", "登记 50 件以上，或总资产过十万")
-                    LevelRule("🌟🌟🌟🌟🌟", "登记 100 件以上，或总资产过五十万")
+                    LevelRule("⭐", "入门收纳家", "2 件及以上", homeState.totalCount >= 2)
+                    LevelRule("⭐⭐", "小小收藏家", "5 件及以上", homeState.totalCount >= 5)
+                    LevelRule("⭐⭐⭐", "收纳爱好者", "20 件及以上", homeState.totalCount >= 20)
+                    LevelRule("⭐⭐⭐⭐", "藏品达人", "50 件及以上", homeState.totalCount >= 50)
+                    LevelRule("⭐⭐⭐⭐⭐", "博物大家", "100 件及以上", homeState.totalCount >= 100)
+                    Spacer(Modifier.height(12.dp))
+                    Text("价值线（藏品深度）", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(2.dp))
+                    LevelRule("⭐⭐⭐", "资深鉴藏家", "总资产 1 万及以上", homeState.totalValue >= 10_000)
+                    LevelRule("⭐⭐⭐⭐", "珍品收藏家", "总资产 10 万及以上", homeState.totalValue >= 100_000)
+                    LevelRule("⭐⭐⭐⭐⭐", "典藏大师", "总资产 50 万及以上", homeState.totalValue >= 500_000)
                 }
             },
             confirmButton = { TextButton(onClick = { showLevelDialog = false }) { Text("知道了", color = Primary()) } }
@@ -372,10 +398,10 @@ private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onCli
 }
 
 @Composable
-private fun LevelRule(level: String, condition: String) {
+private fun LevelRule(level: String, title: String, condition: String, achieved: Boolean) {
     Row(modifier = Modifier.padding(vertical = 3.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(level, fontSize = 14.sp)
         Spacer(Modifier.width(8.dp))
-        Text(condition, fontSize = 13.sp, color = TextSecondary())
+        Text("$title｜$condition", fontSize = 12.sp, color = if (achieved) Primary() else TextAuxiliary(), fontWeight = if (achieved) FontWeight.SemiBold else FontWeight.Normal)
     }
 }
