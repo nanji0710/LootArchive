@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -106,7 +107,7 @@ fun MyLandingScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(Modifier.padding(20.dp)) {
-                // Row 1: 身份行 — 头像 + 名称 + 收藏等级右对齐
+                // Row 1: 身份行 — 头像 + 名称
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         modifier = Modifier.size(56.dp),
@@ -127,9 +128,13 @@ fun MyLandingScreen(
                         Text("拾物集", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
                         Text("你的私人物品资产管理工具", fontSize = 12.sp, color = TextAuxiliary())
                     }
-                    // 收藏等级 + 成就入口徽章（各自独立显隐，无外层门控）
-                    val achCount = profileState.achievements.count { it.isUnlocked }
-                    val achTotal = profileState.achievements.size
+                }
+
+                // Row 1.5: 徽章行 — 收藏等级 + 成就入口（独占一行，不挤压名称栏）
+                val achCount = profileState.achievements.count { it.isUnlocked }
+                val achTotal = profileState.achievements.size
+                if (levelStars.isNotEmpty() || achTotal > 0) {
+                    Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (levelStars.isNotEmpty()) {
                             Surface(
@@ -141,7 +146,8 @@ fun MyLandingScreen(
                                     "${if (isValueBadge) "✨ " else ""}$levelStars $levelTitle",
                                     fontSize = 11.sp, fontWeight = FontWeight.Medium,
                                     color = Primary(),
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -244,7 +250,8 @@ fun MyLandingScreen(
                                             ) {
                                                 Text(
                                                     if (ach.isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒",
-                                                    fontSize = 20.sp
+                                                    fontSize = 20.sp,
+                                                    color = if (ach.isUnlocked) Primary() else TextAuxiliary().copy(alpha = 0.35f)
                                                 )
                                             }
                                             Spacer(Modifier.height(4.dp))
@@ -339,7 +346,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v6.1.4", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v6.1.5", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -393,7 +400,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v6.1.4", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v6.1.5", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }

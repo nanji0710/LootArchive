@@ -1,7 +1,7 @@
 {
-  "versionName": "6.1.4",
-  "versionCode": 614,
+  "versionName": "6.1.5",
+  "versionCode": 615,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.1.4\n• 修复成就徽章不显示根因：raw SQL 不触发 Room Flow 失效→改用 DAO 补种\n• 搜索筛选改为行内展开式Chip（范围/状态均与标签一致）\n• 回收站倒计时双行展示",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.4/LootArchive-release-v6.1.4.apk"
+  "updateLog": "v6.1.5\n• 修复我的页面顶部文字竖排：徽章独占一行不再挤压名称栏\n• 修复成就网格图标不可见：Surface透明色导致contentColor透明\n• 成就种子DAO补种+状态变更触发EXP重算+全流程审计通过",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.5/LootArchive-release-v6.1.5.apk"
 }
