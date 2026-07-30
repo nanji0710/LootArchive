@@ -1,7 +1,7 @@
 {
-  "versionName": "6.3.2",
-  "versionCode": 632,
+  "versionName": "6.3.3",
+  "versionCode": 633,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.3.2\n• 10处静默吞异常→加Log.e日志，方便排查线上问题\n• 搜索页重复map提取为remember常量\n• 保修弹窗LazyColumn加item.id key\n• 搜索无结果时新增添加物品引导入口\n• 硬编码颜色 → 主题色\n• 新增DB索引：warrantyExpiryDate/purchaseDate/updatedAt\n• 设置页重看引导加Toast反馈\n• HomeViewModel改为update{}原子写入",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.2/LootArchive-release-v6.3.2.apk"
+  "updateLog": "v6.3.3\n• 回退ItemEntity新增索引（导致DB schema变化→闪退）\n• 保留全部异常日志+代码质量修复",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.3/LootArchive-release-v6.3.3.apk"
 }

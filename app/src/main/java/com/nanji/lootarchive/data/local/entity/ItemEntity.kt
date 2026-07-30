@@ -10,10 +10,7 @@ import androidx.room.PrimaryKey
         Index("categoryId"),
         Index("name"),
         Index("isDeleted"),
-        Index("status"),
-        Index("warrantyExpiryDate"),
-        Index("purchaseDate"),
-        Index("updatedAt")
+        Index("status")
     ]
 )
 data class ItemEntity(
