@@ -34,6 +34,9 @@ interface ItemPhotoDao {
     @Query("SELECT * FROM item_photos WHERE itemId = :itemId ORDER BY sortOrder ASC LIMIT 1")
     suspend fun getFirstPhotoByItemId(itemId: Long): ItemPhotoEntity?
 
+    @Query("SELECT COUNT(*) FROM item_photos WHERE itemId IN (SELECT id FROM items WHERE isDeleted = 0)")
+    suspend fun getTotalPhotoCount(): Int
+
     @Query("SELECT photoPath FROM item_photos")
     suspend fun getAllPhotoPaths(): List<String>
 

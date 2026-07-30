@@ -27,7 +27,8 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val expService: com.nanji.lootarchive.data.ExpService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -71,5 +72,5 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteItem(itemId: Long) { viewModelScope.launch { itemRepository.softDeleteItem(itemId) } }
+    fun deleteItem(itemId: Long) { viewModelScope.launch { itemRepository.softDeleteItem(itemId); expService.recalculateProfile() } }
 }

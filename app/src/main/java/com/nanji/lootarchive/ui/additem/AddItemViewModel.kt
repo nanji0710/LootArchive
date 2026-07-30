@@ -260,9 +260,7 @@ class AddItemViewModel @Inject constructor(
                 }
 
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
-                if (editingItemId == null) {
-                    expService.recordAddItem(savedId, price, state.description.isNotBlank(), state.photoPaths.size)
-                }
+                expService.recalculateProfile()
                 formInitialized = false  // 允许下次新增物品时重新初始化表单
             } catch (e: Exception) {
                 _uiState.update {

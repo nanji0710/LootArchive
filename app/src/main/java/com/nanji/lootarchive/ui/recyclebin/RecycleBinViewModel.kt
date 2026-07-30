@@ -20,7 +20,8 @@ data class RecycleBinUiState(
 
 @HiltViewModel
 class RecycleBinViewModel @Inject constructor(
-    private val itemRepository: ItemRepository
+    private val itemRepository: ItemRepository,
+    private val expService: com.nanji.lootarchive.data.ExpService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecycleBinUiState())
@@ -37,6 +38,7 @@ class RecycleBinViewModel @Inject constructor(
     fun restoreItem(item: ItemEntity) {
         viewModelScope.launch {
             itemRepository.restoreItem(item.id)
+            expService.recalculateProfile()
             _uiState.update { it.copy(message = "「${item.name}」已还原") }
         }
     }
@@ -52,6 +54,7 @@ class RecycleBinViewModel @Inject constructor(
     fun hardDeleteItem(item: ItemEntity) {
         viewModelScope.launch {
             itemRepository.hardDeleteItem(item.id)
+            expService.recalculateProfile()
             _uiState.update { it.copy(showDeleteConfirm = false, targetItem = null, message = "「${item.name}」已彻底删除") }
         }
     }
@@ -67,6 +70,7 @@ class RecycleBinViewModel @Inject constructor(
     fun emptyTrash() {
         viewModelScope.launch {
             itemRepository.emptyTrash()
+            expService.recalculateProfile()
             _uiState.update { it.copy(showEmptyConfirm = false, message = "回收站已清空") }
         }
     }

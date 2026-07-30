@@ -119,9 +119,10 @@ class BackupViewModel @Inject constructor(
                         itemRepository.addPhotosForItem(itemId, ii.photoFiles)
                         photoCount += ii.photoFiles.size
                     }
-                    expService.recordAddItem(itemId, itemToSave.purchasePrice, itemToSave.description.isNotBlank(), ii.photoFiles.size)
                     itemCount++
                 }
+                // 导入完成后一次性重算
+                expService.recalculateProfile()
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true,
                         message = "导入成功\n分类: $catCount 个\n物品: $itemCount 件\n照片: $photoCount 张\n请退出重进以刷新数据")
