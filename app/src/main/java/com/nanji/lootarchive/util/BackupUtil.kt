@@ -72,7 +72,9 @@ object BackupUtil {
                     it.inputStream().use { input -> input.copyTo(zip) }
                     it.delete()
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                android.util.Log.e("BackupUtil", "Cleanup failed", e)
+            }
             zip.closeEntry()
 
             // 2. Photos

@@ -241,7 +241,7 @@ fun HomeScreen(
         val count = expiringItems.size
         AlertDialog(onDismissRequest = { showWarrantyDialog = false }, shape = RoundedCornerShape(28.dp), containerColor = MaterialTheme.colorScheme.surface, title = { Text("保修待提醒 ($count)", fontWeight = FontWeight.SemiBold, color = TextPrimary()) }, text = {
             if (count == 0) Text("暂无即将到期的保修物品", color = TextSecondary())
-            else LazyColumn { items(expiringItems) { i -> Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(8.dp), RoundedCornerShape(4.dp), color = WarrantyExpiring) {}; Spacer(Modifier.width(10.dp)); Text(i.name, fontSize = 14.sp, color = TextPrimary()) } } }
+            else LazyColumn { items(expiringItems, key = { it.id }) { i -> Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(8.dp), RoundedCornerShape(4.dp), color = WarrantyExpiring) {}; Spacer(Modifier.width(10.dp)); Text(i.name, fontSize = 14.sp, color = TextPrimary()) } } }
         }, confirmButton = { TextButton(onClick = { showWarrantyDialog = false }) { Text("关闭", color = Primary()) } })
     }
 }

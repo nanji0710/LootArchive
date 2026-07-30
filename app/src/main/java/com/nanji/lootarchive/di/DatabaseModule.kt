@@ -49,7 +49,9 @@ object DatabaseModule {
             db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('藏品摆件', 'diamond', 7)")
             db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('家居家具', 'chair', 8)")
             db.execSQL("INSERT INTO categories (name, iconName, sortOrder) VALUES ('其他', 'category', 9)")
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            android.util.Log.e("DatabaseModule", "Seed categories failed", e)
+        }
     }
 
     private fun seedAchievementsAndProfile(db: SupportSQLiteDatabase) {
@@ -74,7 +76,9 @@ object DatabaseModule {
             seeds.forEach { seed ->
                 db.execSQL("INSERT OR REPLACE INTO achievements (\"key\",title,description,category,target,icon) VALUES ('${seed.first}','${seed.second}','${seed.third}','${seed.fourth}',${seed.fifth},'')")
             }
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            android.util.Log.e("DatabaseModule", "Seed achievements failed", e)
+        }
     }
 
     @Provides

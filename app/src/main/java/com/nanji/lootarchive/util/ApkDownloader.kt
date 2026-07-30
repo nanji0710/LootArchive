@@ -19,11 +19,13 @@ object ApkDownloader {
                 val dir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
                 dir?.listFiles()?.filter { it.name.startsWith("LootArchive-v") && it.name.endsWith(".apk") }
                     ?.forEach { it.delete() }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                android.util.Log.e("ApkDownloader", "Cleanup old APKs failed", e)
+            }
 
             // 防重复点击
             if (lastDownloadId > 0) {
-                try { dm.remove(lastDownloadId) } catch (_: Exception) {}
+                try { dm.remove(lastDownloadId) } catch (e: Exception) { /* ignore, old download may already be gone */ }
             }
 
             val request = DownloadManager.Request(Uri.parse(url))

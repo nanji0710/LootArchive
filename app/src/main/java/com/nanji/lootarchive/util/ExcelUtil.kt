@@ -216,7 +216,7 @@ object ExcelUtil {
     private fun parseDateAny(s: String): Long? {
         if (s.isBlank()) return null
         for (df in dateFormats) {
-            try { return df.parse(s)?.time } catch (_: Exception) {}
+            try { return df.parse(s)?.time } catch (_: Exception) { /* try next format */ }
         }
         s.toLongOrNull()?.let {
             return if (it > 1_000_000_000_000L) it else (it - 25569) * 86_400_000L

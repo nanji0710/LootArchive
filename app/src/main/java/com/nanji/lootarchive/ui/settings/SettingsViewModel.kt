@@ -187,12 +187,16 @@ class SettingsViewModel @Inject constructor(
         stack.add(dir)
         while (stack.isNotEmpty()) {
             val current = stack.removeLast()
-            val children = try { current.listFiles() } catch (_: Exception) { null } ?: continue
+            val children = try { current.listFiles() } catch (e: Exception) {
+                android.util.Log.e("SettingsVM", "listFiles failed dir=${current.absolutePath}", e); null
+            } ?: continue
             for (child in children) {
                 try {
                     if (child.isFile) total += child.length()
                     else if (child.isDirectory) stack.add(child)
-                } catch (_: Exception) {}
+                } catch (e: Exception) {
+                    android.util.Log.e("SettingsVM", "File length failed", e)
+                }
             }
         }
         return total

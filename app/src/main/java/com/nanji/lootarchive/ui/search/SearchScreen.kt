@@ -38,6 +38,7 @@ import coil.compose.AsyncImage
 fun SearchScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (Long) -> Unit,
+    onNavigateToAddItem: () -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -47,6 +48,8 @@ fun SearchScreen(
     var showStatusRow by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
     var showTagRow by remember { mutableStateOf(false) }
+    val scopeLabels = remember { mapOf(null to "全部范围", "name" to "名称", "location" to "位置", "desc" to "备注", "warranty" to "保修") }
+    val statusLabels = remember { mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失") }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -102,7 +105,6 @@ fun SearchScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 搜索范围（行内展开，与标签一致）
-                val scopeLabels = mapOf(null to "全部范围", "name" to "名称", "location" to "位置", "desc" to "备注", "warranty" to "保修")
                 val scopeLabel = scopeLabels[uiState.activeFilter] ?: "范围"
                 FilterChip(
                     selected = uiState.activeFilter != null,
@@ -123,7 +125,6 @@ fun SearchScreen(
                 )
 
                 // 状态（行内展开，与标签一致）
-                val statusLabels = mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失")
                 val statusLabel = statusLabels[uiState.statusFilter] ?: "状态"
                 FilterChip(
                     selected = uiState.statusFilter != null,
@@ -178,7 +179,6 @@ fun SearchScreen(
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    val scopeLabels = mapOf(null to "全部范围", "name" to "名称", "location" to "位置", "desc" to "备注", "warranty" to "保修")
                     scopeLabels.forEach { (k, v) ->
                         val sel = uiState.activeFilter == k
                         FilterChip(
@@ -202,7 +202,6 @@ fun SearchScreen(
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    val statusLabels = mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失")
                     statusLabels.forEach { (k, v) ->
                         val sel = uiState.statusFilter == k
                         FilterChip(
@@ -334,11 +333,21 @@ fun SearchScreen(
                     )
                 }
             } else if (uiState.results.isEmpty()) {
-                EmptyState(
-                    icon = { Icon(Icons.Rounded.SearchOff, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
-                    title = "未找到对应物品",
-                    subtitle = "换个关键词试试"
-                )
+                if (uiState.query.isNotEmpty()) {
+                    EmptyState(
+                        icon = { Icon(Icons.Rounded.SearchOff, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
+                        title = "未找到对应物品",
+                        subtitle = "换个关键词试试"
+                    )
+                } else {
+                    EmptyState(
+                        icon = { Icon(Icons.Rounded.Search, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.35f)) },
+                        title = "搜索你的物品",
+                        subtitle = "输入关键词查找",
+                        actionLabel = "添加第一件物品",
+                        onAction = onNavigateToAddItem
+                    )
+                }
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),

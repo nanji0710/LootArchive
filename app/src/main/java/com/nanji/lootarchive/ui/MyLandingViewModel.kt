@@ -39,7 +39,9 @@ class MyLandingViewModel @Inject constructor(
                 if (achievementDao.getCount() == 0) {
                     achievementDao.insertAll(seedAchievements())
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                android.util.Log.e("MyLandingVM", "Seed achievements failed", e)
+            }
         }
         viewModelScope.launch {
             userProfileDao.getProfile().catch { e ->

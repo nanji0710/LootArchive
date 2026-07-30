@@ -58,7 +58,9 @@ class HomeViewModel @Inject constructor(
                         try {
                             val photos = itemRepository.getItemPhotos(item.id).first()
                             if (photos.isNotEmpty()) paths[item.id] = photos.first().photoPath
-                        } catch (_: Exception) {}
+                        } catch (e: Exception) {
+                            android.util.Log.e("HomeVM", "Load photo failed item=${item.id}", e)
+                        }
                     }
                     HomeUiState(
                         isLoading = false, items = quintet.first, photoPaths = paths,
@@ -66,7 +68,10 @@ class HomeViewModel @Inject constructor(
                         warrantyExpiringCount = quintet.fourth, warrantyReminderDays = reminderDays.toInt(),
                         currency = quintet.fifth, appName = appName
                     )
-                }.catch { _uiState.value = _uiState.value.copy(isLoading = false) }
+                }.catch { e ->
+                    android.util.Log.e("HomeVM", "loadData failed", e)
+                    _uiState.update { it.copy(isLoading = false) }
+                }
                  .collect { state -> _uiState.value = state }
             }
         }

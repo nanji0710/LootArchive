@@ -105,7 +105,10 @@ class SearchViewModel @Inject constructor(
     private fun executeSearch(q: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            itemRepository.searchItemsWithTags(q.ifBlank { "" }).catch {}.collect { items ->
+            itemRepository.searchItemsWithTags(q.ifBlank { "" }).catch { e ->
+                android.util.Log.e("SearchVM", "Search failed query=$q", e)
+                _uiState.update { it.copy(isLoading = false, results = emptyList()) }
+            }.collect { items ->
                 val filter = _uiState.value.activeFilter
                 // 按筛选字段过滤
                 val filtered = when (filter) {

@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.widget.Toast
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.theme.*
@@ -113,8 +114,12 @@ fun SettingsScreen(
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                     // v6.3 新手引导
+                    val ctx = LocalContext.current
                     Row(
-                        Modifier.fillMaxWidth().clickable { viewModel.resetOnboarding() }.padding(horizontal = 16.dp, vertical = 14.dp),
+                        Modifier.fillMaxWidth().clickable {
+                            viewModel.resetOnboarding()
+                            Toast.makeText(ctx, "下次启动时将重新显示引导", Toast.LENGTH_SHORT).show()
+                        }.padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("重新查看引导", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
@@ -220,7 +225,7 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
-                    Text("当前版本 v6.3.1", fontSize = 13.sp, color = TextAuxiliary())
+                    Text("当前版本 v6.3.2", fontSize = 13.sp, color = TextAuxiliary())
                     Spacer(Modifier.height(8.dp))
                     Text("数据看板", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(2.dp))

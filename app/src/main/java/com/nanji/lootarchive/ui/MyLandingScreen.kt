@@ -288,7 +288,7 @@ fun MyLandingScreen(
                 Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("📅", fontSize = 28.sp)
                     Text("最老物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
-                    Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest?.purchaseDate!!)) + "年购入" } else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
+                    Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; if (oldest?.purchaseDate != null) java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest.purchaseDate)) + "年购入" else "暂无" } else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
                 }
             }
         }
@@ -337,7 +337,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v6.3.1", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v6.3.2", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -391,7 +391,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v6.3.1", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v6.3.2", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
@@ -470,8 +470,8 @@ fun MyLandingScreen(
                     Text("资产总值：¥${java.text.NumberFormat.getNumberInstance().format(homeState.totalValue)}", fontSize = 14.sp, color = TextPrimary())
                     if (isValueBadge) {
                         Spacer(Modifier.height(4.dp))
-                        Surface(shape = RoundedCornerShape(8.dp), color = Color(0xFFFFF3E0)) {
-                            Text("✨ 珍品收藏家 — 藏品价值卓越", fontSize = 12.sp, color = Color(0xFFE65100), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), fontWeight = FontWeight.Medium)
+                        Surface(shape = RoundedCornerShape(8.dp), color = Primary().copy(alpha = 0.08f)) {
+                            Text("✨ 珍品收藏家 — 藏品价值卓越", fontSize = 12.sp, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), fontWeight = FontWeight.Medium)
                         }
                     }
                     Spacer(Modifier.height(12.dp))
