@@ -111,6 +111,15 @@ fun SettingsScreen(
                         }
                         Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                    // v6.3 新手引导
+                    Row(
+                        Modifier.fillMaxWidth().clickable { viewModel.resetOnboarding() }.padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("重新查看引导", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
+                    }
                 }
             }
 
@@ -211,7 +220,7 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
-                    Text("当前版本 v6.2.0", fontSize = 13.sp, color = TextAuxiliary())
+                    Text("当前版本 v6.3.0", fontSize = 13.sp, color = TextAuxiliary())
                     Spacer(Modifier.height(8.dp))
                     Text("数据看板", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(2.dp))

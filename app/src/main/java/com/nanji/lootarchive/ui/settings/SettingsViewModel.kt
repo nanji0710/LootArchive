@@ -201,4 +201,9 @@ class SettingsViewModel @Inject constructor(
     fun clearMessage() {
         _uiState.update { it.copy(message = null) }
     }
+
+    // v6.3 新手引导重置
+    fun resetOnboarding() {
+        viewModelScope.launch { settingsRepository.setOnboardingCompleted(false) }
+    }
 }

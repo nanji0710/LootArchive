@@ -22,6 +22,7 @@ class SettingsRepository @Inject constructor(
         val KEY_APP_NAME = stringPreferencesKey("app_name")
         val KEY_PRIMARY_COLOR = intPreferencesKey("primary_color") // ARGB int
         val KEY_SEARCH_HISTORY = stringPreferencesKey("search_history")
+        val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
     // ── v6.0 搜索历史 ──
@@ -38,6 +39,12 @@ class SettingsRepository @Inject constructor(
     }
     suspend fun clearSearchHistory() {
         dataStore.edit { it[KEY_SEARCH_HISTORY] = "" }
+    }
+
+    // ── v6.2 新手引导 ──
+    val onboardingCompleted: Flow<Boolean> = dataStore.data.map { it[KEY_ONBOARDING_COMPLETED] ?: false }
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        dataStore.edit { it[KEY_ONBOARDING_COMPLETED] = completed }
     }
 
     // ========== 价格单位 ==========
