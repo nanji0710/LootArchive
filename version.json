@@ -1,7 +1,7 @@
 {
-  "versionName": "6.1.1",
-  "versionCode": 611,
+  "versionName": "6.1.2",
+  "versionCode": 612,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.1.1\n• 搜索筛选改为行内展开式Chip（范围/状态均与标签筛选一致）\n• 修复成就徽章不显示问题（新用户无物品时隐藏）\n• 修复回收站倒计时单行截断→双行展示\n• 修复搜索历史纵向列表每条独立点击",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.1/LootArchive-release-v6.1.1.apk"
+  "updateLog": "v6.1.2\n• 修复成就徽章不显示：移除外层条件门控，各徽章独立显隐\n• 搜索筛选改为行内展开式Chip（范围/状态均与标签筛选一致）\n• 修复回收站倒计时单行截断→双行展示",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.2/LootArchive-release-v6.1.2.apk"
 }
