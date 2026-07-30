@@ -59,6 +59,8 @@ fun MyLandingScreen(
     var downloadError by remember { mutableStateOf<String?>(null) }
     var showLevelDialog by remember { mutableStateOf(false) }
     var showExpDialog by remember { mutableStateOf(false) }
+    var showAchievementDetail by remember { mutableStateOf<com.nanji.lootarchive.data.local.entity.AchievementEntity?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val downloader = remember { ApkDownloadManager(context) }
 
@@ -202,29 +204,41 @@ fun MyLandingScreen(
                                     Modifier.weight(1f).padding(vertical = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Box(
-                                        Modifier.size(40.dp)
-                                            .background(
-                                                if (ach.isUnlocked) Primary().copy(alpha = 0.10f)
-                                                else TextAuxiliary().copy(alpha = 0.06f),
-                                                RoundedCornerShape(12.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
+                                    Surface(
+                                        onClick = { showAchievementDetail = ach },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = Color.Transparent
                                     ) {
-                                        Text(
-                                            if (ach.isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒",
-                                            fontSize = 20.sp
-                                        )
+                                        Column(
+                                            Modifier.padding(vertical = 4.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Box(
+                                                Modifier.size(40.dp)
+                                                    .background(
+                                                        if (ach.isUnlocked) Primary().copy(alpha = 0.10f)
+                                                        else TextAuxiliary().copy(alpha = 0.06f),
+                                                        RoundedCornerShape(12.dp)
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    if (ach.isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒",
+                                                    fontSize = 20.sp
+                                                )
+                                            }
+                                            Spacer(Modifier.height(4.dp))
+                                            Text(
+                                                ach.title,
+                                                fontSize = 10.sp,
+                                                color = if (ach.isUnlocked) TextPrimary() else TextAuxiliary(),
+                                                fontWeight = if (ach.isUnlocked) FontWeight.Medium else FontWeight.Normal,
+                                                maxLines = 1,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                     }
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(
-                                        ach.title,
-                                        fontSize = 10.sp,
-                                        color = if (ach.isUnlocked) TextPrimary() else TextAuxiliary(),
-                                        fontWeight = if (ach.isUnlocked) FontWeight.Medium else FontWeight.Normal,
-                                        maxLines = 1,
-                                        textAlign = TextAlign.Center
-                                    )
                                 }
                             }
                             repeat(cols - row.size) { Spacer(Modifier.weight(1f)) }
@@ -306,7 +320,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v5.5.6", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v6.0.0", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -360,7 +374,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v5.5.6", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v6.0.0", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
@@ -471,11 +485,11 @@ fun MyLandingScreen(
             onDismissRequest = { showExpDialog = false },
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("收藏家详情", fontWeight = FontWeight.Bold, color = TextPrimary()) },
+            title = { Text("收藏家详情", fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont) },
             text = {
                 Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
                     val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(p.exp)
-                    Text("当前等级", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Text("当前等级", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(6.dp))
                     Text("Lv.${p.level} ${com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(p.level)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
                     Spacer(Modifier.height(4.dp))
@@ -490,14 +504,14 @@ fun MyLandingScreen(
                         Text("距下一级还需 ${nextExp - p.exp} EXP", fontSize = 12.sp, color = TextAuxiliary())
                     }
                     Spacer(Modifier.height(12.dp))
-                    Text("等级数据", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Text("等级数据", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
                     Text("物品新增：${p.totalItemsAdded} 件", fontSize = 13.sp, color = TextSecondary())
                     Text("照片拍摄：${p.totalPhotosAdded} 张", fontSize = 13.sp, color = TextSecondary())
                     Text("描述完善：${p.totalDescriptionsFilled} 件", fontSize = 13.sp, color = TextSecondary())
                     Text("连续活跃：${p.streakDays} 天", fontSize = 13.sp, color = TextSecondary())
                     Spacer(Modifier.height(12.dp))
-                    Text("等级阶梯", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Text("等级阶梯", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
                     com.nanji.lootarchive.util.ExpCalculator.LEVELS.forEachIndexed { i, (exp, title) ->
                         val achieved = p.level >= i + 1
@@ -511,6 +525,69 @@ fun MyLandingScreen(
                 }
             },
             confirmButton = { TextButton(onClick = { showExpDialog = false }) { Text("知道了", color = Primary()) } }
+        )
+    }
+
+    // v6.0 成就详情弹窗
+    showAchievementDetail?.let { ach ->
+        val isUnlocked = ach.isUnlocked
+        val progressVal = ach.progress
+        val targetVal = ach.target
+        AlertDialog(
+            onDismissRequest = { showAchievementDetail = null },
+            shape = RoundedCornerShape(28.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒", fontSize = 28.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Text(ach.title, fontWeight = FontWeight.Bold, color = TextPrimary(), fontSize = 20.sp, fontFamily = FredokaFont)
+                }
+            },
+            text = {
+                Column {
+                    Text(ach.description.ifEmpty { "完成目标即可解锁" }, fontSize = 14.sp, color = TextSecondary())
+                    Spacer(Modifier.height(14.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("进度", fontSize = 12.sp, color = TextAuxiliary())
+                        Text(
+                            "$progressVal / $targetVal",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = if (isUnlocked) Primary() else TextAuxiliary()
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    val prog = (progressVal.toFloat() / targetVal.coerceAtLeast(1).toFloat()).coerceIn(0f, 1f)
+                    LinearProgressIndicator(
+                        progress = { prog },
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        color = if (isUnlocked) Primary() else TextAuxiliary().copy(alpha = 0.5f),
+                        trackColor = Primary().copy(alpha = 0.10f)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    val statusLabel = if (isUnlocked) "✅ 已解锁" else "🔒 未解锁"
+                    Text(statusLabel, fontSize = 13.sp, color = if (isUnlocked) Color(0xFF10B981) else TextAuxiliary(), fontWeight = FontWeight.Medium)
+                }
+            },
+            confirmButton = { TextButton(onClick = { showAchievementDetail = null }) { Text("知道了", color = Primary()) } }
+        )
+    }
+
+    // v6.0 成就解锁通知
+    val unlockMsg = profileState.unlockMessage
+    if (unlockMsg != null) {
+        LaunchedEffect(unlockMsg) {
+            kotlinx.coroutines.delay(2500)
+            profileVM.clearUnlockMessage()
+        }
+        AlertDialog(
+            onDismissRequest = { profileVM.clearUnlockMessage() },
+            shape = RoundedCornerShape(28.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text("成就解锁！", fontWeight = FontWeight.Bold, color = Primary(), fontSize = 18.sp, fontFamily = FredokaFont) },
+            text = { Text(unlockMsg, fontSize = 15.sp, color = TextPrimary()) },
+            confirmButton = { TextButton(onClick = { profileVM.clearUnlockMessage() }) { Text("太棒了！", color = Primary()) } }
         )
     }
 }

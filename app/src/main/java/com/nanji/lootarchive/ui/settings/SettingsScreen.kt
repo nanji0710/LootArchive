@@ -122,28 +122,43 @@ fun SettingsScreen(
                 colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("保修到期提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = Primary().copy(alpha = 0.10f)
-                        ) {
-                            Text(
-                                "提前 ${uiState.warrantyReminderDays} 天",
-                                fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
+                Column {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("保修到期提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = Primary().copy(alpha = 0.10f)
+                            ) {
+                                Text(
+                                    "提前 ${uiState.warrantyReminderDays} 天",
+                                    fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                            IconButton(onClick = {
+                                editReminderDays = uiState.warrantyReminderDays.toString()
+                                showReminderDialog = true
+                            }) {
+                                Icon(Icons.Rounded.Edit, null, Modifier.size(18.dp), tint = Primary())
+                            }
                         }
-                        IconButton(onClick = {
-                            editReminderDays = uiState.warrantyReminderDays.toString()
-                            showReminderDialog = true
-                        }) {
-                            Icon(Icons.Rounded.Edit, null, Modifier.size(18.dp), tint = Primary())
-                        }
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                    // v6.0 备份提醒开关
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("备份提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = uiState.backupReminderEnabled,
+                            onCheckedChange = { viewModel.setBackupReminder(it) },
+                            colors = SwitchDefaults.colors(checkedTrackColor = Primary().copy(alpha = 0.5f), checkedThumbColor = Primary())
+                        )
                     }
                 }
             }
@@ -196,7 +211,11 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
-                    Text("当前版本 v5.5.6", fontSize = 13.sp, color = TextAuxiliary())
+                    Text("当前版本 v6.0.0", fontSize = 13.sp, color = TextAuxiliary())
+                    Spacer(Modifier.height(8.dp))
+                    Text("数据看板", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                    Spacer(Modifier.height(2.dp))
+                    Text("回收站: ${uiState.trashItemCount} 件", fontSize = 12.sp, color = TextAuxiliary())
                 }
             }
 

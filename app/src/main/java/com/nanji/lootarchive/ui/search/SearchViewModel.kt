@@ -27,13 +27,15 @@ data class SearchUiState(
     val isLoading: Boolean = false,
     val recentSearches: List<String> = emptyList(),
     val statusFilter: String? = null,
-    val tagFilter: String? = null
+    val tagFilter: String? = null,
+    val allTags: List<String> = emptyList()
 )
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val settingsRepository: com.nanji.lootarchive.data.repository.SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -46,6 +48,17 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             categoryRepository.getAllCategories().collect { categories ->
                 _uiState.update { it.copy(categories = categories) }
+            }
+        }
+        viewModelScope.launch {
+            itemRepository.getAllTags().collect { tags ->
+                _uiState.update { it.copy(allTags = tags) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.searchHistory.collect { saved ->
+                history.clear(); history.addAll(saved)
+                _uiState.update { it.copy(recentSearches = saved) }
             }
         }
     }
@@ -68,10 +81,15 @@ class SearchViewModel @Inject constructor(
         if (q.isBlank()) return
         if (!history.contains(q)) { history.add(0, q); if (history.size > 20) history.removeLast() }
         _uiState.update { it.copy(recentSearches = history.toList()) }
+        viewModelScope.launch { settingsRepository.addSearchHistory(q) }
         executeSearch(q)
     }
 
-    fun clearHistory() { history.clear(); _uiState.update { it.copy(recentSearches = emptyList()) } }
+    fun clearHistory() {
+        history.clear()
+        _uiState.update { it.copy(recentSearches = emptyList()) }
+        viewModelScope.launch { settingsRepository.clearSearchHistory() }
+    }
 
     fun setActiveFilter(filter: String?) { _uiState.update { it.copy(activeFilter = filter) }; doSearch() }
     fun setSort(sort: String) { _uiState.update { it.copy(sort = sort) }; doSearch() }

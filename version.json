@@ -1,7 +1,7 @@
 {
-  "versionName": "5.5.6",
-  "versionCode": 556,
-  "updateDate": "2026-07-29",
-  "updateLog": "v5.5.6\n• 统计仅计算当前拥有物品（在用+闲置+待修）\n• 已出/丢失物品首页卡片半透明弱化\n• 图表字体统一为FredokaFont(Compose TextMeasurer)\n• EXP/成就基于实际拥有物品计算\n\nv5.5.5\n• 双击修复+连续活跃天数+图表字体修复",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.6/LootArchive-release-v5.5.6.apk"
+  "versionName": "6.0.0",
+  "versionCode": 600,
+  "updateDate": "2026-07-30",
+  "updateLog": "v6.0.0 深耕版\n• 成就详情弹窗：点击成就查看标题+描述+进度条\n• 成就解锁通知：达成条件时弹出祝贺提示\n• 成就进度实时追踪：数量和资产进度动态更新\n• 搜索标签筛选UI上线：按标签快速过滤物品\n• 搜索历史DataStore持久化：退出应用不丢失\n• 回收站倒计时：每个物品显示剩余清空天数\n• 回收站操作Snackbar反馈\n• 设置新增备份提醒开关+数据看板",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.0.0/LootArchive-release-v6.0.0.apk"
 }

@@ -43,6 +43,14 @@ class RecycleBinViewModel @Inject constructor(
         }
     }
 
+    fun undoRestoreItem(item: ItemEntity) {
+        viewModelScope.launch {
+            itemRepository.softDeleteItem(item.id)
+            expService.recalculateProfile()
+            _uiState.update { it.copy(message = "已撤销还原") }
+        }
+    }
+
     fun showDeleteConfirm(item: ItemEntity) {
         _uiState.update { it.copy(showDeleteConfirm = true, targetItem = item) }
     }

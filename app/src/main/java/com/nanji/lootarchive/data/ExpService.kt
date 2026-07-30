@@ -6,6 +6,9 @@ import com.nanji.lootarchive.data.local.dao.ItemPhotoDao
 import com.nanji.lootarchive.data.local.dao.UserProfileDao
 import com.nanji.lootarchive.data.local.entity.UserProfileEntity
 import com.nanji.lootarchive.util.ExpCalculator
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,6 +19,9 @@ class ExpService @Inject constructor(
     private val itemDao: ItemDao,
     private val itemPhotoDao: ItemPhotoDao
 ) {
+
+    private val _unlockFlow = MutableSharedFlow<String>(extraBufferCapacity = 5)
+    val unlockFlow: SharedFlow<String> = _unlockFlow.asSharedFlow()
 
     /**
      * 从DB真实数据重新计算全部EXP、等级和成就。
@@ -96,6 +102,21 @@ class ExpService @Inject constructor(
         val unlocked = achievementDao.getUnlockedAchievementsSync()
         val unlockedKeys = unlocked.map { it.key }.toSet()
 
+        // Progress tracking
+        achievementDao.updateProgress("items_5", ownedCount.coerceAtMost(5))
+        achievementDao.updateProgress("items_20", ownedCount.coerceAtMost(20))
+        achievementDao.updateProgress("items_50", ownedCount.coerceAtMost(50))
+        achievementDao.updateProgress("items_100", ownedCount.coerceAtMost(100))
+        achievementDao.updateProgress("value_10000", (ownedValue / 10000 * 10000).toInt().coerceAtMost(10000))
+        achievementDao.updateProgress("value_100000", (ownedValue / 100000 * 100000).toInt().coerceAtMost(100000))
+        achievementDao.updateProgress("value_500000", (ownedValue / 500000 * 500000).toInt().coerceAtMost(500000))
+        achievementDao.updateProgress("photos_10", photoCount.coerceAtMost(10))
+        achievementDao.updateProgress("photos_50", photoCount.coerceAtMost(50))
+        achievementDao.updateProgress("desc_10", descCount.coerceAtMost(10))
+        achievementDao.updateProgress("desc_50", descCount.coerceAtMost(50))
+        achievementDao.updateProgress("streak_7", profile.streakDays.coerceAtMost(7))
+        achievementDao.updateProgress("streak_30", profile.streakDays.coerceAtMost(30))
+
         val checks = mapOf(
             "items_5" to (ownedCount >= 5),
             "items_20" to (ownedCount >= 20),
@@ -111,9 +132,16 @@ class ExpService @Inject constructor(
             "streak_7" to (profile.streakDays >= 7),
             "streak_30" to (profile.streakDays >= 30)
         )
+        val titles = mapOf(
+            "items_5" to "初级收藏","items_20" to "中级收藏家","items_50" to "高级收藏家",
+            "items_100" to "百物之主","value_10000" to "万元户","value_100000" to "小富翁",
+            "value_500000" to "财富自由","photos_10" to "随手拍","photos_50" to "摄影师",
+            "desc_10" to "细节控","desc_50" to "文字家","streak_7" to "坚持一周","streak_30" to "月常打卡"
+        )
         checks.forEach { (key, achieved) ->
             if (achieved && key !in unlockedKeys) {
                 achievementDao.unlockAchievement(key, now)
+                _unlockFlow.tryEmit("🎉 ${titles[key] ?: key} 已解锁！")
             }
         }
     }

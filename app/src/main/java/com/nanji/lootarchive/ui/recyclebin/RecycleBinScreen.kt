@@ -35,16 +35,17 @@ fun RecycleBinScreen(
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
     val numberFormat = remember { NumberFormat.getNumberInstance() }
 
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.message) {
         if (uiState.message != null) {
-            kotlinx.coroutines.delay(2000)
+            snackbarHostState.showSnackbar(uiState.message!!, duration = SnackbarDuration.Short)
             viewModel.clearMessage()
         }
     }
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = {}
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
@@ -168,11 +169,28 @@ private fun TrashItemCard(
                     Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(Modifier.height(2.dp))
-                Text(
-                    item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: "",
-                    fontSize = 11.sp, color = TextAuxiliary(),
-                    maxLines = 1
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: "",
+                        fontSize = 11.sp, color = TextAuxiliary(),
+                        maxLines = 1
+                    )
+                    // v6.0 剩余天数倒计时
+                    val remainingDays = item.deletedAt?.let {
+                        val expiry = it + 14L * 24 * 60 * 60 * 1000
+                        val remaining = ((expiry - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).toInt()
+                        remaining
+                    }
+                    if (remainingDays != null) {
+                        Text(" · ", fontSize = 11.sp, color = TextAuxiliary())
+                        val rdColor = when {
+                            remainingDays <= 1 -> WarrantyExpired
+                            remainingDays <= 3 -> WarrantyExpiring
+                            else -> TextAuxiliary()
+                        }
+                        Text("${remainingDays}天后清空", fontSize = 11.sp, color = rdColor, fontWeight = FontWeight.Medium)
+                    }
+                }
             }
             // 右：还原 + 删除按钮
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

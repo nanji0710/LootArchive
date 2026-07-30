@@ -2,6 +2,7 @@ package com.nanji.lootarchive.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nanji.lootarchive.data.ExpService
 import com.nanji.lootarchive.data.local.dao.AchievementDao
 import com.nanji.lootarchive.data.local.dao.UserProfileDao
 import com.nanji.lootarchive.data.local.entity.AchievementEntity
@@ -17,13 +18,15 @@ import javax.inject.Inject
 data class ProfileUiState(
     val profile: UserProfileEntity? = null,
     val achievements: List<AchievementEntity> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val unlockMessage: String? = null
 )
 
 @HiltViewModel
 class MyLandingViewModel @Inject constructor(
     private val userProfileDao: UserProfileDao,
-    private val achievementDao: AchievementDao
+    private val achievementDao: AchievementDao,
+    private val expService: ExpService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -46,5 +49,14 @@ class MyLandingViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(achievements = achievements)
             }
         }
+        viewModelScope.launch {
+            expService.unlockFlow.collect { message ->
+                _uiState.value = _uiState.value.copy(unlockMessage = message)
+            }
+        }
+    }
+
+    fun clearUnlockMessage() {
+        _uiState.value = _uiState.value.copy(unlockMessage = null)
     }
 }

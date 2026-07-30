@@ -21,6 +21,23 @@ class SettingsRepository @Inject constructor(
         val KEY_AVATAR_URI = stringPreferencesKey("avatar_uri")
         val KEY_APP_NAME = stringPreferencesKey("app_name")
         val KEY_PRIMARY_COLOR = intPreferencesKey("primary_color") // ARGB int
+        val KEY_SEARCH_HISTORY = stringPreferencesKey("search_history")
+    }
+
+    // ── v6.0 搜索历史 ──
+    val searchHistory: Flow<List<String>> = dataStore.data.map { prefs ->
+        (prefs[KEY_SEARCH_HISTORY] ?: "").split(",").filter { it.isNotBlank() }
+    }
+    suspend fun addSearchHistory(query: String) {
+        dataStore.edit { prefs ->
+            val list = (prefs[KEY_SEARCH_HISTORY] ?: "").split(",").filter { it.isNotBlank() }.toMutableList()
+            list.remove(query); list.add(0, query)
+            if (list.size > 20) list.removeAt(list.lastIndex)
+            prefs[KEY_SEARCH_HISTORY] = list.joinToString(",")
+        }
+    }
+    suspend fun clearSearchHistory() {
+        dataStore.edit { it[KEY_SEARCH_HISTORY] = "" }
     }
 
     // ========== 价格单位 ==========

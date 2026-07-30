@@ -130,6 +130,31 @@ fun SearchScreen(
                 }
             }
 
+            // v6.0 标签筛选
+            if (uiState.allTags.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
+                ) {
+                    item { FilterChip(selected = uiState.tagFilter == null, onClick = { viewModel.setTagFilter(null) }, label = { Text("全部标签", fontSize = 11.sp) }, shape = RoundedCornerShape(16.dp), colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Primary().copy(alpha = 0.15f), selectedLabelColor = Primary())) }
+                    items(uiState.allTags.size) { index ->
+                        val tag = uiState.allTags[index]
+                        val selected = uiState.tagFilter == tag
+                        FilterChip(
+                            selected = selected,
+                            onClick = { viewModel.setTagFilter(if (selected) null else tag) },
+                            label = { Text(tag, fontSize = 11.sp) },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Primary().copy(alpha = 0.2f),
+                                selectedLabelColor = Primary()
+                            )
+                        )
+                    }
+                }
+            }
+
             // 结果统计 + 排序
             if (uiState.query.isNotEmpty() || uiState.activeFilter != null) {
                 Row(
