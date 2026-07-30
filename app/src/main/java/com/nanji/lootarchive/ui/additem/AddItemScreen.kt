@@ -183,23 +183,25 @@ fun AddItemScreen(
                     }
 
                     Spacer(Modifier.height(14.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = onNavigateToCamera, modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Primary())
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary()),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                         ) {
-                            Icon(Icons.Rounded.CameraAlt, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("拍照", fontWeight = FontWeight.Medium)
+                            Icon(Icons.Rounded.CameraAlt, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("拍照", fontWeight = FontWeight.Medium, fontSize = 13.sp)
                         }
                         OutlinedButton(
                             onClick = { galleryLauncher.launch("image/*") }, modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                         ) {
-                            Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("从相册选择", maxLines = 1)
+                            Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("从相册选择", fontSize = 13.sp)
                         }
                     }
                 }

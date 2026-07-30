@@ -6,6 +6,8 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -222,42 +224,41 @@ fun MyLandingScreen(
                         Text("${achievements.count { it.isUnlocked }}/${achievements.size}", fontSize = 13.sp, color = TextAuxiliary())
                     }
                     Spacer(Modifier.height(10.dp))
-                    val cols = 3
-                    achievements.chunked(cols).forEach { row ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            row.forEach { ach ->
-                                Column(
-                                    Modifier.weight(1f).padding(vertical = 4.dp)
-                                        .clickable { showAchievementDetail = ach },
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(achievements, key = { it.key }) { ach ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .clickable { showAchievementDetail = ach }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Box(
+                                    Modifier.size(44.dp)
+                                        .background(
+                                            if (ach.isUnlocked) Primary().copy(alpha = 0.10f)
+                                            else TextAuxiliary().copy(alpha = 0.06f),
+                                            RoundedCornerShape(12.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box(
-                                        Modifier.size(40.dp)
-                                            .background(
-                                                if (ach.isUnlocked) Primary().copy(alpha = 0.10f)
-                                                else TextAuxiliary().copy(alpha = 0.06f),
-                                                RoundedCornerShape(12.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            if (ach.isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒",
-                                            fontSize = 20.sp,
-                                            color = if (ach.isUnlocked) Primary() else TextAuxiliary()
-                                        )
-                                    }
-                                    Spacer(Modifier.height(4.dp))
                                     Text(
-                                        ach.title,
-                                        fontSize = 10.sp,
-                                        color = if (ach.isUnlocked) TextPrimary() else TextAuxiliary(),
-                                        fontWeight = if (ach.isUnlocked) FontWeight.Medium else FontWeight.Normal,
-                                        maxLines = 1,
-                                        textAlign = TextAlign.Center
+                                        if (ach.isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒",
+                                        fontSize = 20.sp,
+                                        color = if (ach.isUnlocked) Primary() else TextAuxiliary()
                                     )
                                 }
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    ach.title,
+                                    fontSize = 10.sp,
+                                    color = if (ach.isUnlocked) TextPrimary() else TextAuxiliary(),
+                                    fontWeight = if (ach.isUnlocked) FontWeight.Medium else FontWeight.Normal,
+                                    maxLines = 1,
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                            repeat(cols - row.size) { Spacer(Modifier.weight(1f)) }
                         }
                     }
                 }
@@ -336,7 +337,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v6.1.6", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v6.1.7", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -390,7 +391,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v6.1.6", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v6.1.7", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
