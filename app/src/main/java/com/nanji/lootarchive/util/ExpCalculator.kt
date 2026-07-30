@@ -43,6 +43,6 @@ object ExpCalculator {
         const val ADD_PHOTO = 2
         const val COMPLETE_DESCRIPTION = 3
         const val ITEM_COUNT_EXP = 10
-        fun valueExp(price: Double): Int = (price / 1000).toInt()
+        fun valueExp(price: Double): Int = (price / 100).toInt()
     }
 }

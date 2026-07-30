@@ -1,7 +1,7 @@
 {
-  "versionName": "6.3.0",
-  "versionCode": 630,
+  "versionName": "6.3.1",
+  "versionCode": 631,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.3.0\n• 新用户首次启动新手引导：5张玻璃卡片轮播\n• 设置页新增\"重新查看引导\"入口\n• 卡片支持滑动+点击切换+跳过直接进入首页",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.0/LootArchive-release-v6.3.0.apk"
+  "updateLog": "v6.3.1\n• 资产价值EXP计算从每¥1000+1 调整为每¥100+1",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.1/LootArchive-release-v6.3.1.apk"
 }
