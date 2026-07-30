@@ -169,28 +169,22 @@ private fun TrashItemCard(
                     Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: "",
-                        fontSize = 11.sp, color = TextAuxiliary(),
-                        maxLines = 1
-                    )
-                    // v6.0 剩余天数倒计时
-                    val remainingDays = item.deletedAt?.let {
-                        val expiry = it + 14L * 24 * 60 * 60 * 1000
-                        val remaining = ((expiry - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).toInt()
-                        remaining
-                    }
-                    if (remainingDays != null) {
-                        Text(" · ", fontSize = 11.sp, color = TextAuxiliary())
-                        val rdColor = when {
-                            remainingDays <= 1 -> WarrantyExpired
-                            remainingDays <= 3 -> WarrantyExpiring
-                            else -> TextAuxiliary()
-                        }
-                        Text("${remainingDays}天后清空", fontSize = 11.sp, color = rdColor, fontWeight = FontWeight.Medium)
-                    }
+                val remainingDays = item.deletedAt?.let {
+                    val expiry = it + 14L * 24 * 60 * 60 * 1000
+                    ((expiry - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).toInt()
                 }
+                val rdColor = when {
+                    remainingDays != null && remainingDays <= 1 -> WarrantyExpired
+                    remainingDays != null && remainingDays <= 3 -> WarrantyExpiring
+                    else -> TextAuxiliary()
+                }
+                val tsText = item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: ""
+                val cdText = remainingDays?.let { " · ${it}天后清空" } ?: ""
+                Text(
+                    "$tsText$cdText",
+                    fontSize = 11.sp, color = rdColor,
+                    maxLines = 1
+                )
             }
             // 右：还原 + 删除按钮
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

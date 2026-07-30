@@ -1,7 +1,7 @@
 {
-  "versionName": "6.0.0",
-  "versionCode": 600,
+  "versionName": "6.0.1",
+  "versionCode": 601,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.0.0 深耕版\n• 成就详情弹窗：点击成就查看标题+描述+进度条\n• 成就解锁通知：达成条件时弹出祝贺提示\n• 成就进度实时追踪：数量和资产进度动态更新\n• 搜索标签筛选UI上线：按标签快速过滤物品\n• 搜索历史DataStore持久化：退出应用不丢失\n• 回收站倒计时：每个物品显示剩余清空天数\n• 回收站操作Snackbar反馈\n• 设置新增备份提醒开关+数据看板",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.0.0/LootArchive-release-v6.0.0.apk"
+  "updateLog": "v6.0.1\n• 回收站倒计时排版修复（横排显示）\n• 我的页面新增成就入口徽章（🏅已解锁/总数）\n• 成就重复弹窗去重修复\n• 搜索页重构：3行筛选芯片→折叠式Dropdown+标签行",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.0.1/LootArchive-release-v6.0.1.apk"
 }

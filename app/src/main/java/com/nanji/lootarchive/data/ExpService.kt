@@ -22,6 +22,7 @@ class ExpService @Inject constructor(
 
     private val _unlockFlow = MutableSharedFlow<String>(extraBufferCapacity = 5)
     val unlockFlow: SharedFlow<String> = _unlockFlow.asSharedFlow()
+    private val emittedKeys = mutableSetOf<String>() // 防止同一成就反复弹窗
 
     /**
      * 从DB真实数据重新计算全部EXP、等级和成就。
@@ -139,8 +140,9 @@ class ExpService @Inject constructor(
             "desc_10" to "细节控","desc_50" to "文字家","streak_7" to "坚持一周","streak_30" to "月常打卡"
         )
         checks.forEach { (key, achieved) ->
-            if (achieved && key !in unlockedKeys) {
+            if (achieved && key !in unlockedKeys && key !in emittedKeys) {
                 achievementDao.unlockAchievement(key, now)
+                emittedKeys.add(key)
                 _unlockFlow.tryEmit("🎉 ${titles[key] ?: key} 已解锁！")
             }
         }
