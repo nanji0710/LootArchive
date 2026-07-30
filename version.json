@@ -1,7 +1,7 @@
 {
-  "versionName": "6.1.3",
-  "versionCode": 613,
+  "versionName": "6.1.4",
+  "versionCode": 614,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.1.3\n• 修复成就徽章不显示根因：onOpen 补种缺失的成就种子数据\n• 搜索筛选改为行内展开式Chip（范围/状态均与标签筛选一致）\n• 修复回收站倒计时单行截断→双行展示",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.3/LootArchive-release-v6.1.3.apk"
+  "updateLog": "v6.1.4\n• 修复成就徽章不显示根因：raw SQL 不触发 Room Flow 失效→改用 DAO 补种\n• 搜索筛选改为行内展开式Chip（范围/状态均与标签一致）\n• 回收站倒计时双行展示",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.4/LootArchive-release-v6.1.4.apk"
 }

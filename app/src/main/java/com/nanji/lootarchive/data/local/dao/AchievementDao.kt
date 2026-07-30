@@ -29,4 +29,7 @@ interface AchievementDao {
 
     @Query("SELECT COUNT(*) FROM achievements WHERE isUnlocked = 0")
     suspend fun getLockedCount(): Int
+
+    @Query("SELECT COUNT(*) FROM achievements")
+    suspend fun getCount(): Int
 }

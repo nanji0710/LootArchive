@@ -85,6 +85,7 @@ class DetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 itemRepository.updateItemStatus(currentItemId, status)
+                expService.recalculateProfile()
                 loadItem(currentItemId)
                 dismissStatusSheet()
             } catch (e: Exception) {
