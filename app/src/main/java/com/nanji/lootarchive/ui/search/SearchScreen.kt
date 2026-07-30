@@ -46,6 +46,7 @@ fun SearchScreen(
     var showScopeMenu by remember { mutableStateOf(false) }
     var showStatusMenu by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
+    var showTagRow by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -126,7 +127,7 @@ fun SearchScreen(
                 }
 
                 // 状态 Dropdown
-                val statusLabels = mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修")
+                val statusLabels = mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失")
                 val statusLabel = statusLabels[uiState.statusFilter] ?: "状态"
                 Box {
                     FilterChip(
@@ -149,21 +150,25 @@ fun SearchScreen(
                     }
                 }
 
-                // 标签 Dropdown（有标签时才显示）
+                // 标签切换（有标签时才显示）
                 if (uiState.allTags.isNotEmpty()) {
                     val tagLabel = uiState.tagFilter ?: "标签"
-                    Box {
-                        FilterChip(
-                            selected = uiState.tagFilter != null,
-                            onClick = { },
-                            label = { Text(tagLabel, fontSize = 12.sp) },
-                            shape = RoundedCornerShape(18.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Primary().copy(alpha = 0.2f),
-                                selectedLabelColor = Primary()
+                    FilterChip(
+                        selected = uiState.tagFilter != null,
+                        onClick = { showTagRow = !showTagRow },
+                        label = { Text(tagLabel, fontSize = 12.sp) },
+                        trailingIcon = {
+                            Icon(
+                                if (showTagRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                                null, Modifier.size(16.dp)
                             )
+                        },
+                        shape = RoundedCornerShape(18.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Primary().copy(alpha = 0.2f),
+                            selectedLabelColor = Primary()
                         )
-                    }
+                    )
                 }
 
                 Spacer(Modifier.weight(1f))
@@ -174,8 +179,9 @@ fun SearchScreen(
                 }
             }
 
-            // 标签快捷选择（有标签时显示为可点击行）
-            if (uiState.allTags.isNotEmpty()) {
+            // 标签快捷选择（点击标签Chip展开/折叠）
+            if (showTagRow && uiState.allTags.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
                 Spacer(Modifier.height(6.dp))
                 Row(
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),

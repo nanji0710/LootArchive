@@ -1,7 +1,7 @@
 {
-  "versionName": "6.0.1",
-  "versionCode": 601,
+  "versionName": "6.1.0",
+  "versionCode": 610,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.0.1\n• 回收站倒计时排版修复（横排显示）\n• 我的页面新增成就入口徽章（🏅已解锁/总数）\n• 成就重复弹窗去重修复\n• 搜索页重构：3行筛选芯片→折叠式Dropdown+标签行",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.0.1/LootArchive-release-v6.0.1.apk"
+  "updateLog": "v6.1.0\n• 搜索页重构：折叠式Dropdown筛选+可折叠标签行\n• 成就入口徽章（顶部显示已解锁/总数）\n• 成就弹窗去重+回收站倒计时排版修复\n• 搜索历史改为纵向列表，每条独立点击",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.0/LootArchive-release-v6.1.0.apk"
 }
