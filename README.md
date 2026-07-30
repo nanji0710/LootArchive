@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Warm%20Glassmorphism-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.1.2-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.3.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -71,6 +71,7 @@
 - **检查更新**：连接 GitHub Releases 检测新版本，下载进度条实时显示
 - **数据看板**：设置页查看回收站物品数量等统计信息
 - **缓存管理**：一键清除图片缓存等临时数据
+- **新手引导**：首次启动 5 页全屏玻璃卡片轮播，介绍核心功能，设置页可重置重新查看
 
 ---
 
@@ -132,6 +133,7 @@ app/src/main/java/com/nanji/lootarchive/
 │   │   └── WheelDatePickerDialog # 滚轮日期选择器
 │   ├── detail/             # 物品详情（照片轮播+保修进度+状态切换+标签显示）
 │   ├── home/               # 首页（便当盒网格+分类筛选+状态筛选+保修提醒）
+│   ├── onboarding/          # v6.3 新手引导（5页玻璃卡片轮播+HorizontalPager）
 │   ├── search/             # 搜索（三级行内展开筛选+历史持久化+排序）
 │   ├── settings/           # 设置（主题+头像+提醒+缓存+数据看板）
 │   ├── statistics/         # 统计图表（Donut+Radar+TrendLine+Sparkline+排名+CSV）
@@ -301,6 +303,32 @@ Release 使用 debug keystore 签名（`~/.android/debug.keystore`）。如需�
 ---
 
 ## 📝 更新日志
+
+### v6.3.0 (2026-07-30) 🎉 新手引导
+- 首次启动 5 页全屏玻璃卡片轮播（HorizontalPager + 28dp 圆角 + Warm Glassmorphism）
+- 支持滑动切换 + 缩略图导航 + 点状指示器
+- "跳过引导"直接进入首页，"开始使用"写入完成标记
+- 设置页"个性化"→"重新查看引导"可重置
+
+### v6.2.0 (2026-07-30)
+- 物品状态选择改为横向滚动，防止"丢失"换行
+- 首页非拥有物品卡片去除价格背景方块
+- 回收站去除底部 Snackbar 重复提示，保留页面内提示
+- 成就入口徽章紫色改为 Primary() 主题色
+
+### v6.1.7 (2026-07-30)
+- 成就网格改为 LazyRow 横向滚动
+- "从相册选择"按钮缩小图标/间距/字体
+
+### v6.1.6 (2026-07-30)
+- 成就图标可见性修复（alpha 0.35→1.0）
+- 成就网格去掉透明 Surface + weight
+
+### v6.1.5 (2026-07-30)
+- 修复顶部文字竖排：徽章独占一行
+
+### v6.1.4 (2026-07-30)
+- 成就种子 DAO 补种 + 状态变更触发 EXP 重算 + 全流程审计
 
 ### v6.1.2 (2026-07-30)
 - 修复成就徽章不显示（移除外层条件门控，各徽章独立显隐）
