@@ -199,7 +199,7 @@ fun AddItemScreen(
                         ) {
                             Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("从相册选择")
+                            Text("从相册选择", maxLines = 1)
                         }
                     }
                 }

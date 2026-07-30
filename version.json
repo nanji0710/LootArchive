@@ -1,7 +1,7 @@
 {
-  "versionName": "6.1.5",
-  "versionCode": 615,
+  "versionName": "6.1.6",
+  "versionCode": 616,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.1.5\n• 修复我的页面顶部文字竖排：徽章独占一行不再挤压名称栏\n• 修复成就网格图标不可见：Surface透明色导致contentColor透明\n• 成就种子DAO补种+状态变更触发EXP重算+全流程审计通过",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.5/LootArchive-release-v6.1.5.apk"
+  "updateLog": "v6.1.6\n• 修复成就图标不可见根因：🔒颜色alpha=0.35极淡→1.0全不透\n• 成就网格去掉透明Surface+weight→简化为clickable Column\n• 新增物品页\"从相册选择\"加maxLines=1防止换行",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.6/LootArchive-release-v6.1.6.apk"
 }
