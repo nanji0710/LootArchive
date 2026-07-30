@@ -1,6 +1,7 @@
 package com.nanji.lootarchive.ui.component
 
 import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -18,6 +19,8 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 data class RadarAxis(val label: String, val value: Float, val maxValue: Float)
+
+private val chartTypeface by lazy { Typeface.create("sans-serif-medium", Typeface.NORMAL) }
 
 @Composable
 fun RadarChart(
@@ -39,7 +42,6 @@ fun RadarChart(
         val step = (2 * Math.PI / n).toFloat()
         val labelR = r * 1.30f
 
-        // Grid polygons (3 levels)
         for (lvl in 1..3) {
             val lr = r * lvl / 3f; val path = Path()
             for (i in 0 until n) {
@@ -49,14 +51,10 @@ fun RadarChart(
             }
             path.close(); drawPath(path, gridColor, style = Stroke(2f))
         }
-
-        // Axis lines
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
             drawLine(axisColor, Offset(cx, cy), Offset(cx + r * cos(a), cy + r * sin(a)), strokeWidth = 1.5f)
         }
-
-        // Data polygon
         val dp = Path()
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
@@ -65,23 +63,18 @@ fun RadarChart(
             else dp.lineTo(cx + vr * cos(a), cy + vr * sin(a))
         }
         dp.close(); drawPath(dp, fillColor); drawPath(dp, strokeColor, style = Stroke(3f))
-
-        // Dots
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
             val vr = r * (axes[i].value / axes[i].maxValue).coerceIn(0f, 1f)
             drawCircle(strokeColor, 5f, Offset(cx + vr * cos(a), cy + vr * sin(a)))
         }
-
-        // Labels at corners
         val paint = Paint().apply {
-            color = labelColor; textSize = 30f; isAntiAlias = true; textAlign = Paint.Align.CENTER
+            color = labelColor; textSize = 30f; isAntiAlias = true
+            textAlign = Paint.Align.CENTER; typeface = chartTypeface
         }
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
-            val lx = cx + labelR * cos(a)
-            val ly = cy + labelR * sin(a) + 10f
-            drawContext.canvas.nativeCanvas.drawText(axes[i].label, lx, ly, paint)
+            drawContext.canvas.nativeCanvas.drawText(axes[i].label, cx + labelR * cos(a), cy + labelR * sin(a) + 10f, paint)
         }
     }
 }

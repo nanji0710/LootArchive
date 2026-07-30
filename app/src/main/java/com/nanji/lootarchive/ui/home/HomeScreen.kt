@@ -163,7 +163,7 @@ fun HomeScreen(
                     val photoH = if (isWide) 160.dp else 135.dp
                     val nameSz = if (isWide) 17.sp else 15.sp
                     val priceSz = if (isWide) 18.sp else 16.sp
-                    Card(Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).clickable { onNavigateToDetail(item.id) }, shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+                    Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }.shadow(3.dp, RoundedCornerShape(20.dp)), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                         Column {
                             Box(Modifier.fillMaxWidth().height(photoH).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))) {
                                 if (uiState.photoPaths[item.id] != null) AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)

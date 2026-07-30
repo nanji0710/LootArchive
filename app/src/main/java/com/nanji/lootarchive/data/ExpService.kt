@@ -30,6 +30,10 @@ class ExpService @Inject constructor(
         val descCount = itemDao.getItemsWithDescriptionCount()
         val photoCount = itemPhotoDao.getTotalPhotoCount()
 
+        // 连续活跃天数
+        val oldProfile = userProfileDao.getProfileSync()
+        val newStreak = computeStreak(oldProfile, now)
+
         // EXP = 数量分 + 价值分 + 描述分 + 照片分
         val countExp = totalCount * ExpCalculator.Rewards.ITEM_COUNT_EXP
         val valueExp = ExpCalculator.Rewards.valueExp(totalValue)
@@ -47,12 +51,33 @@ class ExpService @Inject constructor(
                 totalItemsAdded = totalCount,
                 totalPhotosAdded = photoCount,
                 totalDescriptionsFilled = descCount,
-                streakDays = userProfileDao.getProfileSync()?.streakDays ?: 0,
+                streakDays = newStreak,
+                lastActiveDate = now,
                 updatedAt = now
             )
         )
 
         checkAchievements(totalCount, totalValue, photoCount, descCount)
+    }
+
+    private fun computeStreak(oldProfile: UserProfileEntity?, now: Long): Int {
+        if (oldProfile == null) return 1
+        val cal = java.util.Calendar.getInstance()
+        cal.timeInMillis = now; cal.set(java.util.Calendar.HOUR_OF_DAY, 0); cal.set(java.util.Calendar.MINUTE, 0)
+        cal.set(java.util.Calendar.SECOND, 0); cal.set(java.util.Calendar.MILLISECOND, 0)
+        val todayStart = cal.timeInMillis
+
+        val lastActive = oldProfile.lastActiveDate ?: return 1
+        cal.timeInMillis = lastActive; cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        cal.set(java.util.Calendar.MINUTE, 0); cal.set(java.util.Calendar.SECOND, 0); cal.set(java.util.Calendar.MILLISECOND, 0)
+        val lastActiveDay = cal.timeInMillis
+
+        val diffDays = ((todayStart - lastActiveDay) / (24 * 60 * 60 * 1000)).toInt()
+        return when {
+            diffDays == 0 -> oldProfile.streakDays      // 同一天，不变
+            diffDays == 1 -> oldProfile.streakDays + 1   // 连续
+            else -> 1                                     // 中断，重新开始
+        }
     }
 
     /** 仅记录新增事件日志（用于追溯），EXP 由 recalculate 保证准确性 */

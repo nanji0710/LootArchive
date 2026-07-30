@@ -1,7 +1,7 @@
 {
-  "versionName": "5.5.4",
-  "versionCode": 554,
+  "versionName": "5.5.5",
+  "versionCode": 555,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.5.4\n• EXP体系重构：从DB真实数据重算替代递增计数器\n• 新增/编辑/删除/导入/还原/清空均触发EXP重算\n• 描述完善和照片数量始终与数据库一致\n\nv5.5.3\n• 导入照片文件名防覆盖+我的页面方案A双行布局+等级阶梯高亮修正",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.4/LootArchive-release-v5.5.4.apk"
+  "updateLog": "v5.5.5\n• 修复首页物品卡片偶发需要双击的问题\n• 图表字体统一为sans-serif-medium\n• 连续活跃天数生效（同日不重复计，隔天+1，中断重置）\n\nv5.5.4\n• EXP体系重构：DB真实数据重算替代递增计数器",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.5/LootArchive-release-v5.5.5.apk"
 }
