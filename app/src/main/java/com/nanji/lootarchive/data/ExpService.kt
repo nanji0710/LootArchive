@@ -25,8 +25,9 @@ class ExpService @Inject constructor(
         val now = System.currentTimeMillis()
         ensureProfile()
 
+        val ownedCount = itemDao.getOwnedCountSync()
+        val ownedValue = itemDao.getOwnedValueSync()
         val totalCount = itemDao.getTotalCountSync()
-        val totalValue = itemDao.getTotalValueSync()
         val descCount = itemDao.getItemsWithDescriptionCount()
         val photoCount = itemPhotoDao.getTotalPhotoCount()
 
@@ -34,9 +35,9 @@ class ExpService @Inject constructor(
         val oldProfile = userProfileDao.getProfileSync()
         val newStreak = computeStreak(oldProfile, now)
 
-        // EXP = 数量分 + 价值分 + 描述分 + 照片分
-        val countExp = totalCount * ExpCalculator.Rewards.ITEM_COUNT_EXP
-        val valueExp = ExpCalculator.Rewards.valueExp(totalValue)
+        // EXP 基于拥有物品计算（数量分 + 价值分）
+        val countExp = ownedCount * ExpCalculator.Rewards.ITEM_COUNT_EXP
+        val valueExp = ExpCalculator.Rewards.valueExp(ownedValue)
         val descExp = descCount * ExpCalculator.Rewards.COMPLETE_DESCRIPTION
         val photoExp = photoCount * ExpCalculator.Rewards.ADD_PHOTO
         val totalExp = countExp + valueExp + descExp + photoExp
@@ -48,7 +49,7 @@ class ExpService @Inject constructor(
                 id = 1,
                 exp = totalExp,
                 level = newLevel,
-                totalItemsAdded = totalCount,
+                totalItemsAdded = ownedCount,
                 totalPhotosAdded = photoCount,
                 totalDescriptionsFilled = descCount,
                 streakDays = newStreak,
@@ -57,7 +58,7 @@ class ExpService @Inject constructor(
             )
         )
 
-        checkAchievements(totalCount, totalValue, photoCount, descCount)
+        checkAchievements(ownedCount, ownedValue, photoCount, descCount)
     }
 
     private fun computeStreak(oldProfile: UserProfileEntity?, now: Long): Int {
@@ -81,9 +82,7 @@ class ExpService @Inject constructor(
     }
 
     /** 仅记录新增事件日志（用于追溯），EXP 由 recalculate 保证准确性 */
-    suspend fun logAddItem(itemId: Long) {
-        // Lightweight log only; actual EXP computed by recalculateProfile()
-    }
+    suspend fun logAddItem(itemId: Long) { }
 
     private suspend fun ensureProfile() {
         if (userProfileDao.getProfileSync() == null) {
@@ -91,20 +90,20 @@ class ExpService @Inject constructor(
         }
     }
 
-    private suspend fun checkAchievements(totalCount: Int, totalValue: Double, photoCount: Int, descCount: Int) {
+    private suspend fun checkAchievements(ownedCount: Int, ownedValue: Double, photoCount: Int, descCount: Int) {
         val now = System.currentTimeMillis()
         val profile = userProfileDao.getProfileSync() ?: return
         val unlocked = achievementDao.getUnlockedAchievementsSync()
         val unlockedKeys = unlocked.map { it.key }.toSet()
 
         val checks = mapOf(
-            "items_5" to (totalCount >= 5),
-            "items_20" to (totalCount >= 20),
-            "items_50" to (totalCount >= 50),
-            "items_100" to (totalCount >= 100),
-            "value_10000" to (totalValue >= 10_000),
-            "value_100000" to (totalValue >= 100_000),
-            "value_500000" to (totalValue >= 500_000),
+            "items_5" to (ownedCount >= 5),
+            "items_20" to (ownedCount >= 20),
+            "items_50" to (ownedCount >= 50),
+            "items_100" to (ownedCount >= 100),
+            "value_10000" to (ownedValue >= 10_000),
+            "value_100000" to (ownedValue >= 100_000),
+            "value_500000" to (ownedValue >= 500_000),
             "photos_10" to (photoCount >= 10),
             "photos_50" to (photoCount >= 50),
             "desc_10" to (descCount >= 10),

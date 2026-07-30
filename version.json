@@ -1,7 +1,7 @@
 {
-  "versionName": "5.5.5",
-  "versionCode": 555,
+  "versionName": "5.5.6",
+  "versionCode": 556,
   "updateDate": "2026-07-29",
-  "updateLog": "v5.5.5\n• 修复首页物品卡片偶发需要双击的问题\n• 图表字体统一为sans-serif-medium\n• 连续活跃天数生效（同日不重复计，隔天+1，中断重置）\n\nv5.5.4\n• EXP体系重构：DB真实数据重算替代递增计数器",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.5/LootArchive-release-v5.5.5.apk"
+  "updateLog": "v5.5.6\n• 统计仅计算当前拥有物品（在用+闲置+待修）\n• 已出/丢失物品首页卡片半透明弱化\n• 图表字体统一为FredokaFont(Compose TextMeasurer)\n• EXP/成就基于实际拥有物品计算\n\nv5.5.5\n• 双击修复+连续活跃天数+图表字体修复",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V5.5.6/LootArchive-release-v5.5.6.apk"
 }

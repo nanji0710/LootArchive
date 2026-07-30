@@ -76,6 +76,10 @@ class ItemRepository @Inject constructor(
 
     fun getTotalValue(): Flow<Double> = itemDao.getTotalValue()
 
+    fun getOwnedCount(): Flow<Int> = itemDao.getOwnedCount()
+
+    fun getOwnedValue(): Flow<Double> = itemDao.getOwnedValue()
+
     suspend fun getCategoryTotalValue(categoryId: Long): Double =
         itemDao.getCategoryTotalValue(categoryId)
 

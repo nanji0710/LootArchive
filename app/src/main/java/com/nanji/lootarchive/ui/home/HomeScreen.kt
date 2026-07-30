@@ -23,6 +23,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -87,11 +88,11 @@ fun HomeScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp, bottom = 140.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── 对标 HTML .ph-hero: 全部资产 大数字 + 3个小统计 ──
+            // ── Hero: 当前拥有资产 大数字 + 3个小统计 ──
             item(span = { GridItemSpan(2) }) {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(if (LocalDarkTheme.current) _CardDark else Color(0xFFFFF8F0)).padding(20.dp)) {
                     Column {
-                        Text("全部资产", fontSize = 13.sp, color = TextAuxiliary())
+                        Text("当前拥有", fontSize = 13.sp, color = TextAuxiliary())
                         Spacer(Modifier.height(4.dp))
                         Text("¥${numberFormat.format(animValue)}", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
                         Spacer(Modifier.height(14.dp))
@@ -163,7 +164,10 @@ fun HomeScreen(
                     val photoH = if (isWide) 160.dp else 135.dp
                     val nameSz = if (isWide) 17.sp else 15.sp
                     val priceSz = if (isWide) 18.sp else 16.sp
-                    Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }.shadow(3.dp, RoundedCornerShape(20.dp)), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+                    val isOwned = item.status in listOf("active", "idle", "repair")
+                    Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }.shadow(3.dp, RoundedCornerShape(20.dp))
+                        .then(if (!isOwned) Modifier.alpha(0.50f) else Modifier),
+                        shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                         Column {
                             Box(Modifier.fillMaxWidth().height(photoH).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))) {
                                 if (uiState.photoPaths[item.id] != null) AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)

@@ -45,11 +45,13 @@ class StatisticsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 itemRepository.getAllItems(),
-                itemRepository.getTotalValue(),
+                itemRepository.getOwnedValue(),
                 categoryRepository.getAllCategories(),
                 _timeFilter,
                 _refreshCounter
-            ) { items, totalValue, categories, filter, _ ->
+            ) { items, ownedValue, categories, filter, _ ->
+                // 仅统计当前拥有的物品（在用+闲置+待修）
+                val ownedItems = items.filter { it.status in listOf("active", "idle", "repair") }
                 val now = System.currentTimeMillis()
                 val cutoff = when (filter) {
                     "3months" -> now - 90L * 24 * 60 * 60 * 1000
@@ -57,7 +59,7 @@ class StatisticsViewModel @Inject constructor(
                     "1year" -> now - 365L * 24 * 60 * 60 * 1000
                     else -> 0L
                 }
-                val filteredItems = if (cutoff == 0L) items else items.filter { (it.purchaseDate ?: 0) >= cutoff }
+                val filteredItems = if (cutoff == 0L) ownedItems else ownedItems.filter { (it.purchaseDate ?: 0) >= cutoff }
                 val summaries = categories.map { cat ->
                     val catItems = filteredItems.filter { it.categoryId == cat.id }
                     CategorySummary(cat, catItems.size, catItems.sumOf { it.purchasePrice })

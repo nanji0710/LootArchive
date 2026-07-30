@@ -44,8 +44,8 @@ class HomeViewModel @Inject constructor(
                 combine(
                     combine(
                         itemRepository.getAllItems(),
-                        itemRepository.getTotalCount(),
-                        itemRepository.getTotalValue(),
+                        itemRepository.getOwnedCount(),
+                        itemRepository.getOwnedValue(),
                         itemRepository.getWarrantyExpiringCount(threshold),
                         settingsRepository.currency
                     ) { items, count, value, expiringCount, currency ->

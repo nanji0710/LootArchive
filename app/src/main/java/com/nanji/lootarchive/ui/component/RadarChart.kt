@@ -1,17 +1,22 @@
 package com.nanji.lootarchive.ui.component
 
-import android.graphics.Paint
-import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.theme.FredokaFont
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
@@ -19,8 +24,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 data class RadarAxis(val label: String, val value: Float, val maxValue: Float)
-
-private val chartTypeface by lazy { Typeface.create("sans-serif-medium", Typeface.NORMAL) }
 
 @Composable
 fun RadarChart(
@@ -34,7 +37,11 @@ fun RadarChart(
     val dark = LocalDarkTheme.current
     val gridColor = if (dark) Color.White.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.12f)
     val axisColor = if (dark) Color.White.copy(alpha = 0.22f) else Color.Black.copy(alpha = 0.16f)
-    val labelColor = if (dark) 0xFFD6D0C8.toInt() else 0xFF44403C.toInt()
+    val textAux = TextAuxiliary()
+    val measurer = rememberTextMeasurer()
+    val labelStyle = remember(textAux) {
+        TextStyle(fontFamily = FredokaFont, fontSize = 11.sp, color = textAux, fontWeight = FontWeight.Medium)
+    }
 
     Canvas(modifier = modifier.size(sizeDp.dp)) {
         val cx = size.width / 2f; val cy = size.height / 2f
@@ -68,13 +75,13 @@ fun RadarChart(
             val vr = r * (axes[i].value / axes[i].maxValue).coerceIn(0f, 1f)
             drawCircle(strokeColor, 5f, Offset(cx + vr * cos(a), cy + vr * sin(a)))
         }
-        val paint = Paint().apply {
-            color = labelColor; textSize = 30f; isAntiAlias = true
-            textAlign = Paint.Align.CENTER; typeface = chartTypeface
-        }
+        // Labels at corners using Compose TextMeasurer
         for (i in 0 until n) {
             val a = -Math.PI.toFloat() / 2f + i * step
-            drawContext.canvas.nativeCanvas.drawText(axes[i].label, cx + labelR * cos(a), cy + labelR * sin(a) + 10f, paint)
+            val textLayout = measurer.measure(axes[i].label, labelStyle)
+            val lx = cx + labelR * cos(a) - textLayout.size.width / 2f
+            val ly = cy + labelR * sin(a) - textLayout.size.height / 2f
+            drawText(textLayout, topLeft = Offset(lx, ly))
         }
     }
 }
