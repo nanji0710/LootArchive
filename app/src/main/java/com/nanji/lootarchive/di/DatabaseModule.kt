@@ -31,6 +31,22 @@ object DatabaseModule {
                     seedDefaultCategories(db)
                     seedAchievementsAndProfile(db)
                 }
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    super.onOpen(db)
+                    // 补种：已有数据库可能缺失成就种子数据（onCreate 仅在首次建库时触发）
+                    ensureAchievementsSeeded(db)
+                }
+                private fun ensureAchievementsSeeded(db: SupportSQLiteDatabase) {
+                    try {
+                        val cursor = db.query("SELECT COUNT(*) FROM achievements")
+                        cursor.moveToFirst()
+                        val count = cursor.getInt(0)
+                        cursor.close()
+                        if (count == 0) {
+                            seedAchievementsAndProfile(db)
+                        }
+                    } catch (_: Exception) { }
+                }
             })
             .addMigrations(AppDatabase.MIGRATION_1_2)
             .fallbackToDestructiveMigration()
