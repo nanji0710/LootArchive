@@ -43,8 +43,8 @@ fun SearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
     val focusRequester = remember { FocusRequester() }
-    var showScopeMenu by remember { mutableStateOf(false) }
-    var showStatusMenu by remember { mutableStateOf(false) }
+    var showScopeRow by remember { mutableStateOf(false) }
+    var showStatusRow by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
     var showTagRow by remember { mutableStateOf(false) }
 
@@ -101,54 +101,46 @@ fun SearchScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 搜索范围 Dropdown
+                // 搜索范围（行内展开，与标签一致）
                 val scopeLabels = mapOf(null to "全部范围", "name" to "名称", "location" to "位置", "desc" to "备注", "warranty" to "保修")
                 val scopeLabel = scopeLabels[uiState.activeFilter] ?: "范围"
-                Box {
-                    FilterChip(
-                        selected = uiState.activeFilter != null,
-                        onClick = { showScopeMenu = true },
-                        label = { Text(scopeLabel, fontSize = 12.sp) },
-                        leadingIcon = { Icon(Icons.Rounded.Tune, null, Modifier.size(14.dp)) },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Primary().copy(alpha = 0.2f),
-                            selectedLabelColor = Primary()
+                FilterChip(
+                    selected = uiState.activeFilter != null,
+                    onClick = { showScopeRow = !showScopeRow },
+                    label = { Text(scopeLabel, fontSize = 12.sp) },
+                    leadingIcon = { Icon(Icons.Rounded.Tune, null, Modifier.size(14.dp)) },
+                    trailingIcon = {
+                        Icon(
+                            if (showScopeRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                            null, Modifier.size(16.dp)
                         )
+                    },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Primary().copy(alpha = 0.2f),
+                        selectedLabelColor = Primary()
                     )
-                    DropdownMenu(expanded = showScopeMenu, onDismissRequest = { showScopeMenu = false }) {
-                        scopeLabels.forEach { (k, v) ->
-                            DropdownMenuItem(
-                                text = { Text(v, fontWeight = if (uiState.activeFilter == k) FontWeight.Bold else FontWeight.Normal) },
-                                onClick = { viewModel.setActiveFilter(k); showScopeMenu = false }
-                            )
-                        }
-                    }
-                }
+                )
 
-                // 状态 Dropdown
+                // 状态（行内展开，与标签一致）
                 val statusLabels = mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失")
                 val statusLabel = statusLabels[uiState.statusFilter] ?: "状态"
-                Box {
-                    FilterChip(
-                        selected = uiState.statusFilter != null,
-                        onClick = { showStatusMenu = true },
-                        label = { Text(statusLabel, fontSize = 12.sp) },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Primary().copy(alpha = 0.2f),
-                            selectedLabelColor = Primary()
+                FilterChip(
+                    selected = uiState.statusFilter != null,
+                    onClick = { showStatusRow = !showStatusRow },
+                    label = { Text(statusLabel, fontSize = 12.sp) },
+                    trailingIcon = {
+                        Icon(
+                            if (showStatusRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                            null, Modifier.size(16.dp)
                         )
+                    },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Primary().copy(alpha = 0.2f),
+                        selectedLabelColor = Primary()
                     )
-                    DropdownMenu(expanded = showStatusMenu, onDismissRequest = { showStatusMenu = false }) {
-                        statusLabels.forEach { (k, v) ->
-                            DropdownMenuItem(
-                                text = { Text(v, fontWeight = if (uiState.statusFilter == k) FontWeight.Bold else FontWeight.Normal) },
-                                onClick = { viewModel.setStatusFilter(k); showStatusMenu = false }
-                            )
-                        }
-                    }
-                }
+                )
 
                 // 标签切换（有标签时才显示）
                 if (uiState.allTags.isNotEmpty()) {
@@ -176,6 +168,54 @@ fun SearchScreen(
                 // 激活筛选计数
                 if (activeFilterCount > 0) {
                     Text("$activeFilterCount 项筛选", fontSize = 11.sp, color = Primary())
+                }
+            }
+
+            // 范围快捷选择行
+            if (showScopeRow) {
+                Spacer(Modifier.height(6.dp))
+                Row(
+                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val scopeLabels = mapOf(null to "全部范围", "name" to "名称", "location" to "位置", "desc" to "备注", "warranty" to "保修")
+                    scopeLabels.forEach { (k, v) ->
+                        val sel = uiState.activeFilter == k
+                        FilterChip(
+                            selected = sel,
+                            onClick = { viewModel.setActiveFilter(k) },
+                            label = { Text(v, fontSize = 11.sp) },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Primary().copy(alpha = 0.2f),
+                                selectedLabelColor = Primary()
+                            )
+                        )
+                    }
+                }
+            }
+
+            // 状态快捷选择行
+            if (showStatusRow) {
+                Spacer(Modifier.height(6.dp))
+                Row(
+                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val statusLabels = mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失")
+                    statusLabels.forEach { (k, v) ->
+                        val sel = uiState.statusFilter == k
+                        FilterChip(
+                            selected = sel,
+                            onClick = { viewModel.setStatusFilter(k) },
+                            label = { Text(v, fontSize = 11.sp) },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Primary().copy(alpha = 0.2f),
+                                selectedLabelColor = Primary()
+                            )
+                        )
+                    }
                 }
             }
 

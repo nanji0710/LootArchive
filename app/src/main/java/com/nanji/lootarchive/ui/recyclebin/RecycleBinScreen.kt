@@ -178,13 +178,12 @@ private fun TrashItemCard(
                     remainingDays != null && remainingDays <= 3 -> WarrantyExpiring
                     else -> TextAuxiliary()
                 }
-                val tsText = item.deletedAt?.let { "删除于 ${dateFormat.format(Date(it))}" } ?: ""
-                val cdText = remainingDays?.let { " · ${it}天后清空" } ?: ""
-                Text(
-                    "$tsText$cdText",
-                    fontSize = 11.sp, color = rdColor,
-                    maxLines = 1
-                )
+                item.deletedAt?.let {
+                    Text("删除于 ${dateFormat.format(Date(it))}", fontSize = 11.sp, color = TextAuxiliary())
+                }
+                if (remainingDays != null) {
+                    Text("${remainingDays}天后清空", fontSize = 11.sp, color = rdColor)
+                }
             }
             // 右：还原 + 删除按钮
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

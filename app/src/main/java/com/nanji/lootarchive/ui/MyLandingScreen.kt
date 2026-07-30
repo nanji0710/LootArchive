@@ -127,19 +127,21 @@ fun MyLandingScreen(
                         Text("拾物集", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
                         Text("你的私人物品资产管理工具", fontSize = 12.sp, color = TextAuxiliary())
                     }
-                    if (levelStars.isNotEmpty()) {
+                    if (levelStars.isNotEmpty() || profileState.achievements.isNotEmpty()) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Surface(
-                                onClick = { showLevelDialog = true },
-                                shape = RoundedCornerShape(12.dp),
-                                color = Primary().copy(alpha = 0.10f)
-                            ) {
-                                Text(
-                                    "${if (isValueBadge) "✨ " else ""}$levelStars $levelTitle",
-                                    fontSize = 11.sp, fontWeight = FontWeight.Medium,
-                                    color = Primary(),
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                )
+                            if (levelStars.isNotEmpty()) {
+                                Surface(
+                                    onClick = { showLevelDialog = true },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Primary().copy(alpha = 0.10f)
+                                ) {
+                                    Text(
+                                        "${if (isValueBadge) "✨ " else ""}$levelStars $levelTitle",
+                                        fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                        color = Primary(),
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
                             }
                             // v6.0 成就入口徽章
                             val achCount = profileState.achievements.count { it.isUnlocked }
@@ -339,7 +341,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v6.1.0", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v6.1.1", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -393,7 +395,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v6.1.0", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v6.1.1", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
