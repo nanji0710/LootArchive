@@ -1,7 +1,7 @@
 {
-  "versionName": "6.1.7",
-  "versionCode": 617,
+  "versionName": "6.2.0",
+  "versionCode": 620,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.1.7\n• 成就网格改为LazyRow横向滚动，节省纵向空间\n• \"从相册选择\"按钮缩小图标/间距/字体→不换行不截断",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.1.7/LootArchive-release-v6.1.7.apk"
+  "updateLog": "v6.2.0\n• 物品状态选择改为横向滚动，防止\"丢失\"换行\n• 首页非拥有物品卡片去除阴影，消除半透明下灰色方块\n• 回收站去除底部Snackbar重复提示，保留页面内提示\n• 成就徽章紫色改为Primary()主题色",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.2.0/LootArchive-release-v6.2.0.apk"
 }

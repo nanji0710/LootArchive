@@ -165,7 +165,8 @@ fun HomeScreen(
                     val nameSz = if (isWide) 17.sp else 15.sp
                     val priceSz = if (isWide) 18.sp else 16.sp
                     val isOwned = item.status in listOf("active", "idle", "repair")
-                    Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }.shadow(3.dp, RoundedCornerShape(20.dp))
+                    Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }
+                        .then(if (isOwned) Modifier.shadow(3.dp, RoundedCornerShape(20.dp)) else Modifier)
                         .then(if (!isOwned) Modifier.alpha(0.50f) else Modifier),
                         shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                         Column {
@@ -205,8 +206,12 @@ fun HomeScreen(
                             Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
                                 Text(item.name, fontSize = nameSz, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(6.dp))
-                                Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) {
-                                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
+                                if (isOwned) {
+                                    Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) {
+                                        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
+                                    }
+                                } else {
+                                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = TextAuxiliary())
                                 }
                                 // v5.2 标签胶囊
                                 val itemTags = item.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }

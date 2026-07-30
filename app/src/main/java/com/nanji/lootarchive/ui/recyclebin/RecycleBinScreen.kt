@@ -35,18 +35,14 @@ fun RecycleBinScreen(
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
     val numberFormat = remember { NumberFormat.getNumberInstance() }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.message) {
         if (uiState.message != null) {
-            snackbarHostState.showSnackbar(uiState.message!!, duration = SnackbarDuration.Short)
+            kotlinx.coroutines.delay(2000)
             viewModel.clearMessage()
         }
     }
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    Scaffold(containerColor = Color.Transparent) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
         ) {

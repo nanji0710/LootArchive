@@ -7,6 +7,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -271,14 +272,14 @@ fun AddItemScreen(
                     Text("物品状态", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(10.dp))
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         listOf("active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失").forEach { (key, label) ->
                             FilterChip(
                                 selected = uiState.status == key,
                                 onClick = { viewModel.updateStatus(key) },
-                                label = { Text(label, fontSize = 12.sp) },
+                                label = { Text(label, fontSize = 13.sp, maxLines = 1) },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = statusColor(key).copy(alpha = 0.15f),

@@ -158,12 +158,12 @@ fun MyLandingScreen(
                             Surface(
                                 onClick = { },
                                 shape = RoundedCornerShape(12.dp),
-                                color = Color(0xFF7C3AED).copy(alpha = 0.10f)
+                                color = Primary().copy(alpha = 0.10f)
                             ) {
                                 Text(
                                     "🏅$achCount/$achTotal",
                                     fontSize = 11.sp, fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF7C3AED),
+                                    color = Primary(),
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
                             }
@@ -337,7 +337,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v6.1.7", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v6.2.0", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -391,7 +391,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v6.1.7", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v6.2.0", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
