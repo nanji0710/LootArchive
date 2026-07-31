@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Warm%20Glassmorphism-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.3.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.5.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -50,7 +50,7 @@
 - **进度追踪**：每项成就实时显示进度（如 "5/20"），解锁时弹窗通知（2.5 秒自动消失）
 - **成就详情弹窗**：点击查看标题+描述+进度条+解锁状态
 - **去重机制**：已解锁成就不会重复弹窗
-- **成就入口**：我的页面顶部收藏家卡片显示 🏅 已解锁/总数 徽章
+- **成就入口**：我的页面顶部收藏家卡片显示 已解锁/总数 徽章
 
 ### 🔔 保修追踪
 - **保修到期提醒**：首页显示即将到期物品数量
@@ -211,7 +211,7 @@ app/src/main/java/com/nanji/lootarchive/
 | key | String (PK) | 成就标识（如 items_5） |
 | title | String | 成就标题 |
 | description | String | 成就描述 |
-| icon | String | 图标（emoji） |
+| icon | String | 图标名称（Material Icons 映射） |
 | category | String | 类别：collection/value/photo/detail/streak |
 | isUnlocked | Boolean | 是否已解锁 |
 | unlockedAt | Long? | 解锁时间 |
@@ -259,7 +259,7 @@ app/src/main/java/com/nanji/lootarchive/
 | 拍摄照片 | +2 |
 | 完善描述 | +3 |
 | 物品数量（拥有） | 每件 +10 |
-| 资产价值 | 每 ¥1000 +1 |
+| 资产价值 | 每 ¥100 +1 |
 
 **等级阶梯**：Lv.1 入门 (0) → Lv.2 新手 (50) → Lv.3 爱好者 (150) → Lv.4 达人 (350) → Lv.5 收藏家 (600) → Lv.6 专家 (1000) → Lv.7 大师 (2000) → Lv.8 藏家 (5000) → Lv.9 鉴赏家 (10000) → Lv.10 传奇 (20000)
 
@@ -303,6 +303,40 @@ Release 使用 debug keystore 签名（`~/.android/debug.keystore`）。如需�
 ---
 
 ## 📝 更新日志
+
+### v6.5.0 (2026-07-31) 🎨 视觉优化
+- Emoji 全部替换为 Material Icons（引导/成就/亮点/等级 15处）
+- 导航栏图标 20dp→24dp，标签 10sp→11sp
+- 全页面间距统一：外层 16dp / 卡片间 12dp / 内部 16dp
+- 卡片 elevation 统一为 1dp
+- 暗黑模式卡片改为暖深棕 #1C1A18
+- 首页资产总额改用 MonoFont 等宽数字
+
+### v6.3.6 (2026-07-31)
+- 月度购入趋势 ≤6 列居中，>6 列横向滚动
+
+### v6.3.5 (2026-07-31)
+- 修复引导页每次打开都显示：改用 LaunchedEffect + first() 读 DataStore 真实值
+
+### v6.3.4 (2026-07-30)
+- 修复设置页"重新查看引导"点击后立即跳转 → 改为仅下次冷启动时生效
+- 修复 version.json 中文引号导致 JSON 解析失败
+
+### v6.3.3 (2026-07-30)
+- 回退 ItemEntity 新增索引（导致 DB schema 哈希变化触发 destructive migration 闪退）
+
+### v6.3.2 (2026-07-30)
+- 10 处静默吞异常 → 加 Log.e 日志
+- 搜索页重复 map 提取为 remember 常量
+- 保修弹窗 LazyColumn 加 item.id key
+- 搜索无结果时新增添加物品引导入口
+- 硬编码颜色 → 主题色 Primary()
+- 设置页重看引导加 Toast 反馈
+- HomeViewModel 改为 update{} 原子写入
+
+### v6.3.1 (2026-07-30)
+- 资产价值 EXP 从每 ¥1000+1 调整为每 ¥100+1
+- HomeViewModel.init 启动时调用 recalculateProfile 适配已有物品
 
 ### v6.3.0 (2026-07-30) 🎉 新手引导
 - 首次启动 5 页全屏玻璃卡片轮播（HorizontalPager + 28dp 圆角 + Warm Glassmorphism）
