@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.5.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.6.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -17,6 +17,7 @@
 - 便当盒网格首页，首项双列宽 Hero 卡片，半透明状态区分
 - 增删改查，字段覆盖名称 / 分类 / 价格 / 存放位置 / 购入日期 / 描述
 - 5 种物品状态：在用 / 闲置 / 已出 / 待修 / 丢失；非在用卡片自动半透明
+- 已出物品可填写售出收益，统计页汇总展示
 - 自定义标签系统，搜索页可筛选
 - 分类横向滚动筛选
 - 全文搜索：名称 / 位置 / 备注 / 保修，三级行内展开式 Chip 筛选 + 排序 + 历史持久化
@@ -188,6 +189,7 @@ app/src/main/java/com/nanji/lootarchive/
 | status | String | 状态 (active/idle/sold/repair/lost) |
 | tags | String | 标签 (逗号分隔) |
 | lastStatusChangedAt | Long? | 状态变更时间 |
+| salePrice | Double? | 售出收益 (仅 sold) |
 
 索引: `categoryId` / `name` / `isDeleted` / `status`
 
@@ -248,6 +250,12 @@ APK 输出：`LootArchive-release-v6.5.0.apk`（约 7.4 MB，arm64-v8a + armeabi
 ---
 
 ## 更新日志
+
+### v6.6.0 (2026-07-31) 售出收益
+- 物品状态选已出时显示售出收益输入框，切换其他状态隐藏
+- 统计页资产总览新增售出收益汇总行
+- 详情页已出物品展示售出收益
+- DB Migration 4→5，ZIP 导入导出兼容
 
 ### v6.5.0 (2026-07-31) 视觉优化
 - 全局 Emoji → Material Icons (15 处)
