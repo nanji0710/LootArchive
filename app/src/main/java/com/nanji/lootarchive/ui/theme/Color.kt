@@ -26,7 +26,7 @@ val _SurfaceLight = Color(0xFFFFFFFF)        // 纯白表面
 val _SurfaceDark = Color(0xFF1C1C24)         // 深紫灰
 
 val _CardLight = Color(0xFFFEFDFB)           // 卡片微暖白
-val _CardDark = Color(0xFF242430)            // 卡片深灰
+val _CardDark = Color(0xFF1C1A18)            // 暖深棕 — 与琥珀主题呼应
 
 // ── Glass 专用色 (毛玻璃卡片/面板) ──
 val _GlassLight = Color(0xAAFFFFFF)          // 浅色毛玻璃 (65% opacity)

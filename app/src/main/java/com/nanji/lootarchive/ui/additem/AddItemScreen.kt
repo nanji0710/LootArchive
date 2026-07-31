@@ -102,8 +102,8 @@ fun AddItemScreen(
         containerColor = Color.Transparent
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // v5.0: Step Indicator
             Row(
@@ -135,7 +135,7 @@ fun AddItemScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Text(
                     when (currentStep) {
-                        0 -> "📸 照片"
+                        0 -> "照片"
                         1 -> "📝 详情"
                         else -> "📍 位置与保修"
                     },

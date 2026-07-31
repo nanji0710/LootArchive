@@ -1,7 +1,7 @@
 {
-  "versionName": "6.3.6",
-  "versionCode": 636,
+  "versionName": "6.5.0",
+  "versionCode": 650,
   "updateDate": "2026-07-31",
-  "updateLog": "v6.3.6\n- 月度购入趋势去掉<=7居中分支, 始终可横向滚动\n- 柱宽48dp->52dp, 卡片宽度自然约束显示约6列",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.6/LootArchive-release-v6.3.6.apk"
+  "updateLog": "v6.5.0\n- 视觉优化: Emoji->Material Icons全替换\n- 导航栏图标20dp->24dp, 标签10sp->11sp\n- 全页面间距统一: 外层16dp/卡片间12dp/卡片内16dp\n- 卡片elevation统一为1dp\n- 暗黑模式_CardDark改为暖深棕#1C1A18\n- 首页资产总价等宽数字MonoFont\n- 引导页按钮Row布局修复+图标替换",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.5.0/LootArchive-release-v6.5.0.apk"
 }

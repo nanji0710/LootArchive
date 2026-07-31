@@ -274,7 +274,7 @@ fun MainScreen() {
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(if (selected) 30.dp else 26.dp)
+                                        .size(if (selected) 36.dp else 28.dp)
                                         .then(
                                             if (selected)
                                                 Modifier.background(
@@ -288,14 +288,14 @@ fun MainScreen() {
                                     Icon(
                                         if (selected) tab.selectedIcon else tab.unselectedIcon,
                                         tab.label,
-                                        modifier = Modifier.size(20.dp),
+                                        modifier = Modifier.size(24.dp),
                                         tint = if (selected) Primary() else TextAuxiliary()
                                     )
                                 }
                                 Spacer(Modifier.height(1.dp))
                                 Text(
                                     tab.label,
-                                    fontSize = 10.sp,
+                                    fontSize = 11.sp,
                                     color = if (selected) Primary() else TextAuxiliary(),
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )

@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,26 +26,26 @@ import com.nanji.lootarchive.ui.theme.*
 import kotlinx.coroutines.launch
 
 private data class OnboardingPage(
-    val icon: String, val iconBgColor: Color,
+    val icon: ImageVector, val iconBgColor: Color,
     val step: String, val title: String, val description: String,
     val tags: List<Pair<String, Color>>
 )
 
 private val pages = listOf(
-    OnboardingPage("📦", _Primary, "1 / 5", "欢迎来到拾物集",
+    OnboardingPage(Icons.Rounded.Inventory2, _Primary, "1 / 5", "欢迎来到拾物集",
         "你的私人物品资产管理工具\n一件一档，精细管理\n所有数据纯本地存储，无需联网",
         listOf("离线安全" to Color(0xFF10B981), "隐私优先" to Color(0xFF10B981))),
-    OnboardingPage("📸", Color(0xFF10B981), "2 / 5", "记录你的物品",
+    OnboardingPage(Icons.Rounded.CameraAlt, Color(0xFF10B981), "2 / 5", "记录你的物品",
         "拍照或从相册选择照片\n填写名称、价格、存放位置\n标签分类 + 5种状态随心标记",
         listOf("拍照录入" to Color(0xFF10B981), "状态追踪" to _Primary)),
-    OnboardingPage("📊", Color(0xFF3B82F6), "3 / 5", "资产一目了然",
+    OnboardingPage(Icons.Rounded.BarChart, Color(0xFF3B82F6), "3 / 5", "资产一目了然",
         "环形图看分类分布\n雷达图多维度对比 + 趋势线\n月度购入 + CSV数据导出",
         listOf("多维图表" to _Secondary, "CSV导出" to Color(0xFF10B981))),
-    OnboardingPage("🏆", _Secondary, "4 / 5", "收藏家成长体系",
+    OnboardingPage(Icons.Rounded.EmojiEvents, _Secondary, "4 / 5", "收藏家成长体系",
         "EXP经验值 + 10级阶梯\n13枚成就徽章等你解锁\n数量/价值双维度评级",
         listOf("EXP等级" to _Secondary, "成就徽章" to _Primary)),
-    OnboardingPage("🚀", _Primary, "5 / 5", "开始你的收藏之旅",
-        "先添加第一件物品试试吧\n点击首页底部\"新增物品\"\n记录你的第一件宝贝 ✨",
+    OnboardingPage(Icons.Rounded.RocketLaunch, _Primary, "5 / 5", "开始你的收藏之旅",
+        "先添加第一件物品试试吧\n点击首页底部\"新增物品\"\n记录你的第一件宝贝",
         listOf("现在开始" to Color(0xFF10B981), "随时回看" to _Primary))
 )
 
@@ -113,7 +117,11 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                                     .background(page.iconBgColor.copy(alpha = 0.10f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(page.icon, fontSize = 38.sp)
+                                Icon(
+                                    page.icon, null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = page.iconBgColor
+                                )
                             }
                             Spacer(Modifier.height(22.dp))
                             Text(
@@ -157,11 +165,11 @@ fun OnboardingScreen(onComplete: () -> Unit) {
 
             Spacer(Modifier.height(6.dp))
 
-            // 缩略图导航条
+            // 缩略图导航条 — 用圆圈简点替代emoji
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                pages.forEachIndexed { i, p ->
+                pages.forEachIndexed { i, _ ->
                     val isCurrent = i == pagerState.currentPage
                     Box(
                         Modifier
@@ -175,7 +183,11 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                             .clickable { scope.launch { animateTo(i) } },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(p.icon, fontSize = if (isCurrent) 26.sp else 22.sp)
+                        Icon(
+                            pages[i].icon, null,
+                            modifier = Modifier.size(if (isCurrent) 28.dp else 22.dp),
+                            tint = if (isCurrent) Primary() else TextAuxiliary()
+                        )
                     }
                 }
             }
@@ -208,14 +220,21 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                         if (isLast) onComplete()
                         else scope.launch { animateTo(pagerState.currentPage + 1) }
                     }
-                    .padding(horizontal = 52.dp, vertical = 16.dp),
+                    .padding(horizontal = 40.dp, vertical = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    if (isLast) "开始使用 🎉" else "下一步 →",
-                    fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
-                    color = Color.White
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        if (isLast) "开始使用" else "下一步",
+                        fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        if (isLast) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.ArrowForward,
+                        null, Modifier.size(18.dp), tint = Color.White
+                    )
+                }
             }
 
             // 跳过引导

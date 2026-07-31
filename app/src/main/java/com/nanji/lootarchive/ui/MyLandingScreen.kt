@@ -97,8 +97,8 @@ fun MyLandingScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // ── v5.5 收藏家卡片（方案A：双行分区）──
         Card(
@@ -160,12 +160,16 @@ fun MyLandingScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
-                                Text(
-                                    "🏅$achCount/$achTotal",
-                                    fontSize = 11.sp, fontWeight = FontWeight.Medium,
-                                    color = Primary(),
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)) {
+                                    Icon(Icons.Rounded.MilitaryTech, null, Modifier.size(14.dp), tint = Primary())
+                                    Spacer(Modifier.width(2.dp))
+                                    Text(
+                                        "$achCount/$achTotal",
+                                        fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                        color = Primary()
+                                    )
+                                }
                             }
                         }
                     }
@@ -218,7 +222,7 @@ fun MyLandingScreen(
                 colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Column(Modifier.padding(18.dp)) {
+                Column(Modifier.padding(16.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text("成就徽章", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
                         Text("${achievements.count { it.isUnlocked }}/${achievements.size}", fontSize = 13.sp, color = TextAuxiliary())
@@ -243,10 +247,11 @@ fun MyLandingScreen(
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        if (ach.isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒",
-                                        fontSize = 20.sp,
-                                        color = if (ach.isUnlocked) Primary() else TextAuxiliary()
+                                    Icon(
+                                        if (ach.isUnlocked) Icons.Rounded.MilitaryTech else Icons.Rounded.Lock,
+                                        null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = if (ach.isUnlocked) Primary() else TextAuxiliary()
                                     )
                                 }
                                 Spacer(Modifier.height(4.dp))
@@ -274,7 +279,8 @@ fun MyLandingScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("🏆", fontSize = 28.sp)
+                    Icon(Icons.Rounded.EmojiEvents, null, Modifier.size(28.dp), tint = Primary())
+                    Spacer(Modifier.height(4.dp))
                     Text("最贵物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
                     Text(if (homeState.items.isNotEmpty()) "¥${NumberFormat.getNumberInstance().format(homeState.items.maxByOrNull { it.purchasePrice }?.purchasePrice ?: 0)}" else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
                 }
@@ -286,7 +292,8 @@ fun MyLandingScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("📅", fontSize = 28.sp)
+                    Icon(Icons.Rounded.CalendarMonth, null, Modifier.size(28.dp), tint = TextAuxiliary())
+                    Spacer(Modifier.height(4.dp))
                     Text("最老物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
                     Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; if (oldest?.purchaseDate != null) java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest.purchaseDate)) + "年购入" else "暂无" } else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
                 }
@@ -337,7 +344,7 @@ fun MyLandingScreen(
             Column(Modifier.padding(18.dp)) {
                 Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(4.dp))
-                Text("当前版本 v6.3.6", fontSize = 13.sp, color = TextAuxiliary())
+                Text("当前版本 v6.5.0", fontSize = 13.sp, color = TextAuxiliary())
             }
         }
 
@@ -391,7 +398,7 @@ fun MyLandingScreen(
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v6.3.6", color = TextSecondary()) },
+            text = { Text("当前已是最新版本 v6.5.0", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
         )
     }
@@ -556,7 +563,11 @@ fun MyLandingScreen(
             containerColor = MaterialTheme.colorScheme.surface,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (isUnlocked) ach.icon.ifEmpty { "🏅" } else "🔒", fontSize = 28.sp)
+                    Icon(
+                                    if (isUnlocked) Icons.Rounded.MilitaryTech else Icons.Rounded.Lock,
+                                    null, modifier = Modifier.size(28.dp),
+                                    tint = if (isUnlocked) Primary() else TextAuxiliary()
+                                )
                     Spacer(Modifier.width(10.dp))
                     Text(ach.title, fontWeight = FontWeight.Bold, color = TextPrimary(), fontSize = 20.sp, fontFamily = FredokaFont)
                 }
@@ -583,7 +594,7 @@ fun MyLandingScreen(
                         trackColor = Primary().copy(alpha = 0.10f)
                     )
                     Spacer(Modifier.height(8.dp))
-                    val statusLabel = if (isUnlocked) "✅ 已解锁" else "🔒 未解锁"
+                    val statusLabel = if (isUnlocked) "已解锁" else "未解锁"
                     Text(statusLabel, fontSize = 13.sp, color = if (isUnlocked) Color(0xFF10B981) else TextAuxiliary(), fontWeight = FontWeight.Medium)
                 }
             },

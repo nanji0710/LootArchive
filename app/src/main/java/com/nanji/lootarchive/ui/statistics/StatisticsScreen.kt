@@ -36,7 +36,7 @@ import java.text.NumberFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val CardPadding = 20.dp
+private val CardPadding = 16.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +84,7 @@ fun StatisticsScreen(
                 }
 
                 // ── 分类资产分布 Donut ──
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                     Column(Modifier.padding(CardPadding)) {
                         Text("分类资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(16.dp))
@@ -109,7 +109,7 @@ fun StatisticsScreen(
                     val radarAxes = topSums.map { cs ->
                         RadarAxis(cs.category.name.take(4), cs.totalValue.toFloat(), maxV)
                     }
-                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                         Column(Modifier.padding(CardPadding)) {
                             Text("分类多维对比", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(12.dp))
@@ -132,7 +132,7 @@ fun StatisticsScreen(
                     }
                 } else emptyList()
                 if (trendPoints.size >= 2) {
-                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                         Column(Modifier.padding(CardPadding)) {
                             Text("资产净值趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(8.dp))
@@ -142,7 +142,7 @@ fun StatisticsScreen(
                 }
 
                 // ── 月度购入趋势 Sparkline ──
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                     Column(Modifier.padding(CardPadding)) {
                         Text("月度购入趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(14.dp))
@@ -184,7 +184,7 @@ fun StatisticsScreen(
                 }
 
                 // ── 分类排名 ──
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                     Column(Modifier.padding(CardPadding)) {
                         Text("分类排名", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))
@@ -207,7 +207,7 @@ fun StatisticsScreen(
                     .mapValues { e -> e.value.sumOf { it.second } }
                     .entries.sortedByDescending { it.value }.take(8)
                 if (tagData.isNotEmpty()) {
-                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                         Column(Modifier.padding(CardPadding)) {
                             Text("标签资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(12.dp))
@@ -229,7 +229,7 @@ fun StatisticsScreen(
 
                 // ── v5.4 导出CSV ──
                 val context = LocalContext.current
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                     Column(Modifier.padding(CardPadding)) {
                         Text("数据导出", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))

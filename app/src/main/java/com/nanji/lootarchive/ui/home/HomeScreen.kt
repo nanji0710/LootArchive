@@ -94,7 +94,7 @@ fun HomeScreen(
                     Column {
                         Text("当前拥有", fontSize = 13.sp, color = TextAuxiliary())
                         Spacer(Modifier.height(4.dp))
-                        Text("¥${numberFormat.format(animValue)}", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+                        Text("¥${numberFormat.format(animValue)}", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = MonoFont)
                         Spacer(Modifier.height(14.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(Primary().copy(alpha = 0.06f)).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
