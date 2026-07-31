@@ -1,7 +1,7 @@
 {
-  "versionName": "6.6.3",
-  "versionCode": 663,
+  "versionName": "6.6.4",
+  "versionCode": 664,
   "updateDate": "2026-07-31",
-  "updateLog": "v6.6.3\n- 统计页月度趋势修复: 售出收益使用全量物品而非仅拥有物品\n- 统计页资产总值对齐首页: 拥有购价+售出收益\n- 首页分类筛选时售出收益同步过滤\n- 数据口径统一: 资产=拥有购价+售出收益, 成就=全部未删除",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.3/LootArchive-release-v6.6.3.apk"
+  "updateLog": "v6.6.4\n- 统计页饼图修复: 分母统一为购价+售出收益, 增加售出收益扇区, 饼图始终闭合\n- 统计页趋势线修复: 累计净值合并售出收益, 终点与Hero总资产一致\n- 所有图表模块数字一致性验证通过",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.4/LootArchive-release-v6.6.4.apk"
 }

@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.6.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.6.4-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -96,6 +96,39 @@
 
 ---
 
+## 数据规则
+
+### 概念定义
+
+| 术语 | 条件 | 说明 |
+|:--|:--|:--|
+| **拥有物品** | `isDeleted=0 AND status IN ('active','idle','repair')` | 实际持有的物品 |
+| **全部物品** | `isDeleted=0` | 含已出售、已丢失 |
+| **售出收益** | `isDeleted=0 AND status='sold' AND salePrice IS NOT NULL` | 仅已出售的有效收益 |
+
+### 各页面金额汇总规则
+
+| 页面 | 指标 | 公式 | 分类筛选 | 时间筛选 |
+|:--|:--|:--|:--|:--|
+| **首页** | 当前拥有金额 | Σ拥有购价 + Σ售出收益 | ✅ 同步过滤 | — |
+| | 物品总数 | Σ全部未删除物品 | ✅ 同步过滤 | — |
+| | 保修待提醒 | Σ未删除且非已售且保修到期≤阈值 | ❌ 全量 | — |
+| **统计页** | 资产总值 | Σ拥有购价 + Σ售出收益 | ❌ | 购价部分受影响 |
+| | 物品总数 | Σ拥有物品 | ❌ | ✅ |
+| | 分类饼图 | Σ拥有购价按分类 + 售出收益独立扇区 | ❌ | 购价部分受影响 |
+| | 雷达图 | Top 5 分类购价对比 | ❌ | ✅ |
+| | 资产净值趋势线 | Σ拥有购价 + Σ售出收益按月累计 | ❌ | ✅ |
+| | 月度购入柱状图 | Σ拥有购价 + Σ售出收益按月份 | ❌ | 购价部分受影响 |
+| | 分类排名 | Σ拥有购价按分类降序 | ❌ | ✅ |
+| **收藏家** | EXP | 拥有数×10 + 拥有价值÷100 + 描述×3 + 照片×2 | ❌ | ❌ |
+| | 收藏成就 (5/20/50/100) | 拥有物品数 | ❌ | ❌ |
+| | 价值成就 (万/十万/五十万) | 拥有物品总购价 | ❌ | ❌ |
+| | 细节+摄影+活跃成就 | 拥有物品维度统计 | ❌ | ❌ |
+
+> **关键设计决策**：已出售/已丢失物品不参与资产价值计算，但售出收益并入总资产。收藏成就统计拥有物品数，避免已出售影响成就。保修提醒排除已出售物品。统计页售出收益不受时间筛选影响——无论查看哪个时间段，累计售出收益保持不变。
+
+---
+
 ## 技术栈
 
 | 领域 | 方案 | 版本 |
@@ -122,7 +155,7 @@ app/src/main/java/com/nanji/lootarchive/
 │   ├── local/
 │   │   ├── dao/          7 个 DAO
 │   │   ├── entity/       7 个实体
-│   │   └── database/     AppDatabase (v4, destructive fallback)
+│   │   └── database/     AppDatabase (v6, hand-written migrations)
 │   ├── repository/       4 个仓库 (Item/Category/Settings/Backup)
 │   └── ExpService.kt     EXP + 成就引擎
 ├── di/                   Hilt 模块
@@ -190,6 +223,7 @@ app/src/main/java/com/nanji/lootarchive/
 | tags | String | 标签 (逗号分隔) |
 | lastStatusChangedAt | Long? | 状态变更时间 |
 | salePrice | Double? | 售出收益 (仅 sold) |
+| saleDate | Long? | 售出日期 (仅 sold) |
 
 索引: `categoryId` / `name` / `isDeleted` / `status`
 
@@ -245,11 +279,34 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.5.0.apk`（约 7.4 MB，arm64-v8a + armeabi-v7a，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.6.4.apk`（约 7.4 MB，arm64-v8a + armeabi-v7a，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.6.4 (2026-07-31) 统计页图表一致性
+- 分类饼图增加售出收益扇区，分母统一为 购价+售出收益，饼图始终闭合
+- 资产净值趋势线合并售出收益，终点值与 Hero 总资产一致
+- 所有图表模块数字相互对齐
+
+### v6.6.3 (2026-07-31) 数据一致性
+- 统计页月度趋势修复：售出收益改用全量物品而非仅拥有物品
+- 统计页资产总值对齐首页：拥有购价 + 售出收益
+- 首页分类筛选时售出收益同步过滤
+- 数据口径统一：资产 = 拥有购价 + 售出收益，成就 = 全部未删除
+
+### v6.6.2 (2026-07-31)
+- 首页当前拥有金额剔除已出/丢失，同时计入售出收益
+- 保修提醒排除已出售物品
+- 状态徽章文字居中修复
+- 收藏成就统计改为全部未删除物品数
+
+### v6.6.1 (2026-07-31) 售出日期
+- ItemEntity 新增 saleDate 字段，DB Migration 5→6
+- 新增/编辑物品时支持选择售出日期 (WheelDatePicker)
+- 统计页月度图表按售出日期归入对应月份
+- 详情页已售出物品展示售出日期
 
 ### v6.6.0 (2026-07-31) 售出收益
 - 物品状态选已出时显示售出收益输入框，切换其他状态隐藏

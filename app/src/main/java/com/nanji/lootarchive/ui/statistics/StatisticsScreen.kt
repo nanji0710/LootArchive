@@ -100,17 +100,23 @@ fun StatisticsScreen(
                     Column(Modifier.padding(CardPadding)) {
                         Text("分类资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(16.dp))
-                        Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+                        val catTotal = uiState.categorySummaries.sumOf { it.totalValue }
+                            val totalForPie = catTotal + uiState.saleRevenue
+                            Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
                             val holeColor = if (LocalDarkTheme.current) _CardDark else _CardLight
-                            val sweeps = uiState.categorySummaries.map { if (uiState.totalValue > 0) (it.totalValue / uiState.totalValue * 360f).toFloat() else 0f }
-                            Canvas(Modifier.size(140.dp)) { var sa = -90f; sweeps.forEachIndexed { i, sw -> if (sw > 0) { drawArc(ChartColors[i % ChartColors.size], sa, sw, true, Offset.Zero, Size(size.width, size.height)); sa += sw } }; drawCircle(holeColor, size.width * 0.28f) }
+                            val sweeps = uiState.categorySummaries.map { if (totalForPie > 0) (it.totalValue / totalForPie * 360f).toFloat() else 0f }.toMutableList()
+                            if (uiState.saleRevenue > 0) sweeps.add((uiState.saleRevenue / totalForPie * 360f).toFloat())
+                            Canvas(Modifier.size(140.dp)) { var sa = -90f; sweeps.forEachIndexed { i, sw -> if (sw > 0) { val c = if (uiState.saleRevenue > 0 && i == sweeps.lastIndex) StatusSold else ChartColors[i % ChartColors.size]; drawArc(c, sa, sw, true, Offset.Zero, Size(size.width, size.height)); sa += sw } }; drawCircle(holeColor, size.width * 0.28f) }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(FormatUtil.formatPriceShort(uiState.totalValue), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
                                 Text("总资产", fontSize = 10.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
                             }
                         }
                         Spacer(Modifier.height(12.dp))
-                        uiState.categorySummaries.forEachIndexed { i, s -> Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.width(10.dp)); Text(s.category.name, fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(s.totalValue)}", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (uiState.totalValue > 0) (s.totalValue / uiState.totalValue * 100).toInt() else 0}%", fontSize = 11.sp, color = TextAuxiliary(), fontFamily = FredokaFont) } }
+                        uiState.categorySummaries.forEachIndexed { i, s -> Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.width(10.dp)); Text(s.category.name, fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(s.totalValue)}", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (s.totalValue / totalForPie * 100).toInt() else 0}%", fontSize = 11.sp, color = TextAuxiliary(), fontFamily = FredokaFont) } }
+                        if (uiState.saleRevenue > 0) {
+                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = StatusSold) {}; Spacer(Modifier.width(10.dp)); Text("售出收益", fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(uiState.saleRevenue)}", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = StatusSold, fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (uiState.saleRevenue / totalForPie * 100).toInt() else 0}%", fontSize = 11.sp, color = TextAuxiliary(), fontFamily = FredokaFont) }
+                        }
                     }
                 }
 
@@ -130,17 +136,22 @@ fun StatisticsScreen(
                     }
                 }
 
-                // ── v5.4 资产净值趋势折线图（累计值）──
-                val monthlyData = uiState.items
+                // ── v5.4 资产净值趋势折线图（累计值，含售出收益）──
+                val tSdf = java.text.SimpleDateFormat("yy/MM", java.util.Locale.getDefault())
+                val purchaseMap = uiState.items
                     .filter { it.purchaseDate != null }
-                    .groupBy { java.text.SimpleDateFormat("yy/MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }
+                    .groupBy { tSdf.format(java.util.Date(it.purchaseDate!!)) }
                     .mapValues { it.value.sumOf { i -> i.purchasePrice } }
-                    .toList().sortedBy { it.first }
-                val trendPoints = if (monthlyData.size >= 2) {
+                val saleMap = uiState.allItems
+                    .filter { it.status == "sold" && it.saleDate != null && it.salePrice != null }
+                    .groupBy { tSdf.format(java.util.Date(it.saleDate!!)) }
+                    .mapValues { it.value.sumOf { i -> i.salePrice!! } }
+                val allTrendMonths = (purchaseMap.keys + saleMap.keys).distinct().sorted()
+                val trendPoints = if (allTrendMonths.size >= 2) {
                     var runningTotal = 0.0
-                    monthlyData.map { (label, monthValue) ->
-                        runningTotal += monthValue
-                        com.nanji.lootarchive.ui.component.TrendPoint(label, runningTotal)
+                    allTrendMonths.map { m ->
+                        runningTotal += (purchaseMap[m] ?: 0.0) + (saleMap[m] ?: 0.0)
+                        com.nanji.lootarchive.ui.component.TrendPoint(m, runningTotal)
                     }
                 } else emptyList()
                 if (trendPoints.size >= 2) {
