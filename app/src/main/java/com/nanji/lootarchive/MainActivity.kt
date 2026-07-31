@@ -10,7 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.ui.MainScreen
@@ -32,14 +35,17 @@ class MainActivity : ComponentActivity() {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
             val primaryColor by settingsRepository.primaryColor.collectAsState(initial = 0xFFFFA500.toInt())
             val onboardingCompleted by settingsRepository.onboardingCompleted.collectAsState(initial = false)
+            // 首次启动引导仅在冷启动时检查一次，运行中resetOnboarding()不会立即触发
+            var showOnboarding by remember { mutableStateOf(!onboardingCompleted) }
             LootArchiveTheme(themeMode = themeMode, primaryColor = primaryColor) {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                    if (!onboardingCompleted) {
+                    if (showOnboarding) {
                         val scope = rememberCoroutineScope()
                         OnboardingScreen(
                             onComplete = {
                                 scope.launch {
                                     settingsRepository.setOnboardingCompleted(true)
+                                    showOnboarding = false
                                 }
                             }
                         )
