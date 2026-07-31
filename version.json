@@ -2,6 +2,6 @@
   "versionName": "6.3.4",
   "versionCode": 634,
   "updateDate": "2026-07-30",
-  "updateLog": "v6.3.4\n• 修复设置页"重新查看引导"点击后立即跳转→仅在下次冷启动时生效\n• 回退ItemEntity新增索引（导致DB schema变化闪退）\n• 保留全部异常日志+代码质量修复",
+  "updateLog": "v6.3.4\n- 修复设置页重新查看引导点击后立即跳转,改为仅下次冷启动时生效\n- 回退ItemEntity新增索引(导致DB schema变化闪退)\n- 保留全部异常日志+代码质量修复",
   "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.4/LootArchive-release-v6.3.4.apk"
 }
