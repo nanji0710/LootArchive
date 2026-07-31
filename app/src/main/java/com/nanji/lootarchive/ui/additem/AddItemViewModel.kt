@@ -30,6 +30,7 @@ data class AddItemUiState(
     val status: String = "active",
     val tags: String = "",
     val tagInput: String = "",
+    val salePriceText: String = "",
     // 表单校验
     val nameError: String? = null,
     val priceError: String? = null,
@@ -83,7 +84,8 @@ class AddItemViewModel @Inject constructor(
                     description = item.description,
                     photoPaths = itemWithPhotos.photos.map { it.photoPath },
                     status = item.status,
-                    tags = item.tags
+                    tags = item.tags,
+                    salePriceText = item.salePrice?.toString() ?: ""
                 )
             }
         }
@@ -145,7 +147,11 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun updateStatus(status: String) {
-        _uiState.update { it.copy(status = status) }
+        _uiState.update { it.copy(status = status, salePriceText = if (status == "sold") it.salePriceText else "") }
+    }
+
+    fun updateSalePrice(text: String) {
+        _uiState.update { it.copy(salePriceText = text) }
     }
 
     fun updateTagInput(input: String) {
@@ -225,7 +231,8 @@ class AddItemViewModel @Inject constructor(
                     description = state.description.trim(),
                     status = state.status,
                     tags = state.tags,
-                    updatedAt = System.currentTimeMillis()
+                    updatedAt = System.currentTimeMillis(),
+                    salePrice = state.salePriceText.toDoubleOrNull()
                 )
 
                 val savedId: Long

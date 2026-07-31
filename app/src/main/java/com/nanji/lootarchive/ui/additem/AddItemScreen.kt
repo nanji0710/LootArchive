@@ -290,6 +290,29 @@ fun AddItemScreen(
                     }
                 }
 
+                // v6.6 售出收益（仅已出状态显示）
+                AnimatedVisibility(visible = uiState.status == "sold") {
+                    ClayCard {
+                        Text("售出收益", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                        Spacer(Modifier.height(10.dp))
+                        OutlinedTextField(
+                            value = uiState.salePriceText,
+                            onValueChange = viewModel::updateSalePrice,
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("卖出价格（选填）", fontSize = 14.sp, color = TextAuxiliary()) },
+                            prefix = { Text("¥", fontSize = 15.sp, color = TextPrimary(), fontWeight = FontWeight.Medium) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary().copy(alpha = 0.5f),
+                                unfocusedBorderColor = TextAuxiliary().copy(alpha = 0.2f),
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent
+                            )
+                        )
+                    }
+                }
+
                 // v5.2 标签输入
                 ClayCard {
                     Text("标签", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)

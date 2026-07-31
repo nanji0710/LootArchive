@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -78,6 +79,17 @@ fun StatisticsScreen(
                                     val sel = timeFilter == k
                                     Surface(onClick = { timeFilter = k; viewModel.setTimeFilter(k) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), color = if (sel) Primary() else Color.Transparent) { Text(l, fontSize = 12.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal, color = if (sel) Color.White else TextSecondary(), modifier = Modifier.padding(vertical = 8.dp), textAlign = TextAlign.Center, fontFamily = FredokaFont) }
                                 }
+                            }
+                        }
+                        // v6.6 已出收益（仅>0时显示）
+                        if (uiState.saleRevenue > 0) {
+                            Spacer(Modifier.height(12.dp))
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Rounded.TrendingUp, null, Modifier.size(16.dp), tint = StatusSold)
+                                Spacer(Modifier.width(6.dp))
+                                Text("售出收益", fontSize = 13.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                Spacer(Modifier.weight(1f))
+                                Text("+¥${numberFormat.format(uiState.saleRevenue)}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = StatusSold, fontFamily = MonoFont)
                             }
                         }
                     }

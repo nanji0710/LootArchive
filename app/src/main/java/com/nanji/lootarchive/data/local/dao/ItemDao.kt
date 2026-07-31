@@ -75,6 +75,9 @@ interface ItemDao {
     @Query("SELECT COALESCE(SUM(purchasePrice), 0) FROM items WHERE isDeleted = 0 AND status IN ('active','idle','repair')")
     suspend fun getOwnedValueSync(): Double
 
+    @Query("SELECT COALESCE(SUM(salePrice), 0) FROM items WHERE isDeleted = 0 AND status = 'sold'")
+    suspend fun getTotalSaleRevenue(): Double
+
     @Query("SELECT COUNT(*) FROM items WHERE isDeleted = 0 AND description != '' AND description IS NOT NULL")
     suspend fun getItemsWithDescriptionCount(): Int
 

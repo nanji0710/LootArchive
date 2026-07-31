@@ -92,6 +92,9 @@ fun DetailScreen(
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = TextAuxiliary().copy(alpha = 0.12f))
                 DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}", valueColor = Primary())
+                if (data.item.status == "sold" && data.item.salePrice != null) {
+                    DetailRow("售出收益", "+${currencySymbol}${numberFormat.format(data.item.salePrice!!)}", valueColor = StatusSold)
+                }
                 DetailRow("购入日期", data.item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "未设置")
                 val warrantyText = when { data.isWarrantyExpired -> "已过期"; data.isWarrantyExpiring -> "即将到期"; data.item.warrantyExpiryDate != null -> "保修中 · ${dateFormat.format(Date(data.item.warrantyExpiryDate!!))}"; else -> "无保修" }
                 val warrantyColor = when { data.isWarrantyExpired -> WarrantyExpired; data.isWarrantyExpiring -> WarrantyExpiring; else -> WarrantyActive }

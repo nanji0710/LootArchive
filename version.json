@@ -1,7 +1,7 @@
 {
-  "versionName": "6.5.0",
-  "versionCode": 650,
+  "versionName": "6.6.0",
+  "versionCode": 660,
   "updateDate": "2026-07-31",
-  "updateLog": "v6.5.0\n- 视觉优化: Emoji->Material Icons全替换\n- 导航栏图标20dp->24dp, 标签10sp->11sp\n- 全页面间距统一: 外层16dp/卡片间12dp/卡片内16dp\n- 卡片elevation统一为1dp\n- 暗黑模式_CardDark改为暖深棕#1C1A18\n- 首页资产总价等宽数字MonoFont\n- 引导页按钮Row布局修复+图标替换",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.5.0/LootArchive-release-v6.5.0.apk"
+  "updateLog": "v6.6.0\n- 新增售出收益字段（ItemEntity.salePrice）\n- 状态选已出时显示售出收益输入框，切换其他状态隐藏\n- 统计页资产总览新增售出收益汇总行\n- 详情页已出物品展示售出收益\n- 数据库Migration 4→5，ZIP导入导出兼容",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.0/LootArchive-release-v6.6.0.apk"
 }
