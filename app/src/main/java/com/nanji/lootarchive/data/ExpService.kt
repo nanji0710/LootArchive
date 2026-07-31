@@ -65,7 +65,7 @@ class ExpService @Inject constructor(
             )
         )
 
-        checkAchievements(ownedCount, ownedValue, photoCount, descCount)
+        checkAchievements(totalCount, ownedValue, photoCount, descCount)
     }
 
     private fun computeStreak(oldProfile: UserProfileEntity?, now: Long): Int {

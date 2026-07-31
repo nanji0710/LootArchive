@@ -43,10 +43,10 @@ interface ItemDao {
 
     // ========== 保修提醒 ==========
 
-    @Query("SELECT * FROM items WHERE isDeleted = 0 AND warrantyExpiryDate IS NOT NULL AND warrantyExpiryDate <= :threshold ORDER BY warrantyExpiryDate ASC")
+    @Query("SELECT * FROM items WHERE isDeleted = 0 AND status != 'sold' AND warrantyExpiryDate IS NOT NULL AND warrantyExpiryDate <= :threshold ORDER BY warrantyExpiryDate ASC")
     fun getWarrantyExpiringItems(threshold: Long): Flow<List<ItemEntity>>
 
-    @Query("SELECT COUNT(*) FROM items WHERE isDeleted = 0 AND warrantyExpiryDate IS NOT NULL AND warrantyExpiryDate <= :threshold")
+    @Query("SELECT COUNT(*) FROM items WHERE isDeleted = 0 AND status != 'sold' AND warrantyExpiryDate IS NOT NULL AND warrantyExpiryDate <= :threshold")
     fun getWarrantyExpiringCount(threshold: Long): Flow<Int>
 
     // ========== 统计 ==========

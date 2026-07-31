@@ -21,6 +21,7 @@ data class HomeUiState(
     val warrantyExpiringCount: Int = 0,
     val warrantyReminderDays: Int = 7,
     val currency: String = "CNY",
+    val saleRevenue: Double = 0.0,
     val appName: String = "拾物集"
 )
 
@@ -62,11 +63,12 @@ class HomeViewModel @Inject constructor(
                             android.util.Log.e("HomeVM", "Load photo failed item=${item.id}", e)
                         }
                     }
+                    val saleRev = quintet.first.filter { it.status == "sold" && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
                     HomeUiState(
                         isLoading = false, items = quintet.first, photoPaths = paths,
                         totalCount = quintet.second, totalValue = quintet.third,
                         warrantyExpiringCount = quintet.fourth, warrantyReminderDays = reminderDays.toInt(),
-                        currency = quintet.fifth, appName = appName
+                        currency = quintet.fifth, saleRevenue = saleRev, appName = appName
                     )
                 }.catch { e ->
                     android.util.Log.e("HomeVM", "loadData failed", e)

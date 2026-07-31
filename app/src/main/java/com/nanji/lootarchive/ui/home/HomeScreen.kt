@@ -75,11 +75,12 @@ fun HomeScreen(
         if (effectiveFilter != null) uiState.items.filter { it.categoryId == effectiveFilter.first }
         else uiState.items
     }
-    val filteredCount = filteredItems.size
-    val filteredValue = filteredItems.sumOf { it.purchasePrice }
+    val ownedItems = filteredItems.filter { it.status in listOf("active", "idle", "repair") }
+    val heroCount = filteredItems.size
+    val heroValue = ownedItems.sumOf { it.purchasePrice } + uiState.saleRevenue
 
-    val animCount by animateIntAsState(filteredCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
-    val animValue by animateFloatAsState(filteredValue.toFloat(), animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
+    val animCount by animateIntAsState(heroCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
+    val animValue by animateFloatAsState(heroValue.toFloat(), animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
     val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
 
     PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
@@ -190,7 +191,7 @@ fun HomeScreen(
                                         RoundedCornerShape(10.dp),
                                         color = statusColor(item.status).copy(alpha = 0.88f)
                                     ) {
-                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Box(Modifier.fillMaxSize().wrapContentSize(unbounded = true), contentAlignment = Alignment.Center) {
                                             Text(
                                                 statusLabel(item.status).take(1),
                                                 fontSize = 9.sp,
