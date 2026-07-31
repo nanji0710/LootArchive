@@ -150,9 +150,9 @@ fun StatisticsScreen(
                         if (md.isEmpty()) Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
                         else {
                             val mv = md.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
-                            val colW = 48.dp
-                            // 数据少时居中，数据多时横向滚动
-                            if (md.size <= 7) {
+                            val colW = 52.dp
+                            // ≤6列居中无滚动，>6列横向滚动
+                            if (md.size <= 6) {
                                 Row(Modifier.fillMaxWidth().height(160.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
                                     md.forEachIndexed { i, (ym, t) ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(colW)) {

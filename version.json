@@ -1,7 +1,7 @@
 {
-  "versionName": "6.3.5",
-  "versionCode": 635,
+  "versionName": "6.3.6",
+  "versionCode": 636,
   "updateDate": "2026-07-31",
-  "updateLog": "v6.3.5\n- 修复引导页每次打开都显示: remember初始值永远读到collectAsState的默认false\n- 改用LaunchedEffect+first()读取DataStore真实值后再决定\n- 修复version.json中文引号导致JSON解析失败",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.5/LootArchive-release-v6.3.5.apk"
+  "updateLog": "v6.3.6\n- 月度购入趋势去掉<=7居中分支, 始终可横向滚动\n- 柱宽48dp->52dp, 卡片宽度自然约束显示约6列",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.3.6/LootArchive-release-v6.3.6.apk"
 }
