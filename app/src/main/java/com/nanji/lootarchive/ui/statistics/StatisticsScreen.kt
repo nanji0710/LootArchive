@@ -158,7 +158,15 @@ fun StatisticsScreen(
                     Column(Modifier.padding(CardPadding)) {
                         Text("月度购入趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(14.dp))
-                        val md = uiState.items.filter { it.purchaseDate != null }.groupBy { java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date(it.purchaseDate!!)) }.mapValues { it.value.sumOf { i -> i.purchasePrice } }.toList().sortedBy { it.first }.takeLast(12)
+                        val sdf = java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault())
+                        val purchaseByMonth = uiState.items.filter { it.purchaseDate != null }
+                            .groupBy { sdf.format(java.util.Date(it.purchaseDate!!)) }
+                            .mapValues { it.value.sumOf { i -> i.purchasePrice } }
+                        val saleByMonth = uiState.items.filter { it.status == "sold" && it.saleDate != null && it.salePrice != null }
+                            .groupBy { sdf.format(java.util.Date(it.saleDate!!)) }
+                            .mapValues { it.value.sumOf { i -> i.salePrice!! } }
+                        val allMonths = (purchaseByMonth.keys + saleByMonth.keys).distinct().sorted().takeLast(12)
+                        val md = allMonths.map { m -> m to ((purchaseByMonth[m] ?: 0.0) + (saleByMonth[m] ?: 0.0)) }
                         if (md.isEmpty()) Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
                         else {
                             val mv = md.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0

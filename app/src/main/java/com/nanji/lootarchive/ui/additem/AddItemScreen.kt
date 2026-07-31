@@ -51,6 +51,7 @@ fun AddItemScreen(
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
     var showPurchaseDatePicker by remember { mutableStateOf(false) }
+    var showSaleDatePicker by remember { mutableStateOf(false) }
     var showWarrantyDatePicker by remember { mutableStateOf(false) }
     // v5.0: Step wizard state
     var currentStep by remember { mutableIntStateOf(0) }
@@ -310,6 +311,22 @@ fun AddItemScreen(
                                 unfocusedContainerColor = Color.Transparent
                             )
                         )
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                                .background(if (LocalDarkTheme.current) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.02f))
+                                .clickable { showSaleDatePicker = true }.padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Rounded.CalendarToday, null, Modifier.size(18.dp), tint = TextAuxiliary())
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                uiState.saleDate?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it)) } ?: "售出日期（选填）",
+                                fontSize = 14.sp,
+                                color = if (uiState.saleDate != null) TextPrimary() else TextAuxiliary(),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
 
@@ -523,6 +540,15 @@ fun AddItemScreen(
             initialDateMillis = uiState.warrantyExpiryDate ?: System.currentTimeMillis(),
             onDismiss = { showWarrantyDatePicker = false },
             onConfirm = { millis -> viewModel.updateWarrantyExpiryDate(millis); showWarrantyDatePicker = false }
+        )
+    }
+    if (showSaleDatePicker) {
+        WheelDatePickerDialog(
+            title = "选择售出日期",
+            initialDateMillis = uiState.saleDate ?: System.currentTimeMillis(),
+            maxDateMillis = System.currentTimeMillis(),
+            onDismiss = { showSaleDatePicker = false },
+            onConfirm = { millis -> viewModel.updateSaleDate(millis); showSaleDatePicker = false }
         )
     }
 }

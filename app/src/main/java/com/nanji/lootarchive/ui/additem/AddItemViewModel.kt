@@ -31,6 +31,7 @@ data class AddItemUiState(
     val tags: String = "",
     val tagInput: String = "",
     val salePriceText: String = "",
+    val saleDate: Long? = null,
     // 表单校验
     val nameError: String? = null,
     val priceError: String? = null,
@@ -85,7 +86,8 @@ class AddItemViewModel @Inject constructor(
                     photoPaths = itemWithPhotos.photos.map { it.photoPath },
                     status = item.status,
                     tags = item.tags,
-                    salePriceText = item.salePrice?.toString() ?: ""
+                    salePriceText = item.salePrice?.toString() ?: "",
+                    saleDate = item.saleDate
                 )
             }
         }
@@ -147,11 +149,15 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun updateStatus(status: String) {
-        _uiState.update { it.copy(status = status, salePriceText = if (status == "sold") it.salePriceText else "") }
+        _uiState.update { it.copy(status = status, salePriceText = if (status == "sold") it.salePriceText else "", saleDate = if (status == "sold") it.saleDate else null) }
     }
 
     fun updateSalePrice(text: String) {
         _uiState.update { it.copy(salePriceText = text) }
+    }
+
+    fun updateSaleDate(date: Long?) {
+        _uiState.update { it.copy(saleDate = date) }
     }
 
     fun updateTagInput(input: String) {
@@ -232,7 +238,8 @@ class AddItemViewModel @Inject constructor(
                     status = state.status,
                     tags = state.tags,
                     updatedAt = System.currentTimeMillis(),
-                    salePrice = state.salePriceText.toDoubleOrNull()
+                    salePrice = state.salePriceText.toDoubleOrNull(),
+                    saleDate = state.saleDate
                 )
 
                 val savedId: Long

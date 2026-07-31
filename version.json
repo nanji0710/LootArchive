@@ -1,7 +1,7 @@
 {
-  "versionName": "6.6.0",
-  "versionCode": 660,
+  "versionName": "6.6.1",
+  "versionCode": 661,
   "updateDate": "2026-07-31",
-  "updateLog": "v6.6.0\n- 新增售出收益字段（ItemEntity.salePrice）\n- 状态选已出时显示售出收益输入框，切换其他状态隐藏\n- 统计页资产总览新增售出收益汇总行\n- 详情页已出物品展示售出收益\n- 数据库Migration 4→5，ZIP导入导出兼容",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.0/LootArchive-release-v6.6.0.apk"
+  "updateLog": "v6.6.1\n- 新增售出日期字段（与售出收益对应）\n- 月度购入趋势计入售出收益（按售出日期归属月份）\n- 详情页已出物品展示售出日期\n- DB Migration 5→6，ZIP导入导出兼容",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.1/LootArchive-release-v6.6.1.apk"
 }

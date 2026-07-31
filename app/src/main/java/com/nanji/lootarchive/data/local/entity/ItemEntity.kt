@@ -32,5 +32,6 @@ data class ItemEntity(
     val status: String = "active",            // active|idle|sold|repair|lost
     val tags: String = "",                    // comma-separated tag names
     val lastStatusChangedAt: Long? = null,    // epoch millis
-    val salePrice: Double? = null             // 售出收益，仅status=sold时填写
+    val salePrice: Double? = null,             // 售出收益，仅status=sold时填写
+    val saleDate: Long? = null                // 售出日期，仅status=sold时填写
 )
