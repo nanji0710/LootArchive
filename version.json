@@ -1,7 +1,7 @@
 {
-  "versionName": "6.6.2",
-  "versionCode": 662,
+  "versionName": "6.6.3",
+  "versionCode": 663,
   "updateDate": "2026-07-31",
-  "updateLog": "v6.6.2\n- 首页当前拥有金额剔除已出/丢失，并计入售出收益\n- 保修提醒排除已出物品\n- 首页卡片左下角状态圆标文字居中修复\n- 收藏成就(初级/中级/高级/百物)计入所有已添加物品(含已出/丢失)",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.2/LootArchive-release-v6.6.2.apk"
+  "updateLog": "v6.6.3\n- 统计页月度趋势修复: 售出收益使用全量物品而非仅拥有物品\n- 统计页资产总值对齐首页: 拥有购价+售出收益\n- 首页分类筛选时售出收益同步过滤\n- 数据口径统一: 资产=拥有购价+售出收益, 成就=全部未删除",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.3/LootArchive-release-v6.6.3.apk"
 }

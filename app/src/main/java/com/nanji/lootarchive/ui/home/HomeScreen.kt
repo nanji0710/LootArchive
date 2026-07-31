@@ -77,7 +77,12 @@ fun HomeScreen(
     }
     val ownedItems = filteredItems.filter { it.status in listOf("active", "idle", "repair") }
     val heroCount = filteredItems.size
-    val heroValue = ownedItems.sumOf { it.purchasePrice } + uiState.saleRevenue
+    val groupedSaleRevenue = uiState.items.filter { it.status == "sold" && it.salePrice != null }
+        .let { soldItems ->
+            if (effectiveFilter != null) soldItems.filter { it.categoryId == effectiveFilter.first }
+            else soldItems
+        }.sumOf { it.salePrice!! }
+    val heroValue = ownedItems.sumOf { it.purchasePrice } + groupedSaleRevenue
 
     val animCount by animateIntAsState(heroCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
     val animValue by animateFloatAsState(heroValue.toFloat(), animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))

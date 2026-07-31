@@ -25,6 +25,7 @@ data class StatisticsUiState(
     val currency: String = "CNY",
     val categorySummaries: List<CategorySummary> = emptyList(),
     val items: List<ItemEntity> = emptyList(),
+    val allItems: List<ItemEntity> = emptyList(),
     val timeFilter: String = "all",
     val selectedCategorySummary: CategorySummary? = null,
     val selectedCategoryItems: List<ItemEntity> = emptyList()
@@ -71,10 +72,11 @@ class StatisticsViewModel @Inject constructor(
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = filteredItems.size,
-                    totalValue = filteredTotalValue,
+                    totalValue = filteredTotalValue + saleRevenue,
                     saleRevenue = saleRevenue,
                     categorySummaries = summaries,
                     items = filteredItems,
+                    allItems = items,
                     timeFilter = filter
                 )
             }.collect { _uiState.value = it }

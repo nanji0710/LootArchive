@@ -162,7 +162,7 @@ fun StatisticsScreen(
                         val purchaseByMonth = uiState.items.filter { it.purchaseDate != null }
                             .groupBy { sdf.format(java.util.Date(it.purchaseDate!!)) }
                             .mapValues { it.value.sumOf { i -> i.purchasePrice } }
-                        val saleByMonth = uiState.items.filter { it.status == "sold" && it.saleDate != null && it.salePrice != null }
+                        val saleByMonth = uiState.allItems.filter { it.status == "sold" && it.saleDate != null && it.salePrice != null }
                             .groupBy { sdf.format(java.util.Date(it.saleDate!!)) }
                             .mapValues { it.value.sumOf { i -> i.salePrice!! } }
                         val allMonths = (purchaseByMonth.keys + saleByMonth.keys).distinct().sorted().takeLast(12)
