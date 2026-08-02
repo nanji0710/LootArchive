@@ -134,7 +134,7 @@ object BackupUtil {
             val manifest = JSONObject().apply {
                 put("version", 3)
                 put("exportDate", dateFormat.format(Date()))
-                put("appVersion", "5.5.0")
+                put("appVersion", com.nanji.lootarchive.BuildConfig.VERSION_NAME)
                 put("itemCount", items.size)
                 put("categoryCount", categories.size)
                 put("categories", manifestCategories)

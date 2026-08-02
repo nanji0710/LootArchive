@@ -55,14 +55,34 @@ object PhotoUtil {
     }
 
     /**
-     * 从 Uri 保存照片
+     * 计算采样率，避免大图直接解码 OOM（12MP 图全解码约 48MB 内存）
+     */
+    private fun calculateInSampleSize(opts: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val height = opts.outHeight
+        val width = opts.outWidth
+        var inSampleSize = 1
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight = height / 2
+            val halfWidth = width / 2
+            while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
+    }
+
+    /**
+     * 从 Uri 保存照片（采样解码后缩放，防 OOM）
      */
     fun savePhotoFromUri(context: Context, uri: Uri): String? {
         return try {
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream.close()
-            bitmap ?: return null
+            // 第一次读取仅取尺寸，计算采样率
+            val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, boundsOpts) }
+            val sample = calculateInSampleSize(boundsOpts, MAX_PHOTO_WIDTH, MAX_PHOTO_HEIGHT)
+            // 第二次按采样率解码
+            val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+            val bitmap = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) } ?: return null
 
             val path = savePhoto(context, bitmap)
             bitmap.recycle()
