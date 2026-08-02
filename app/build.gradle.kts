@@ -39,7 +39,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
         }
     }
 
@@ -75,23 +75,6 @@ android {
     packaging {
         resources {
             excludes += setOf(
-                // POI 无用模块资源（PPT/Word/Visio/旧格式/幻灯片绘图）
-                "org/apache/poi/sl/**",
-                "org/apache/poi/hslf/**",
-                "org/apache/poi/xslf/**",
-                "org/apache/poi/hwpf/**",
-                "org/apache/poi/xwpf/**",
-                "org/apache/poi/hdgf/**",
-                "org/apache/poi/hmef/**",
-                "org/apache/poi/hssf/**",
-                // commons-math3 随机数种子 + locale（仅法语就 30KB）
-                "assets/org/apache/commons/math3/**",
-                // commons-codec 音译规则
-                "org/apache/commons/codec/language/**",
-                // XMLBeans 源码 XSD（运行时不需要）
-                "org/apache/xmlbeans/metadata/src/**",
-                // 未知来源的大文件
-                "font_metrics.properties",
                 // 重复的 META-INF LICENSE
                 "META-INF/**/LICENSE*",
                 "META-INF/**/NOTICE*",

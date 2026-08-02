@@ -243,36 +243,8 @@ class AddItemViewModel @Inject constructor(
                     saleDate = state.saleDate
                 )
 
-                val savedId: Long
-                if (editingItemId != null) {
-                    // 先处理照片（删除旧记录、移除被删文件），再更新物品 ——
-                    // 否则 updateItem 先触发首页 combine 刷新，此时照片还是旧的
-                    val oldPhotoPaths = itemRepository.getPhotosByItemId(editingItemId!!)
-                        .map { it.photoPath }
-                    val newPaths = state.photoPaths.toSet()
-                    oldPhotoPaths.forEach { oldPath ->
-                        if (oldPath !in newPaths) {
-                            java.io.File(oldPath).delete()
-                        }
-                    }
-                    itemRepository.deletePhotoRecordsByItemId(editingItemId!!)
-                    state.photoPaths.forEachIndexed { index, path ->
-                        itemRepository.addPhoto(
-                            ItemPhotoEntity(itemId = editingItemId!!, photoPath = path, sortOrder = index)
-                        )
-                    }
-                    // 物品更新放在最后 —— 此时照片已就绪，触发首页刷新拿到的就是正确数据
-                    itemRepository.updateItem(item)
-                    savedId = editingItemId!!
-                } else {
-                    savedId = itemRepository.insertItem(item)
-                    // 新建模式下同步保存照片
-                    state.photoPaths.forEachIndexed { index, path ->
-                        itemRepository.addPhoto(
-                            ItemPhotoEntity(itemId = savedId, photoPath = path, sortOrder = index)
-                        )
-                    }
-                }
+                // 原子保存（文件 IO 在 IO 线程，DB 写入在事务内；编辑/新建自动分流）
+                itemRepository.saveItemWithPhotos(item, state.photoPaths)
 
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
                 expService.recalculateProfile()

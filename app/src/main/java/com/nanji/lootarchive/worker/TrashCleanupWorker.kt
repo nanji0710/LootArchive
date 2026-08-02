@@ -4,9 +4,10 @@ import android.content.Context
 import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.*
-import com.nanji.lootarchive.data.local.database.AppDatabase
+import com.nanji.lootarchive.data.repository.ItemRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.first
 import java.util.concurrent.TimeUnit
 
 /**
@@ -17,21 +18,17 @@ import java.util.concurrent.TimeUnit
 class TrashCleanupWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val database: AppDatabase
+    private val itemRepository: ItemRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         return try {
             val threshold = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(14)
-            val expiredItems = database.itemDao().getDeletedItemsBefore(threshold)
+            val expiredItems = itemRepository.getDeletedItemsBefore(threshold)
 
+            // 先删文件（IO 线程）再事务删记录，避免孤儿数据
             expiredItems.forEach { item ->
-                // 删除关联照片文件
-                val photos = database.itemPhotoDao().getPhotosByItemIdOnce(item.id)
-                photos.forEach { java.io.File(it.photoPath).delete() }
-                database.itemPhotoDao().deletePhotosByItemId(item.id)
-                // 彻底删除物品
-                database.itemDao().hardDeleteItem(item.id)
+                itemRepository.hardDeleteItemWithPhotos(item.id)
             }
 
             if (expiredItems.isNotEmpty()) {

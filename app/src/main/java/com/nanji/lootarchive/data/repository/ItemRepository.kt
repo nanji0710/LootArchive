@@ -1,15 +1,19 @@
 package com.nanji.lootarchive.data.repository
 
+import androidx.room.withTransaction
 import com.nanji.lootarchive.data.local.dao.CategoryDao
 import com.nanji.lootarchive.data.local.dao.ItemDao
 import com.nanji.lootarchive.data.local.dao.ItemPhotoDao
+import com.nanji.lootarchive.data.local.database.AppDatabase
 import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.data.local.entity.ItemPhotoEntity
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,7 +21,8 @@ import javax.inject.Singleton
 class ItemRepository @Inject constructor(
     private val itemDao: ItemDao,
     private val categoryDao: CategoryDao,
-    private val itemPhotoDao: ItemPhotoDao
+    private val itemPhotoDao: ItemPhotoDao,
+    private val database: AppDatabase
 ) {
     // ========== 物品列表 ==========
 
@@ -96,22 +101,62 @@ class ItemRepository @Inject constructor(
 
     suspend fun restoreItem(itemId: Long) = itemDao.restoreItem(itemId)
 
-    suspend fun hardDeleteItem(itemId: Long) {
-        // 删除关联照片文件
+    suspend fun hardDeleteItem(itemId: Long) = hardDeleteItemWithPhotos(itemId)
+
+    /**
+     * 彻底删除物品 + 照片文件：先删文件（IO 线程），再事务删除 DB 记录，
+     * 避免文件/记录不同步产生孤儿数据。
+     */
+    suspend fun hardDeleteItemWithPhotos(itemId: Long) {
         val photos = itemPhotoDao.getPhotosByItemIdOnce(itemId)
-        photos.forEach { java.io.File(it.photoPath).delete() }
-        itemPhotoDao.deletePhotosByItemId(itemId)
-        itemDao.hardDeleteItem(itemId)
+        withContext(Dispatchers.IO) { photos.forEach { java.io.File(it.photoPath).delete() } }
+        database.withTransaction {
+            itemPhotoDao.deletePhotosByItemId(itemId)
+            itemDao.hardDeleteItem(itemId)
+        }
     }
 
     suspend fun emptyTrash() {
         val deletedItems = itemDao.getDeletedItems().first()
-        deletedItems.forEach { item ->
-            val photos = itemPhotoDao.getPhotosByItemIdOnce(item.id)
-            photos.forEach { java.io.File(it.photoPath).delete() }
-            itemPhotoDao.deletePhotosByItemId(item.id)
+        withContext(Dispatchers.IO) {
+            deletedItems.forEach { item ->
+                itemPhotoDao.getPhotosByItemIdOnce(item.id).forEach { java.io.File(it.photoPath).delete() }
+            }
         }
-        itemDao.emptyTrash()
+        database.withTransaction {
+            deletedItems.forEach { item -> itemPhotoDao.deletePhotosByItemId(item.id) }
+            itemDao.emptyTrash()
+        }
+    }
+
+    /**
+     * 保存物品及照片（新建/编辑）。文件删除在 IO 线程，DB 写入在事务内原子执行。
+     * item.id == 0 → 新建；否则编辑（先删旧照片记录再重建）。
+     */
+    suspend fun saveItemWithPhotos(item: ItemEntity, photoPaths: List<String>) {
+        if (item.id == 0L) {
+            val id = database.withTransaction { itemDao.insertItem(item) }
+            database.withTransaction {
+                itemPhotoDao.insertPhotos(
+                    photoPaths.mapIndexed { index, p ->
+                        ItemPhotoEntity(itemId = id, photoPath = p, sortOrder = index)
+                    }
+                )
+            }
+        } else {
+            val oldPaths = itemPhotoDao.getPhotosByItemIdOnce(item.id).map { it.photoPath }.toSet()
+            val toDelete = oldPaths - photoPaths.toSet()
+            withContext(Dispatchers.IO) { toDelete.forEach { java.io.File(it).delete() } }
+            database.withTransaction {
+                itemPhotoDao.deletePhotosByItemId(item.id)
+                itemPhotoDao.insertPhotos(
+                    photoPaths.mapIndexed { index, p ->
+                        ItemPhotoEntity(itemId = item.id, photoPath = p, sortOrder = index)
+                    }
+                )
+                itemDao.updateItem(item)
+            }
+        }
     }
 
     // ========== 照片管理 ==========
@@ -121,7 +166,7 @@ class ItemRepository @Inject constructor(
     suspend fun addPhotos(photos: List<ItemPhotoEntity>) = itemPhotoDao.insertPhotos(photos)
 
     suspend fun deletePhoto(photo: ItemPhotoEntity) {
-        java.io.File(photo.photoPath).delete()
+        withContext(Dispatchers.IO) { java.io.File(photo.photoPath).delete() }
         itemPhotoDao.deletePhoto(photo)
     }
 
@@ -143,7 +188,7 @@ class ItemRepository @Inject constructor(
     // 删除照片记录+文件（用于彻底删除物品）
     suspend fun deletePhotosByItemId(itemId: Long) {
         val photos = itemPhotoDao.getPhotosByItemIdOnce(itemId)
-        photos.forEach { java.io.File(it.photoPath).delete() }
+        withContext(Dispatchers.IO) { photos.forEach { java.io.File(it.photoPath).delete() } }
         itemPhotoDao.deletePhotosByItemId(itemId)
     }
 
@@ -165,6 +210,8 @@ class ItemRepository @Inject constructor(
     // ========== 回收站 ==========
 
     fun getDeletedItems(): Flow<List<ItemEntity>> = itemDao.getDeletedItems()
+
+    suspend fun getDeletedItemsBefore(threshold: Long): List<ItemEntity> = itemDao.getDeletedItemsBefore(threshold)
 
     // ========== v5.2 状态 & 标签 ==========
 

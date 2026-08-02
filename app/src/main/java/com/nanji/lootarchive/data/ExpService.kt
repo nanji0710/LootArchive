@@ -88,9 +88,6 @@ class ExpService @Inject constructor(
         }
     }
 
-    /** 仅记录新增事件日志（用于追溯），EXP 由 recalculate 保证准确性 */
-    suspend fun logAddItem(itemId: Long) { }
-
     private suspend fun ensureProfile() {
         if (userProfileDao.getProfileSync() == null) {
             userProfileDao.upsertProfile(UserProfileEntity(id = 1, exp = 0, level = 1))

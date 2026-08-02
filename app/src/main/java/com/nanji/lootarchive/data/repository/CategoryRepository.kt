@@ -1,5 +1,6 @@
 package com.nanji.lootarchive.data.repository
 
+import com.nanji.lootarchive.data.DefaultCategories
 import com.nanji.lootarchive.data.local.dao.CategoryDao
 import com.nanji.lootarchive.data.local.dao.ItemDao
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
@@ -42,18 +43,7 @@ class CategoryRepository @Inject constructor(
         val count = categoryDao.getCount()
         if (count > 0) return  // 已有分类，跳过
 
-        val defaults = listOf(
-            "食品饮料" to "restaurant",
-            "药品保健" to "medical_services",
-            "日用百货" to "local_mall",
-            "数码电子" to "smartphone",
-            "服饰鞋包" to "checkroom",
-            "书籍文具" to "menu_book",
-            "工具器材" to "build",
-            "藏品摆件" to "diamond",
-            "家居家具" to "chair",
-            "其他" to "category"
-        )
+        val defaults = DefaultCategories.all
         val entities = defaults.mapIndexed { index, (name, icon) ->
             com.nanji.lootarchive.data.local.entity.CategoryEntity(
                 name = name, iconName = icon, sortOrder = index
