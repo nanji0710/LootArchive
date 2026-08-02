@@ -33,6 +33,7 @@ import com.nanji.lootarchive.ui.component.RadarAxis
 import com.nanji.lootarchive.ui.component.RadarChart
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.FormatUtil
+import com.nanji.lootarchive.util.csvEscape
 import java.text.NumberFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -273,7 +274,7 @@ fun StatisticsScreen(
                                         uiState.items.forEach { item ->
                                             val cat = uiState.categorySummaries.find { it.category.id == item.categoryId }?.category?.name ?: "未知"
                                             val date = item.purchaseDate?.let { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: ""
-                                            appendLine("${item.name},$cat,${item.purchasePrice},${item.storageLocation},$date,${item.status},${item.tags}")
+                                            appendLine(listOf(item.name, cat, item.purchasePrice.toString(), item.storageLocation, date, item.status, item.tags).joinToString(",") { csvEscape(it) })
                                         }
                                     }
                                     val fileName = "物品资产_${java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())}.csv"

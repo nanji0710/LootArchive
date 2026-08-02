@@ -69,16 +69,17 @@ object ExcelUtil {
 
             // Build shared strings
             val ss = mutableListOf<String>()
-            val headers = arrayOf("物品名称", "分类ID", "购入价格", "购入日期", "保修到期日", "存放位置", "物品描述")
+            // 前 7 列保持历史顺序（兼容旧文件），新字段追加在后（Excel 往返不丢属性）
+            val headers = arrayOf("物品名称", "分类ID", "购入价格", "购入日期", "保修到期日", "存放位置", "物品描述", "状态", "标签", "保修天数", "售出价格", "售出日期")
 
             data class RowRefs(val refs: IntArray) // shared string indices per column
 
-            // Add headers to shared strings (indices 0-6)
+            // Add headers to shared strings (indices 0-11)
             headers.forEach { ss.add(it) }
 
             // Add item data to shared strings, remembering indices
             val dataRefs = items.map { item ->
-                RowRefs(IntArray(7).also { a ->
+                RowRefs(IntArray(12).also { a ->
                     a[0] = store(ss, item.name)
                     a[1] = store(ss, item.categoryId.toString())
                     a[2] = store(ss, formatPrice(item.purchasePrice))
@@ -86,6 +87,11 @@ object ExcelUtil {
                     a[4] = store(ss, item.warrantyExpiryDate?.let { dateFormat.format(Date(it)) } ?: "")
                     a[5] = store(ss, item.storageLocation)
                     a[6] = store(ss, item.description)
+                    a[7] = store(ss, item.status)
+                    a[8] = store(ss, item.tags)
+                    a[9] = store(ss, item.warrantyPeriodDays?.toString() ?: "")
+                    a[10] = store(ss, item.salePrice?.let { formatPrice(it) } ?: "")
+                    a[11] = store(ss, item.saleDate?.let { dateFormat.format(Date(it)) } ?: "")
                 })
             }
 
@@ -102,7 +108,7 @@ object ExcelUtil {
             add(zip, "xl/worksheets/sheet1.xml", buildString {
                 append("""<?xml version="1.0" encoding="UTF-8"?>""")
                 append("""<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>""")
-                val widths = intArrayOf(20, 8, 14, 14, 14, 16, 40)
+                val widths = intArrayOf(20, 8, 14, 14, 14, 16, 40, 12, 20, 10, 14, 14)
                 for ((i, w) in widths.withIndex())
                     append("""<col min="${i+1}" max="${i+1}" width="$w" customWidth="1"/>""")
                 append("</cols><sheetData>")
@@ -163,7 +169,13 @@ object ExcelUtil {
                     purchaseDate = parseDateAny(row.getOrElse(3) { "" }),
                     warrantyExpiryDate = parseDateAny(row.getOrElse(4) { "" }),
                     storageLocation = row.getOrElse(5) { "" },
-                    description = row.getOrElse(6) { "" }
+                    description = row.getOrElse(6) { "" },
+                    // 以下为追加列（旧文件缺省时用默认值，保持向后兼容）
+                    status = row.getOrElse(7) { "" }.ifBlank { "active" },
+                    tags = row.getOrElse(8) { "" },
+                    warrantyPeriodDays = row.getOrElse(9) { "" }.toIntOrNull(),
+                    salePrice = row.getOrElse(10) { "" }.toDoubleOrNull(),
+                    saleDate = parseDateAny(row.getOrElse(11) { "" })
                 )
                 if (item.name.isNotBlank()) items.add(item)
             } catch (e: Exception) {
