@@ -38,6 +38,9 @@ class ApkDownloadManager(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         try {
+            if (!isValidDownloadUrl(url)) {
+                throw IllegalArgumentException("非允许的下载域名: $url")
+            }
             // 清理旧 APK（使用外部文件目录，系统安装器可直接读取）
             val dir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
                 ?: context.cacheDir // 兜底

@@ -70,10 +70,12 @@ class BackupRepository @Inject constructor(
         java.util.zip.ZipInputStream(FileInputStream(File(zipFilePath))).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
-                val file = File(targetDir, entry.name)
-                FileOutputStream(file).use { fos ->
-                    zis.copyTo(fos)
-                }
+                val file = resolveSafeFile(targetDir, entry.name)
+                if (file != null) {
+                    FileOutputStream(file).use { fos ->
+                        zis.copyTo(fos)
+                    }
+                } // null → 跳过越界/绝对路径的恶意 entry
                 zis.closeEntry()
                 entry = zis.nextEntry
             }
@@ -99,4 +101,22 @@ class BackupRepository @Inject constructor(
         File(record.filePath).delete()
         backupRecordDao.deleteRecord(record)
     }
+}
+
+/**
+ * 安全地将 zip entry 解析到 targetDir 下。返回 null 拒绝越界/绝对路径。
+ * 非 null 时保证父目录已创建。
+ */
+internal fun resolveSafeFile(targetDir: File, entryName: String): File? {
+    // 统一为规范路径，拒绝反斜杠分隔符
+    val safeName = entryName.replace('\\', '/')
+    // zip entry 名不允许为绝对路径（Windows/Linux 平台行为不一致，主动拦截更严谨）
+    if (safeName.startsWith("/")) return null
+    val targetPath = targetDir.canonicalPath
+    val candidate = File(targetDir, safeName)
+    val resolved = candidate.canonicalPath
+    return if (resolved.startsWith(targetPath + File.separator)) {
+        candidate.parentFile?.mkdirs()
+        candidate
+    } else null
 }

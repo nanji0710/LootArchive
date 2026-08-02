@@ -8,7 +8,9 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.nanji.lootarchive.util.NotificationUtil
+import com.nanji.lootarchive.worker.BackupReminderWorker
 import com.nanji.lootarchive.worker.TrashCleanupWorker
+import com.nanji.lootarchive.worker.WarrantyCheckWorker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -34,5 +36,7 @@ class LootArchiveApp : Application(), Configuration.Provider, ImageLoaderFactory
         super.onCreate()
         NotificationUtil.createNotificationChannels(this)
         TrashCleanupWorker.schedule(this)
+        WarrantyCheckWorker.schedule(this)
+        BackupReminderWorker.schedule(this)
     }
 }

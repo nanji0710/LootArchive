@@ -36,6 +36,7 @@ import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.ApkDownloadManager
 import com.nanji.lootarchive.util.UpdateChecker
 import com.nanji.lootarchive.util.UpdateInfo
+import com.nanji.lootarchive.util.isValidVersionName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -371,7 +372,8 @@ fun MyLandingScreen(
             confirmButton = {
                 TextButton(onClick = {
                     val url = updateInfo!!.apkDownloadUrl
-                    val fileName = "LootArchive-v${updateInfo!!.versionName}.apk"
+                    val safeVersion = updateInfo!!.versionName.takeIf { isValidVersionName(it) }
+                    val fileName = safeVersion?.let { "LootArchive-v$it.apk" } ?: return@TextButton
                     if (url.isNotEmpty()) {
                         showUpdateDialog = false; isDownloading = true
                         downloadError = null; downloadProgress = ApkDownloadManager.Progress()

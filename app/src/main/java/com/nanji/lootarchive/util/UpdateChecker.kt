@@ -14,6 +14,26 @@ data class UpdateInfo(
     val apkDownloadUrl: String
 )
 
+private val ALLOWED_DOWNLOAD_HOSTS = setOf("github.com", "raw.githubusercontent.com")
+
+/**
+ * 校验更新下载 URL：仅允许 HTTPS 且域名在白名单内（防任意 URL 下发恶意 APK）。
+ */
+internal fun isValidDownloadUrl(url: String): Boolean {
+    return try {
+        val u = java.net.URI(url)
+        u.scheme == "https" && u.host in ALLOWED_DOWNLOAD_HOSTS
+    } catch (e: Exception) {
+        false
+    }
+}
+
+/**
+ * 校验版本号格式：`v?数字(.数字){1,3}`（防远端 versionName 拼接路径注入）。
+ */
+internal fun isValidVersionName(v: String): Boolean =
+    Regex("""^v?\d+(\.\d+){1,3}$""").matches(v)
+
 object UpdateChecker {
 
     private const val VERSION_URL =
@@ -38,13 +58,19 @@ object UpdateChecker {
                 if (remoteCode <= currentVersionCode) {
                     Result.success(null) // 已是最新
                 } else {
-                    Result.success(UpdateInfo(
-                        versionName = obj.getString("versionName"),
-                        versionCode = remoteCode,
-                        updateDate = obj.optString("updateDate", ""),
-                        updateLog = obj.optString("updateLog", ""),
-                        apkDownloadUrl = obj.optString("apkDownloadUrl", "")
-                    ))
+                    val versionName = obj.getString("versionName")
+                    val apkUrl = obj.optString("apkDownloadUrl", "")
+                    if (!isValidVersionName(versionName) || !isValidDownloadUrl(apkUrl)) {
+                        Result.failure(IllegalStateException("Invalid update metadata"))
+                    } else {
+                        Result.success(UpdateInfo(
+                            versionName = versionName,
+                            versionCode = remoteCode,
+                            updateDate = obj.optString("updateDate", ""),
+                            updateLog = obj.optString("updateLog", ""),
+                            apkDownloadUrl = apkUrl
+                        ))
+                    }
                 }
             } catch (e: Exception) {
                 Result.failure(e)
