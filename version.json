@@ -1,7 +1,7 @@
 {
-  "versionName": "6.6.4",
-  "versionCode": 664,
-  "updateDate": "2026-07-31",
-  "updateLog": "v6.6.4\n- 统计页饼图修复: 分母统一为购价+售出收益, 增加售出收益扇区, 饼图始终闭合\n- 统计页趋势线修复: 累计净值合并售出收益, 终点与Hero总资产一致\n- 所有图表模块数字一致性验证通过",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.6.4/LootArchive-release-v6.6.4.apk"
+  "versionName": "6.7.0",
+  "versionCode": 670,
+  "updateDate": "2026-08-02",
+  "updateLog": "v6.7.0\n- 安全与数据: 补齐DB迁移链防升级清库; 修复保修/备份提醒失效; 备份恢复Zip Slip防护; 更新URL/版本名校验\n- 数据一致性: 保存/删除原子化(事务+IO线程); 消除首页/搜索/分类N+1查询; status枚举统一; 照片采样解码防OOM\n- UI/UX: 双主题token统一; 对比度WCAG AA; 动态取色(Android12+); 触摸目标48dp; 大屏自适应网格; 表单错误即时可见\n- 无障碍: 底部导航语义; 照片替代文本; 饼图无障碍摘要\n- 工程化: 25项单元测试; 版本号BuildConfig; 种子去重; 死代码清理; ABI补x86_64",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.7.0/LootArchive-release-v6.7.0.apk"
 }

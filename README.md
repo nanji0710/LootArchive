@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.6.4-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.7.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -279,11 +279,18 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.6.4.apk`（约 7.4 MB，arm64-v8a + armeabi-v7a，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.7.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.7.0 (2026-08-02) 全方面优化
+- **安全与数据**：补齐 DB 迁移链防升级清库；修复保修/备份提醒失效；备份恢复 Zip Slip 防护；更新 URL/版本名校验；release 签名环境变量化
+- **数据一致性**：保存/删除原子化（事务 + IO 线程）；消除首页/搜索/分类 N+1 查询；status 枚举统一口径；照片采样解码防 OOM
+- **UI/UX**：双主题 token 统一；对比度 WCAG AA；动态取色（Android 12+）；触摸目标 48dp；大屏自适应网格；表单错误即时可见
+- **无障碍**：底部导航语义、照片替代文本、饼图无障碍摘要
+- **工程化**：25 项单元测试；版本号 BuildConfig；种子去重；死代码清理；ABI 补 x86_64
 
 ### v6.6.4 (2026-07-31) 统计页图表一致性
 - 分类饼图增加售出收益扇区，分母统一为 购价+售出收益，饼图始终闭合
