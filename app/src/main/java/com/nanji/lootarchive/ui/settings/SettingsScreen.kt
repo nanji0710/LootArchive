@@ -94,6 +94,19 @@ fun SettingsScreen(
                             }
                         }
                     }
+                    // v6.7 跟随壁纸动态色（Android 12+）
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("跟随壁纸动态色", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Text("Android 12+", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(end = 8.dp))
+                        Switch(
+                            checked = uiState.dynamicColor,
+                            onCheckedChange = viewModel::setDynamicColor,
+                            colors = SwitchDefaults.colors(checkedTrackColor = Primary())
+                        )
+                    }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                     // 自定义头像
                     Row(

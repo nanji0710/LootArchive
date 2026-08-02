@@ -20,6 +20,7 @@ data class SettingsUiState(
     val backupReminderDay: Int = 1,
     val themeMode: String = "system",
     val primaryColor: Int = 0xFFFFA500.toInt(),
+    val dynamicColor: Boolean = false,
     val avatarUri: String = "",
     val appName: String = "拾物集",
     val trashItemCount: Int = 0,
@@ -79,6 +80,11 @@ class SettingsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            settingsRepository.dynamicColor.collect { enabled ->
+                _uiState.update { it.copy(dynamicColor = enabled) }
+            }
+        }
+        viewModelScope.launch {
             settingsRepository.avatarUri.collect { uri ->
                 _uiState.update { it.copy(avatarUri = uri) }
             }
@@ -113,6 +119,11 @@ class SettingsViewModel @Inject constructor(
     fun setPrimaryColor(color: Int) {
         _uiState.update { it.copy(primaryColor = color) }
         viewModelScope.launch { settingsRepository.setPrimaryColor(color) }
+    }
+
+    fun setDynamicColor(enabled: Boolean) {
+        _uiState.update { it.copy(dynamicColor = enabled) }
+        viewModelScope.launch { settingsRepository.setDynamicColor(enabled) }
     }
 
     fun setAvatarUri(uri: String) {

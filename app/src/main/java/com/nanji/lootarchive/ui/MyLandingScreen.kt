@@ -197,9 +197,9 @@ fun MyLandingScreen(
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("Lv.${profile.level} $currentTitle", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Primary())
                                 if (profile.level < 10) {
-                                    Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 10.sp, color = TextAuxiliary())
+                                    Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 12.sp, color = TextAuxiliary())
                                 } else {
-                                    Text("已达最高", fontSize = 10.sp, color = Primary())
+                                    Text("已达最高", fontSize = 12.sp, color = Primary())
                                 }
                             }
                             Spacer(Modifier.height(5.dp))
@@ -259,7 +259,7 @@ fun MyLandingScreen(
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     ach.title,
-                                    fontSize = 10.sp,
+                                    fontSize = 11.sp,
                                     color = if (ach.isUnlocked) TextPrimary() else TextAuxiliary(),
                                     fontWeight = if (ach.isUnlocked) FontWeight.Medium else FontWeight.Normal,
                                     maxLines = 1,

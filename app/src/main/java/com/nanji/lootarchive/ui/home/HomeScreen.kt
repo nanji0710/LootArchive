@@ -91,12 +91,12 @@ fun HomeScreen(
 
     PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { viewModel.refresh(); delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Adaptive(minSize = 160.dp), modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp, bottom = 140.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // ── Hero: 当前拥有资产 大数字 + 3个小统计 ──
-            item(span = { GridItemSpan(2) }) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(if (LocalDarkTheme.current) _CardDark else Color(0xFFFFF8F0)).padding(20.dp)) {
                     Column {
                         Text("当前拥有", fontSize = 13.sp, color = TextAuxiliary())
@@ -128,7 +128,7 @@ fun HomeScreen(
             }
 
             // ── 对标 HTML .ph-chips: 水平圆角胶囊 ──
-            item(span = { GridItemSpan(2) }) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
                     item {
                         FilterChip(selected = effectiveFilter == null, onClick = { chipFilter = null }, label = { Text("全部", fontSize = 13.sp) }, shape = RoundedCornerShape(20.dp), colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Primary(), selectedLabelColor = Color.White))
@@ -143,7 +143,7 @@ fun HomeScreen(
 
             // ── 对标 HTML .ph-section-title: "最近添加" ──
             if (filteredItems.isNotEmpty() && !uiState.isLoading) {
-                item(span = { GridItemSpan(2) }) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     Text("最近添加", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
@@ -155,7 +155,7 @@ fun HomeScreen(
 
             // 空状态
             if (filteredItems.isEmpty() && !uiState.isLoading) {
-                item(span = { GridItemSpan(2) }) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     EmptyState(icon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(100.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) }, title = "还没有物品", subtitle = "点击下方按钮记录你的第一件宝贝吧", actionLabel = "添加第一件", onAction = onNavigateToAddItem)
                 }
             } else {
@@ -163,7 +163,7 @@ fun HomeScreen(
                 items(
                     count = filteredItems.size,
                     key = { filteredItems[it].id },
-                    span = { index -> if (index == 0) GridItemSpan(2) else GridItemSpan(1) }
+                    span = { index -> if (index == 0) GridItemSpan(maxLineSpan) else GridItemSpan(1) }
                 ) { index ->
                     val item = filteredItems[index]
                     val isWide = index == 0
@@ -227,11 +227,11 @@ fun HomeScreen(
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                         itemTags.take(2).forEach { tag ->
                                             Surface(shape = RoundedCornerShape(6.dp), color = Primary().copy(alpha = 0.08f)) {
-                                                Text(tag, fontSize = 10.sp, color = Primary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                                Text(tag, fontSize = 12.sp, color = Primary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                             }
                                         }
                                         if (itemTags.size > 2) {
-                                            Text("+${itemTags.size - 2}", fontSize = 10.sp, color = TextAuxiliary())
+                                            Text("+${itemTags.size - 2}", fontSize = 12.sp, color = TextAuxiliary())
                                         }
                                     }
                                 }

@@ -1,9 +1,10 @@
 package com.nanji.lootarchive.ui.detail
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -134,8 +135,14 @@ fun DetailScreen(
         BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
             val screenWidth = maxWidth; val density = LocalDensity.current; val spx = with(density) { screenWidth.toPx() }
             if (data.photos.isNotEmpty()) {
-                val sState = rememberScrollState(); val cp = if (spx > 0) (sState.value / spx).roundToInt().coerceIn(0, data.photos.size - 1) else 0
-                Row(Modifier.fillMaxSize().horizontalScroll(sState)) { data.photos.forEach { photo -> AsyncImage(model = File(photo.photoPath), contentDescription = null, modifier = Modifier.width(screenWidth).fillMaxHeight(), contentScale = ContentScale.Crop) } }
+                // LazyRow 懒加载，避免多图一次性全部组合/解码；key 用照片 id
+                val listState = rememberLazyListState()
+                val cp = listState.firstVisibleItemIndex.coerceIn(0, data.photos.size - 1)
+                LazyRow(state = listState, modifier = Modifier.fillMaxSize()) {
+                    items(data.photos, key = { it.id }) { photo ->
+                        AsyncImage(model = File(photo.photoPath), contentDescription = data.item.name, modifier = Modifier.width(screenWidth).fillMaxHeight(), contentScale = ContentScale.Crop)
+                    }
+                }
                 Box(Modifier.fillMaxWidth().height(100.dp).align(Alignment.BottomCenter).background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.30f)))))
                 if (data.photos.size > 1) { Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { data.photos.indices.forEach { i -> Surface(Modifier.size(if (i == cp) 8.dp else 6.dp), RoundedCornerShape(4.dp), color = if (i == cp) Color.White else Color.White.copy(alpha = 0.45f)) {} } } }
             } else { Box(Modifier.fillMaxSize().background(Brush.linearGradient(if (LocalDarkTheme.current) listOf(Color(0xFF3D2A1A), Color(0xFF2D2010)) else listOf(Color(0xFFFFD4B8), Color(0xFFFFB890)))), contentAlignment = Alignment.Center) { Text(data.item.name.take(1), fontSize = 90.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.30f), fontFamily = FredokaFont) } }

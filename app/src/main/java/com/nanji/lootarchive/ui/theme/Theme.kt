@@ -1,10 +1,12 @@
 package com.nanji.lootarchive.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.graphics.toArgb
@@ -106,6 +108,7 @@ private fun brighten(c: Color): Color {
 fun LootArchiveTheme(
     themeMode: String = "system",
     primaryColor: Int = 0xFFE8782A.toInt(),
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -126,7 +129,14 @@ fun LootArchiveTheme(
         LocalPrimaryColor provides Color(primaryColor),
         LocalGlassColors provides if (darkTheme) DarkGlassColors else LightGlassColors
     ) {
-        val cs = if (darkTheme) DarkColorScheme else LightColorScheme
+        val cs = when {
+            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                val ctx = LocalContext.current
+                if (darkTheme) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
+            }
+            darkTheme -> DarkColorScheme
+            else -> LightColorScheme
+        }
         MaterialTheme(colorScheme = cs, typography = AppTypography, content = content)
     }
 }

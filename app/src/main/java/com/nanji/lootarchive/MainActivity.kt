@@ -36,13 +36,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
             val primaryColor by settingsRepository.primaryColor.collectAsState(initial = 0xFFFFA500.toInt())
+            val dynamicColor by settingsRepository.dynamicColor.collectAsState(initial = false)
             // 用 first() 读取 DataStore 真实值（非 collectAsState 的 initial 默认值）
             // remember 初始为 false → 第一帧直接显示 MainScreen，读完 DataStore 后按需切换
             var showOnboarding by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
                 showOnboarding = !settingsRepository.onboardingCompleted.first()
             }
-            LootArchiveTheme(themeMode = themeMode, primaryColor = primaryColor) {
+            LootArchiveTheme(themeMode = themeMode, primaryColor = primaryColor, dynamicColor = dynamicColor) {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                     if (showOnboarding) {
                         val scope = rememberCoroutineScope()

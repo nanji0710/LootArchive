@@ -111,7 +111,7 @@ fun StatisticsScreen(
                             Canvas(Modifier.size(140.dp)) { var sa = -90f; sweeps.forEachIndexed { i, sw -> if (sw > 0) { val c = if (uiState.saleRevenue > 0 && i == sweeps.lastIndex) StatusSold else ChartColors[i % ChartColors.size]; drawArc(c, sa, sw, true, Offset.Zero, Size(size.width, size.height)); sa += sw } }; drawCircle(holeColor, size.width * 0.28f) }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(FormatUtil.formatPriceShort(uiState.totalValue), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
-                                Text("总资产", fontSize = 10.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                Text("总资产", fontSize = 12.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
                             }
                         }
                         Spacer(Modifier.height(12.dp))

@@ -21,6 +21,7 @@ class SettingsRepository @Inject constructor(
         val KEY_AVATAR_URI = stringPreferencesKey("avatar_uri")
         val KEY_APP_NAME = stringPreferencesKey("app_name")
         val KEY_PRIMARY_COLOR = intPreferencesKey("primary_color") // ARGB int
+        val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color") // Android 12+ 跟随壁纸
         val KEY_SEARCH_HISTORY = stringPreferencesKey("search_history")
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
@@ -92,6 +93,12 @@ class SettingsRepository @Inject constructor(
     val primaryColor: Flow<Int> = dataStore.data.map { it[KEY_PRIMARY_COLOR] ?: 0xFFFFA500.toInt() }
     suspend fun setPrimaryColor(color: Int) {
         dataStore.edit { it[KEY_PRIMARY_COLOR] = color }
+    }
+
+    // Android 12+ 跟随壁纸动态取色
+    val dynamicColor: Flow<Boolean> = dataStore.data.map { it[KEY_DYNAMIC_COLOR] ?: false }
+    suspend fun setDynamicColor(enabled: Boolean) {
+        dataStore.edit { it[KEY_DYNAMIC_COLOR] = enabled }
     }
 
     // ========== APP名称 ==========
