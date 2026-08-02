@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +29,25 @@ import dev.chrisbanes.haze.hazeEffect
 // ═══════════════════════════════════════════════════════════════
 
 private val CardShape = RoundedCornerShape(20.dp)
+
+/**
+ * v6.7 标准玻璃卡片 — 统一 Card 样板（CardBg 底 + 20dp 圆角 + 1dp 海拔）。
+ * 消除各页面重复的 CardDefaults 样板。
+ */
+@Composable
+fun GlassSurface(
+    modifier: Modifier = Modifier,
+    shape: Shape = CardShape,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = CardBg()),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        content = { content() }
+    )
+}
 
 /**
  * v5.0 玻璃卡片 — Haze 实时模糊 + 半透明背景 + 玻璃边框

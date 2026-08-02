@@ -134,6 +134,15 @@ fun AddItemScreen(
                     }
                 }
             }
+            // 错误提示 — 置于表单顶部，任何步骤保存失败都立即可见
+            if (uiState.errorMessage != null) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text(uiState.errorMessage!!, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onErrorContainer)
+                }
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Text(
                     when (currentStep) {
@@ -509,16 +518,6 @@ fun AddItemScreen(
                         }
                         Text("完成保存 ✓", fontWeight = FontWeight.SemiBold)
                     }
-                }
-            }
-
-            // 错误提示
-            if (uiState.errorMessage != null) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    shape = RoundedCornerShape(14.dp)
-                ) {
-                    Text(uiState.errorMessage!!, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
 

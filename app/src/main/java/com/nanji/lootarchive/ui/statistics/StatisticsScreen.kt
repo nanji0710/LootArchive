@@ -29,9 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.component.GlassSurface
 import com.nanji.lootarchive.ui.component.RadarAxis
 import com.nanji.lootarchive.ui.component.RadarChart
 import com.nanji.lootarchive.ui.theme.*
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.util.FormatUtil
 import com.nanji.lootarchive.util.csvEscape
@@ -98,13 +101,30 @@ fun StatisticsScreen(
                 }
 
                 // ── 分类资产分布 Donut ──
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
                         Text("分类资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(16.dp))
                         val catTotal = uiState.categorySummaries.sumOf { it.totalValue }
                             val totalForPie = catTotal + uiState.saleRevenue
-                            Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+                            Box(
+                                Modifier.fillMaxWidth().height(160.dp)
+                                    // Canvas 图表对无障碍不可读，提供图例摘要供 TalkBack 朗读
+                                    .semantics {
+                                        contentDescription = buildString {
+                                            uiState.categorySummaries.forEachIndexed { i, s ->
+                                                append(s.category.name)
+                                                append(' ').append(if (totalForPie > 0) (s.totalValue / totalForPie * 100).toInt() else 0).append('%')
+                                                append('，')
+                                            }
+                                            if (uiState.saleRevenue > 0) {
+                                                append("售出收益")
+                                                append(if (totalForPie > 0) (uiState.saleRevenue / totalForPie * 100).toInt() else 0).append('%')
+                                            }
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
                             val holeColor = CardBg()
                             val sweeps = uiState.categorySummaries.map { if (totalForPie > 0) (it.totalValue / totalForPie * 360f).toFloat() else 0f }.toMutableList()
                             if (uiState.saleRevenue > 0) sweeps.add((uiState.saleRevenue / totalForPie * 360f).toFloat())
@@ -129,7 +149,7 @@ fun StatisticsScreen(
                     val radarAxes = topSums.map { cs ->
                         RadarAxis(cs.category.name.take(4), cs.totalValue.toFloat(), maxV)
                     }
-                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                    GlassSurface {
                         Column(Modifier.padding(CardPadding)) {
                             Text("分类多维对比", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(12.dp))
@@ -157,7 +177,7 @@ fun StatisticsScreen(
                     }
                 } else emptyList()
                 if (trendPoints.size >= 2) {
-                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                    GlassSurface {
                         Column(Modifier.padding(CardPadding)) {
                             Text("资产净值趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(8.dp))
@@ -167,7 +187,7 @@ fun StatisticsScreen(
                 }
 
                 // ── 月度购入趋势 Sparkline ──
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
                         Text("月度购入趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(14.dp))
@@ -217,7 +237,7 @@ fun StatisticsScreen(
                 }
 
                 // ── 分类排名 ──
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
                         Text("分类排名", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))
@@ -240,7 +260,7 @@ fun StatisticsScreen(
                     .mapValues { e -> e.value.sumOf { it.second } }
                     .entries.sortedByDescending { it.value }.take(8)
                 if (tagData.isNotEmpty()) {
-                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                    GlassSurface {
                         Column(Modifier.padding(CardPadding)) {
                             Text("标签资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(12.dp))
@@ -262,7 +282,7 @@ fun StatisticsScreen(
 
                 // ── v5.4 导出CSV ──
                 val context = LocalContext.current
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
                         Text("数据导出", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))
