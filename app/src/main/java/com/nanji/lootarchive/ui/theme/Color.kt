@@ -40,8 +40,8 @@ val _NavGlassDark = Color(0xCC14141C)         // 导航深色 (80% opacity)
 
 // ── 文字色 (暖色调灰阶) ──
 val _TextPrimaryLight = Color(0xFF1C1917)    // 暖黑
-val _TextSecondaryLight = Color(0xFF78716C)  // 暖石灰
-val _TextAuxiliaryLight = Color(0xFFA8A29E)  // 暖浅灰
+val _TextSecondaryLight = Color(0xFF57534E)  // 暖石灰 (对比度 ~7.5:1)
+val _TextAuxiliaryLight = Color(0xFF78716C)  // 暖浅灰 (对比度 ~4.6:1, WCAG AA)
 
 val _TextPrimaryDark = Color(0xFFF0ECE6)     // 暖白
 val _TextSecondaryDark = Color(0xFFA8A29E)   // 暖石灰
@@ -77,10 +77,11 @@ val StatusLost = Color(0xFF6B7280)       // 丢失 — 深灰
 @Composable
 fun statusColor(status: String): Color = when (status) {
     "active" -> StatusActive
-    "idle" -> StatusIdle
+    // 浅色模式下灰度状态（闲置/丢失）加深，保证选中文字 WCAG AA 对比
+    "idle" -> if (LocalDarkTheme.current) StatusIdle else Color(0xFF4B5563)
     "sold" -> StatusSold
     "repair" -> StatusRepair
-    "lost" -> StatusLost
+    "lost" -> if (LocalDarkTheme.current) StatusLost else Color(0xFF374151)
     else -> StatusActive
 }
 

@@ -80,4 +80,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun deleteItem(itemId: Long) { viewModelScope.launch { itemRepository.softDeleteItem(itemId); expService.recalculateProfile() } }
+
+    /** 下拉刷新：重新计算 EXP/成就（数据本身由 Room Flow 响应式驱动，无需重复查询） */
+    fun refresh() { viewModelScope.launch { expService.recalculateProfile() } }
 }

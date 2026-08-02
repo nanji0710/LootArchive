@@ -57,7 +57,7 @@ fun SearchScreen(
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp)) {
             // 搜索栏
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onNavigateBack, modifier = Modifier.size(42.dp)) {
+                IconButton(onClick = onNavigateBack) { // 默认 48dp 触摸目标
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", modifier = Modifier.size(22.dp), tint = TextPrimary())
                 }
                 Surface(

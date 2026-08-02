@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -26,6 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,10 +70,10 @@ private object Route {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
-    var currentTab by remember { mutableIntStateOf(0) }
-    var currentRoute by remember { mutableStateOf(Route.HOME) }
-    var detailItemId by remember { mutableStateOf(0L) }
-    var editItemId by remember { mutableStateOf<Long?>(null) }
+    var currentTab by rememberSaveable { mutableIntStateOf(0) }
+    var currentRoute by rememberSaveable { mutableStateOf(Route.HOME) }
+    var detailItemId by rememberSaveable { mutableStateOf(0L) }
+    var editItemId by rememberSaveable { mutableStateOf<Long?>(null) }
 
     val mainContext = LocalContext.current
     var cameraSession by remember { mutableIntStateOf(0) }
@@ -78,16 +83,16 @@ fun MainScreen() {
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var showCategorySheet by remember { mutableStateOf(false) }
     val hazeState = remember { HazeState() }
-    val backStack = remember { mutableListOf<String>() }
+    var backStack by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
     fun navigate(route: String, id: Long? = null) {
         if (id != null) { if (route == Route.ADD) editItemId = id; if (route == Route.DETAIL) detailItemId = id }
-        backStack.add(currentRoute); currentRoute = route
+        backStack = backStack + currentRoute; currentRoute = route
     }
-    fun goBack() { editItemId = null; if (backStack.isNotEmpty()) currentRoute = backStack.removeLast() }
+    fun goBack() { editItemId = null; if (backStack.isNotEmpty()) { currentRoute = backStack.last(); backStack = backStack.dropLast(1) } }
     fun switchTab(tab: Int) {
         currentTab = tab
-        backStack.clear()
+        backStack = emptyList()
         editItemId = null
         detailItemId = 0L
         cameraSession = 0
@@ -196,7 +201,7 @@ fun MainScreen() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .height(44.dp)
+                        .height(48.dp)
                         .shadow(
                             elevation = 4.dp,
                             shape = RoundedCornerShape(22.dp),
@@ -269,6 +274,7 @@ fun MainScreen() {
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(16.dp))
+                                    .semantics { role = Role.Tab; this.selected = selected }
                                     .clickable { switchTab(index) }
                                     .padding(vertical = 3.dp)
                             ) {

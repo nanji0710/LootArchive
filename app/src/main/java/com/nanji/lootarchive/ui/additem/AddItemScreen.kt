@@ -160,17 +160,23 @@ fun AddItemScreen(
                             uiState.photoPaths.take(4).forEach { path ->
                                 Box(modifier = Modifier.size(90.dp)) {
                                     AsyncImage(
-                                        model = File(path), contentDescription = null,
+                                        model = File(path), contentDescription = "物品照片",
                                         modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)),
                                         contentScale = ContentScale.Crop
                                     )
+                                    // 48dp 触摸区包裹 24dp 视觉删除钮（满足最小触摸目标）
                                     Box(
-                                        modifier = Modifier.align(Alignment.TopEnd).size(24.dp)
-                                            .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(bottomStart = 10.dp))
-                                            .clickable { viewModel.removePhotoPath(path) },
-                                        contentAlignment = Alignment.Center
+                                        modifier = Modifier.align(Alignment.TopEnd).size(48.dp),
+                                        contentAlignment = Alignment.TopEnd
                                     ) {
-                                        Icon(Icons.Rounded.Close, "删除", modifier = Modifier.size(14.dp), tint = Color.White)
+                                        Box(
+                                            modifier = Modifier.size(24.dp)
+                                                .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(bottomStart = 10.dp))
+                                                .clickable { viewModel.removePhotoPath(path) },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(Icons.Rounded.Close, "删除", modifier = Modifier.size(14.dp), tint = Color.White)
+                                        }
                                     }
                                 }
                             }

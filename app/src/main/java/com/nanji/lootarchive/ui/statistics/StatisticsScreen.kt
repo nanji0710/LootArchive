@@ -52,7 +52,7 @@ fun StatisticsScreen(
 
     Scaffold(topBar = { if (!isTabMode) TopAppBar(title = { Text("资产汇总", fontFamily = FredokaFont, fontWeight = FontWeight.SemiBold) }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回") } }) }, containerColor = Color.Transparent) { padding ->
         var refreshing by remember { mutableStateOf(false) }; val scope = rememberCoroutineScope()
-        PullToRefreshBox(isRefreshing = refreshing, onRefresh = { refreshing = true; scope.launch { delay(600); refreshing = false } }, modifier = Modifier.fillMaxSize().padding(padding).background(Color.Transparent)) {
+        PullToRefreshBox(isRefreshing = refreshing, onRefresh = { refreshing = true; scope.launch { viewModel.refresh(); delay(600); refreshing = false } }, modifier = Modifier.fillMaxSize().padding(padding).background(Color.Transparent)) {
             if (uiState.isLoading) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Primary()) }
             else if (uiState.categorySummaries.isEmpty()) EmptyState(icon = { Icon(Icons.Rounded.BarChart, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) }, title = "暂无统计数据", subtitle = "添加物品后即可查看统计图表")
             else Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = CardPadding, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
