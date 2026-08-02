@@ -38,52 +38,12 @@ val LocalHazeState = compositionLocalOf<HazeState?> { null }
 fun Modifier.glassEffect(
     tier: GlassTier = GlassTier.CARD
 ): Modifier {
-    val dark = LocalDarkTheme.current
+    val glass = LocalGlassColors.current
     val shape = RoundedCornerShape(tier.cornerRadiusDp.dp)
-
-    val shadowColor = if (dark)
-        Color.Black.copy(alpha = 0.30f)
-    else
-        Color.Black.copy(alpha = 0.06f)
-
-    val highlightColor = if (dark)
-        Color.White.copy(alpha = 0.03f)
-    else
-        Color.White.copy(alpha = 0.70f)
-
     return this.shadow(
         elevation = tier.shadowElevationDp.dp,
         shape = shape,
-        ambientColor = highlightColor,
-        spotColor = shadowColor
+        ambientColor = glass.highlight,
+        spotColor = glass.shadow
     )
 }
-
-@Composable
-fun glassBorderColor() = if (LocalDarkTheme.current)
-    Color.White.copy(alpha = 0.08f)
-else
-    Color.White.copy(alpha = 0.55f)
-
-@Composable
-fun glassBackground() = if (LocalDarkTheme.current)
-    _GlassDark
-else
-    _GlassLight
-
-@Composable
-fun navGlassBackground() = if (LocalDarkTheme.current)
-    _NavGlassDark
-else
-    _NavGlassLight
-
-@Composable
-fun glassShadowColor() = if (LocalDarkTheme.current)
-    Color.Black.copy(alpha = 0.30f)
-else
-    Color.Black.copy(alpha = 0.05f)
-
-@Composable
-fun Modifier.neumorphRaised(
-    tier: GlassTier = GlassTier.CARD
-): Modifier = this.glassEffect(tier)

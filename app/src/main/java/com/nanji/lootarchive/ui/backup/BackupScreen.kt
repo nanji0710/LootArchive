@@ -67,7 +67,7 @@ fun BackupScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                    colors = CardDefaults.cardColors(containerColor = CardBg()),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Surface(
@@ -101,7 +101,7 @@ fun BackupScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                    colors = CardDefaults.cardColors(containerColor = CardBg()),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Surface(
@@ -145,7 +145,7 @@ fun BackupScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+                        colors = CardDefaults.cardColors(containerColor = CardBg()),
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
                         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {

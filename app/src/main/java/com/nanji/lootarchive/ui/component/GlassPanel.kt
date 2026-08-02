@@ -17,9 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.nanji.lootarchive.ui.theme.DarkGlassColors
+import com.nanji.lootarchive.ui.theme.LightGlassColors
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
-import com.nanji.lootarchive.ui.theme._NavGlassDark
-import com.nanji.lootarchive.ui.theme._NavGlassLight
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -37,8 +37,8 @@ fun GlassPanel(
     hazeState: HazeState,
     shape: Shape = RoundedCornerShape(24.dp),
     contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-    containerColor: Color = if (LocalDarkTheme.current) _NavGlassDark else _NavGlassLight,
-    borderColor: Color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.50f),
+    containerColor: Color = if (LocalDarkTheme.current) DarkGlassColors.navGlassBg else LightGlassColors.navGlassBg,
+    borderColor: Color = if (LocalDarkTheme.current) DarkGlassColors.glassBorder else LightGlassColors.glassBorder,
     shadowElevation: Dp = 8.dp,
     blurRadius: Dp = 24.dp,
     content: @Composable ColumnScope.() -> Unit

@@ -150,7 +150,7 @@ private fun TrashItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+        colors = CardDefaults.cardColors(containerColor = CardBg()),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(

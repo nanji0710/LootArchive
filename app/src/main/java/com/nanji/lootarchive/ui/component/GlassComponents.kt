@@ -40,11 +40,11 @@ fun NeoCard(
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val dark = LocalDarkTheme.current
+    val glass = LocalGlassColors.current
     val haze = LocalHazeState.current
-    val cardBg = if (dark) Color(0xB21C1C24) else Color(0xBFFFFFFF) // 75% opacity
-    val borderClr = if (dark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.55f)
-    val shadowClr = if (dark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.05f)
+    val cardBg = glass.glassBg
+    val borderClr = glass.glassBorder
+    val shadowClr = glass.shadow
 
     Box(
         modifier = modifier
@@ -56,9 +56,9 @@ fun NeoCard(
                         tints = listOf(HazeTint(cardBg)),
                         blurRadius = 20.dp,
                         noiseFactor = 0f,
-                        fallbackTint = HazeTint(if (dark) _CardDark else _CardLight)
+                        fallbackTint = HazeTint(glass.cardBg)
                     )
-                ) else Modifier.background(if (dark) _CardDark else _CardLight, CardShape)
+                ) else Modifier.background(glass.cardBg, CardShape)
             )
             .shadow(4.dp, CardShape, ambientColor = Color.White.copy(alpha = 0.3f), spotColor = shadowClr)
             .border(0.5.dp, borderClr, CardShape)
@@ -68,7 +68,7 @@ fun NeoCard(
             modifier = Modifier.fillMaxWidth(),
             shape = CardShape,
             colors = CardDefaults.cardColors(
-                containerColor = if (haze != null) Color.Transparent else if (dark) _CardDark else _CardLight
+                containerColor = if (haze != null) Color.Transparent else glass.cardBg
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             onClick = onClick ?: {}
@@ -141,8 +141,7 @@ fun NeoEmptyState(
  */
 @Composable
 fun NeoAlertDialog(title: String, message: String, confirmText: String = "确认", dismissText: String = "取消", onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    val dark = LocalDarkTheme.current
-    AlertDialog(onDismissRequest = onDismiss, shape = RoundedCornerShape(28.dp), containerColor = if (dark) _CardDark else _CardLight, tonalElevation = 0.dp,
+    AlertDialog(onDismissRequest = onDismiss, shape = RoundedCornerShape(28.dp), containerColor = CardBg(), tonalElevation = 0.dp,
         title = { Text(title, fontWeight = FontWeight.SemiBold, color = TextPrimary()) },
         text = { Text(message, color = TextSecondary(), fontSize = 14.sp) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirmText, color = Primary(), fontWeight = FontWeight.SemiBold) } },

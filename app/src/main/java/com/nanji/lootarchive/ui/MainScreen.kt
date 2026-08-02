@@ -251,14 +251,6 @@ fun MainScreen() {
                         .padding(bottom = 16.dp, start = 20.dp, end = 20.dp),
                     hazeState = hazeState,
                     shape = RoundedCornerShape(24.dp),
-                    containerColor = if (LocalDarkTheme.current)
-                        Color.Black.copy(alpha = 0.25f)
-                    else
-                        Color.White.copy(alpha = 0.35f),
-                    borderColor = if (LocalDarkTheme.current)
-                        Color.White.copy(alpha = 0.10f)
-                    else
-                        Color.White.copy(alpha = 0.50f),
                     shadowElevation = 8.dp,
                     blurRadius = 24.dp
                 ) {

@@ -175,7 +175,7 @@ fun HomeScreen(
                     Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }
                         .then(if (isOwned) Modifier.shadow(3.dp, RoundedCornerShape(20.dp)) else Modifier)
                         .then(if (!isOwned) Modifier.alpha(0.50f) else Modifier),
-                        shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+                        shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                         Column {
                             Box(Modifier.fillMaxWidth().height(photoH).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))) {
                                 if (uiState.photoPaths[item.id] != null) AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)

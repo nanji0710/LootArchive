@@ -123,7 +123,8 @@ fun LootArchiveTheme(
     }
     CompositionLocalProvider(
         LocalDarkTheme provides darkTheme,
-        LocalPrimaryColor provides Color(primaryColor)
+        LocalPrimaryColor provides Color(primaryColor),
+        LocalGlassColors provides if (darkTheme) DarkGlassColors else LightGlassColors
     ) {
         val cs = if (darkTheme) DarkColorScheme else LightColorScheme
         MaterialTheme(colorScheme = cs, typography = AppTypography, content = content)

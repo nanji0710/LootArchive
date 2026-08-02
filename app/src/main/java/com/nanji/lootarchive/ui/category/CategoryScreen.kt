@@ -166,7 +166,7 @@ private fun CategoryGridCard(
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else _CardLight),
+        colors = CardDefaults.cardColors(containerColor = CardBg()),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(

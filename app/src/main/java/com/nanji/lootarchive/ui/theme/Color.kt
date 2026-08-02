@@ -2,6 +2,7 @@ package com.nanji.lootarchive.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import com.nanji.lootarchive.domain.model.ItemStatus
 
@@ -48,19 +49,61 @@ val _TextPrimaryDark = Color(0xFFF0ECE6)     // 暖白
 val _TextSecondaryDark = Color(0xFFA8A29E)   // 暖石灰
 val _TextAuxiliaryDark = Color(0xFF78716C)   // 暖暗灰
 
-// ── @Composable 主题感知色 ──
+// ═══════════════════════════════════════════════════════════════
+//  设计语义色 Token (GlassColorScheme) — P1b 双主题统一
+//  所有 UI 通过 LocalGlassColors 读取，消除散落 if(LocalDarkTheme) 判断
+// ═══════════════════════════════════════════════════════════════
+data class GlassColorScheme(
+    val glassBg: Color,          // 毛玻璃卡片底色
+    val glassBorder: Color,      // 玻璃边框
+    val navGlassBg: Color,       // 导航毛玻璃
+    val cardBg: Color,           // 卡片底
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textAuxiliary: Color,
+    val shadow: Color,           // 阴影色
+    val highlight: Color,        // 高光色
+)
+
+val LightGlassColors = GlassColorScheme(
+    glassBg = _GlassLight,
+    glassBorder = _GlassBorderLight,
+    navGlassBg = _NavGlassLight,
+    cardBg = _CardLight,
+    textPrimary = _TextPrimaryLight,
+    textSecondary = _TextSecondaryLight,
+    textAuxiliary = _TextAuxiliaryLight,
+    shadow = Color.Black.copy(alpha = 0.05f),
+    highlight = Color.White.copy(alpha = 0.70f),
+)
+
+val DarkGlassColors = GlassColorScheme(
+    glassBg = _GlassDark,
+    glassBorder = _GlassBorderDark,
+    navGlassBg = _NavGlassDark,
+    cardBg = _CardDark,
+    textPrimary = _TextPrimaryDark,
+    textSecondary = _TextSecondaryDark,
+    textAuxiliary = _TextAuxiliaryDark,
+    shadow = Color.Black.copy(alpha = 0.30f),
+    highlight = Color.White.copy(alpha = 0.03f),
+)
+
+val LocalGlassColors = staticCompositionLocalOf { LightGlassColors }
+
+// ── @Composable 主题感知色（读 token，单一来源）──
 @Composable fun Primary() = MaterialTheme.colorScheme.primary
 @Composable fun Secondary() = _Secondary
-@Composable fun TextPrimary() = if (LocalDarkTheme.current) _TextPrimaryDark else _TextPrimaryLight
-@Composable fun TextSecondary() = if (LocalDarkTheme.current) _TextSecondaryDark else _TextSecondaryLight
-@Composable fun TextAuxiliary() = if (LocalDarkTheme.current) _TextAuxiliaryDark else _TextAuxiliaryLight
+@Composable fun TextPrimary() = LocalGlassColors.current.textPrimary
+@Composable fun TextSecondary() = LocalGlassColors.current.textSecondary
+@Composable fun TextAuxiliary() = LocalGlassColors.current.textAuxiliary
 fun OnPrimary() = _OnPrimary
 
-// ── Glass 背景色 ──
-@Composable fun GlassBg() = if (LocalDarkTheme.current) _GlassDark else _GlassLight
-@Composable fun GlassBorder() = if (LocalDarkTheme.current) _GlassBorderDark else _GlassBorderLight
-@Composable fun NavGlassBg() = if (LocalDarkTheme.current) _NavGlassDark else _NavGlassLight
-@Composable fun CardBg() = if (LocalDarkTheme.current) _CardDark else _CardLight
+// ── Glass 背景色（读 token，单一来源）──
+@Composable fun GlassBg() = LocalGlassColors.current.glassBg
+@Composable fun GlassBorder() = LocalGlassColors.current.glassBorder
+@Composable fun NavGlassBg() = LocalGlassColors.current.navGlassBg
+@Composable fun CardBg() = LocalGlassColors.current.cardBg
 
 // ── 功能色 ──
 val WarrantyActive = Color(0xFF10B981)
