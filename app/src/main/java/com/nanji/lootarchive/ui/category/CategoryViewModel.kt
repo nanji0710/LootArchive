@@ -35,10 +35,7 @@ class CategoryViewModel @Inject constructor(
             // 兼容已有数据库：分类表为空时补种内置10大分类
             categoryRepository.seedDefaultCategoriesIfEmpty()
             categoryRepository.getAllCategories().collect { categories ->
-                val counts = mutableMapOf<Long, Int>()
-                categories.forEach { cat ->
-                    counts[cat.id] = itemRepository.getCategoryItemCount(cat.id).first()
-                }
+                val counts = categoryRepository.getItemCountByCategory()
                 _uiState.update {
                     it.copy(isLoading = false, categories = categories, categoryItemCounts = counts)
                 }

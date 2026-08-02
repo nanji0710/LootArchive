@@ -136,8 +136,9 @@ class SearchViewModel @Inject constructor(
                     "warranty" -> tagFiltered.sortedBy { it.warrantyExpiryDate ?: Long.MAX_VALUE }
                     else -> tagFiltered
                 }
+                val allFirstPhotos = itemRepository.getAllFirstPhotos()
                 val results = sorted.map { item ->
-                    SearchResultItem(item = item, firstPhotoPath = itemRepository.getFirstPhotoPath(item.id))
+                    SearchResultItem(item = item, firstPhotoPath = allFirstPhotos[item.id])
                 }
                 _uiState.update { it.copy(results = results, isLoading = false) }
             }

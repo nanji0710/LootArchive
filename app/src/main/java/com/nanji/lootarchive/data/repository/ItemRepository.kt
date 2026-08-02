@@ -158,6 +158,10 @@ class ItemRepository @Inject constructor(
     suspend fun getFirstPhotoPath(itemId: Long): String? =
         itemPhotoDao.getFirstPhotoByItemId(itemId)?.photoPath
 
+    /** 批量取未删除物品的首张照片映射（消除列表页 N+1 查询） */
+    suspend fun getAllFirstPhotos(): Map<Long, String> =
+        itemPhotoDao.getFirstPhotosForActiveItems().associate { it.itemId to it.photoPath }
+
     // ========== 回收站 ==========
 
     fun getDeletedItems(): Flow<List<ItemEntity>> = itemDao.getDeletedItems()

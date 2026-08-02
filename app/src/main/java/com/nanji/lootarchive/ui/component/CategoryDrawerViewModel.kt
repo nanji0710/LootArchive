@@ -37,10 +37,7 @@ class CategoryDrawerViewModel @Inject constructor(
             ) { categories, total ->
                 Pair(categories, total)
             }.collect { (categories, total) ->
-                val counts = mutableMapOf<Long, Int>()
-                categories.forEach { cat ->
-                    counts[cat.id] = itemRepository.getCategoryItemCount(cat.id).first()
-                }
+                val counts = categoryRepository.getItemCountByCategory()
                 _uiState.value = CategoryDrawerUiState(
                     totalItemCount = total,
                     categories = categories,

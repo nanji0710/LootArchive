@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import android.widget.Toast
+import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.theme.*
@@ -225,7 +226,7 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
-                    Text("当前版本 v6.6.4", fontSize = 13.sp, color = TextAuxiliary())
+                    Text("当前版本 v${BuildConfig.VERSION_NAME}", fontSize = 13.sp, color = TextAuxiliary())
                     Spacer(Modifier.height(8.dp))
                     Text("数据看板", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(2.dp))

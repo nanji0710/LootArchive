@@ -16,6 +16,10 @@ class CategoryRepository @Inject constructor(
 
     suspend fun getCategoryById(id: Long): CategoryEntity? = categoryDao.getCategoryById(id)
 
+    /** 批量取各分类未删除物品数（消除逐分类 N+1 查询） */
+    suspend fun getItemCountByCategory(): Map<Long, Int> =
+        categoryDao.getItemCountByCategory().associate { it.categoryId to it.count }
+
     suspend fun createCategory(name: String, iconName: String = "category"): Long {
         val count = categoryDao.getCount()
         return categoryDao.insertCategory(

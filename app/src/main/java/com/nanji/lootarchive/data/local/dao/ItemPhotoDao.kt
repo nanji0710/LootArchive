@@ -4,6 +4,9 @@ import androidx.room.*
 import com.nanji.lootarchive.data.local.entity.ItemPhotoEntity
 import kotlinx.coroutines.flow.Flow
 
+/** 物品 id → 首张照片路径 结果行 */
+data class ItemPhotoPathRow(val itemId: Long, val photoPath: String)
+
 @Dao
 interface ItemPhotoDao {
 
@@ -39,6 +42,14 @@ interface ItemPhotoDao {
 
     @Query("SELECT photoPath FROM item_photos")
     suspend fun getAllPhotoPaths(): List<String>
+
+    /** 批量取未删除物品的首张照片（消除逐物品 N+1 查询） */
+    @Query(
+        "SELECT ip.itemId AS itemId, ip.photoPath AS photoPath FROM item_photos ip " +
+            "WHERE ip.id IN (SELECT MIN(id) FROM item_photos GROUP BY itemId) " +
+            "AND ip.itemId IN (SELECT id FROM items WHERE isDeleted = 0)"
+    )
+    suspend fun getFirstPhotosForActiveItems(): List<ItemPhotoPathRow>
 
     @Query("SELECT * FROM item_photos")
     suspend fun getAllPhotos(): List<ItemPhotoEntity>

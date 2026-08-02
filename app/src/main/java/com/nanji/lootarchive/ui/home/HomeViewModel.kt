@@ -54,15 +54,8 @@ class HomeViewModel @Inject constructor(
                     },
                     settingsRepository.appName
                 ) { quintet, appName ->
-                    val paths = mutableMapOf<Long, String>()
-                    quintet.first.forEach { item ->
-                        try {
-                            val photos = itemRepository.getItemPhotos(item.id).first()
-                            if (photos.isNotEmpty()) paths[item.id] = photos.first().photoPath
-                        } catch (e: Exception) {
-                            android.util.Log.e("HomeVM", "Load photo failed item=${item.id}", e)
-                        }
-                    }
+                    // 批量取首图，避免逐物品 N+1 查询
+                    val paths = try { itemRepository.getAllFirstPhotos() } catch (e: Exception) { android.util.Log.e("HomeVM", "Load photos failed", e); emptyMap() }
                     val saleRev = quintet.first.filter { it.status == "sold" && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
                     HomeUiState(
                         isLoading = false, items = quintet.first, photoPaths = paths,
