@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.util.PhotoUtil
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -83,7 +84,7 @@ fun CameraScreen(
     // 对焦标记自动消失
     LaunchedEffect(focusMarkerStamp) {
         if (focusMarkerStamp == 0L) return@LaunchedEffect
-        kotlinx.coroutines.delay(900)
+        kotlinx.coroutines.delay(Feedback.CAMERA_FOCUS_DISMISS)
         focusMarker = null
     }
 

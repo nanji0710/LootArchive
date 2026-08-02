@@ -37,8 +37,8 @@ fun TrendLineChart(
     val numberFormat = remember { NumberFormat.getNumberInstance() }
     val measurer = rememberTextMeasurer()
     val valStyle = remember(textAux) { TextStyle(fontFamily = FredokaFont, fontSize = 8.sp, color = textAux, fontWeight = FontWeight.Normal) }
-    val yStyle = remember(textAux) { TextStyle(fontFamily = FredokaFont, fontSize = 9.sp, color = textAux, fontWeight = FontWeight.Normal) }
-    val xStyle = remember(textAux) { TextStyle(fontFamily = FredokaFont, fontSize = 10.sp, color = textAux, fontWeight = FontWeight.Normal) }
+    val yStyle = remember(textAux) { TextStyle(fontFamily = FredokaFont, fontSize = 10.sp, color = textAux, fontWeight = FontWeight.Normal) }
+    val xStyle = remember(textAux) { TextStyle(fontFamily = FredokaFont, fontSize = 11.sp, color = textAux, fontWeight = FontWeight.Normal) }
 
     Canvas(modifier = modifier.fillMaxWidth().height(sizeDp.dp)) {
         val w = size.width; val h = size.height

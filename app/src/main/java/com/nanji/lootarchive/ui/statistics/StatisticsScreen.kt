@@ -209,7 +209,7 @@ fun StatisticsScreen(
                                 Row(Modifier.fillMaxWidth().height(160.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
                                     md.forEachIndexed { i, (ym, t) ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(colW)) {
-                                            Text(FormatUtil.formatPriceShort(t), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
+                                            Text(FormatUtil.formatPriceShort(t), fontSize = 10.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
                                             Spacer(Modifier.height(4.dp))
                                             Surface(Modifier.width(24.dp).height(((t / mv) * 100).dp.coerceAtLeast(4.dp)), shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp), color = ChartColors[i % ChartColors.size]) {}
                                             Spacer(Modifier.height(6.dp))
@@ -222,7 +222,7 @@ fun StatisticsScreen(
                                 Row(Modifier.fillMaxWidth().height(160.dp).horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.Bottom) {
                                     md.forEachIndexed { i, (ym, t) ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(colW)) {
-                                            Text(FormatUtil.formatPriceShort(t), fontSize = 9.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
+                                            Text(FormatUtil.formatPriceShort(t), fontSize = 10.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
                                             Spacer(Modifier.height(4.dp))
                                             Surface(Modifier.width(24.dp).height(((t / mv) * 100).dp.coerceAtLeast(4.dp)), shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp), color = ChartColors[i % ChartColors.size]) {}
                                             Spacer(Modifier.height(6.dp))

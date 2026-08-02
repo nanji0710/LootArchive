@@ -35,6 +35,7 @@ import java.text.NumberFormat
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.util.ApkDownloadManager
+import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.util.UpdateChecker
 import com.nanji.lootarchive.util.UpdateInfo
 import com.nanji.lootarchive.util.isValidVersionName
@@ -608,7 +609,7 @@ fun MyLandingScreen(
     val unlockMsg = profileState.unlockMessage
     if (unlockMsg != null) {
         LaunchedEffect(unlockMsg) {
-            kotlinx.coroutines.delay(2500)
+            kotlinx.coroutines.delay(Feedback.ACHIEVEMENT_DISMISS)
             profileVM.clearUnlockMessage()
         }
         AlertDialog(

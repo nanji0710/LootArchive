@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.ItemEntity
+import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.theme.*
@@ -37,7 +38,7 @@ fun RecycleBinScreen(
 
     LaunchedEffect(uiState.message) {
         if (uiState.message != null) {
-            kotlinx.coroutines.delay(2000)
+            kotlinx.coroutines.delay(Feedback.MESSAGE_DISMISS)
             viewModel.clearMessage()
         }
     }

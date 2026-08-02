@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
 import com.nanji.lootarchive.ui.component.ClayCard
+import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
 import java.text.SimpleDateFormat
@@ -45,7 +46,7 @@ fun BackupScreen(
 
     LaunchedEffect(uiState.message) {
         if (uiState.message != null) {
-            kotlinx.coroutines.delay(3000)
+            kotlinx.coroutines.delay(Feedback.BACKUP_DISMISS)
             viewModel.clearMessage()
         }
     }
