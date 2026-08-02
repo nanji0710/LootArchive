@@ -12,10 +12,20 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            fun prop(name: String) = System.getenv(name) ?: project.findProperty(name) as String?
+            val envPath = prop("LOOTARCHIVE_KEYSTORE_PATH")
+            if (envPath != null && envPath.isNotBlank()) {
+                storeFile = file(envPath)
+                storePassword = prop("LOOTARCHIVE_KEYSTORE_PASSWORD") ?: ""
+                keyAlias = prop("LOOTARCHIVE_KEY_ALIAS") ?: "lootarchive"
+                keyPassword = prop("LOOTARCHIVE_KEY_PASSWORD") ?: ""
+            } else {
+                // 开发兜底：本机 debug keystore（禁止用于正式发布）
+                storeFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
         }
     }
 
@@ -155,4 +165,20 @@ dependencies {
 
     // Core
     implementation("androidx.core:core-ktx:1.15.0")
+
+    // ─── Test (dev) ───
+    // Unit tests
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("app.cash.turbine:turbine:1.2.0")
+    testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+
+    // Instrumented tests
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:core-ktx:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit-ktx:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2025.06.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }

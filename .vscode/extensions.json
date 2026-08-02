@@ -1,10 +1,10 @@
 {
     "recommendations": [
         "fwcd.kotlin",
+        "elumine.kotlin-jump",
         "vscjava.vscode-gradle",
-        "mathiasfrohlich.kotlin",
         "vscjava.vscode-java-pack",
-        "redhat.java",
-        "naco-siren.gradle-language"
+        "naco-siren.gradle-language",
+        "VIKAS9793.androjack-vscode"
     ]
 }
