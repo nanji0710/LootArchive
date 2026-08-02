@@ -66,7 +66,6 @@ fun MyLandingScreen(
     var showLevelDialog by remember { mutableStateOf(false) }
     var showExpDialog by remember { mutableStateOf(false) }
     var showAchievementDetail by remember { mutableStateOf<com.nanji.lootarchive.data.local.entity.AchievementEntity?>(null) }
-    val snackbarHostState = remember { SnackbarHostState() }
 
     val downloader = remember { ApkDownloadManager(context) }
 
@@ -157,8 +156,8 @@ fun MyLandingScreen(
                             }
                         }
                         if (achTotal > 0) {
+                            // 纯展示徽章（不渲染假可点击目标，避免 TalkBack 误报按钮）
                             Surface(
-                                onClick = { },
                                 shape = RoundedCornerShape(12.dp),
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
