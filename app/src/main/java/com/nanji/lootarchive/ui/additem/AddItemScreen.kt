@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.WheelDatePickerDialog
 import com.nanji.lootarchive.ui.theme.*
@@ -282,15 +283,15 @@ fun AddItemScreen(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        listOf("active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失").forEach { (key, label) ->
+                        ItemStatus.entries.forEach { status ->
                             FilterChip(
-                                selected = uiState.status == key,
-                                onClick = { viewModel.updateStatus(key) },
-                                label = { Text(label, fontSize = 13.sp, maxLines = 1) },
+                                selected = uiState.status == status.code,
+                                onClick = { viewModel.updateStatus(status.code) },
+                                label = { Text(status.label, fontSize = 13.sp, maxLines = 1) },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = statusColor(key).copy(alpha = 0.15f),
-                                    selectedLabelColor = statusColor(key)
+                                    selectedContainerColor = statusColor(status.code).copy(alpha = 0.15f),
+                                    selectedLabelColor = statusColor(status.code)
                                 )
                             )
                         }
@@ -298,7 +299,7 @@ fun AddItemScreen(
                 }
 
                 // v6.6 售出收益（仅已出状态显示）
-                AnimatedVisibility(visible = uiState.status == "sold") {
+                AnimatedVisibility(visible = ItemStatus.fromCode(uiState.status) == ItemStatus.SOLD) {
                     ClayCard {
                         Text("售出收益", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
                         Spacer(Modifier.height(10.dp))

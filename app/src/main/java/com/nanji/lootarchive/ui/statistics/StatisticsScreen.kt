@@ -32,6 +32,7 @@ import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.RadarAxis
 import com.nanji.lootarchive.ui.component.RadarChart
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.util.FormatUtil
 import com.nanji.lootarchive.util.csvEscape
 import java.text.NumberFormat
@@ -144,7 +145,7 @@ fun StatisticsScreen(
                     .groupBy { tSdf.format(java.util.Date(it.purchaseDate!!)) }
                     .mapValues { it.value.sumOf { i -> i.purchasePrice } }
                 val saleMap = uiState.allItems
-                    .filter { it.status == "sold" && it.saleDate != null && it.salePrice != null }
+                    .filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && it.saleDate != null && it.salePrice != null }
                     .groupBy { tSdf.format(java.util.Date(it.saleDate!!)) }
                     .mapValues { it.value.sumOf { i -> i.salePrice!! } }
                 val allTrendMonths = (purchaseMap.keys + saleMap.keys).distinct().sorted()
@@ -174,7 +175,7 @@ fun StatisticsScreen(
                         val purchaseByMonth = uiState.items.filter { it.purchaseDate != null }
                             .groupBy { sdf.format(java.util.Date(it.purchaseDate!!)) }
                             .mapValues { it.value.sumOf { i -> i.purchasePrice } }
-                        val saleByMonth = uiState.allItems.filter { it.status == "sold" && it.saleDate != null && it.salePrice != null }
+                        val saleByMonth = uiState.allItems.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && it.saleDate != null && it.salePrice != null }
                             .groupBy { sdf.format(java.util.Date(it.saleDate!!)) }
                             .mapValues { it.value.sumOf { i -> i.salePrice!! } }
                         val allMonths = (purchaseByMonth.keys + saleByMonth.keys).distinct().sorted().takeLast(12)

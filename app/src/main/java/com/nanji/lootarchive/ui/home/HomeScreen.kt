@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.nanji.lootarchive.data.local.entity.ItemEntity
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
 import com.nanji.lootarchive.ui.theme.*
@@ -75,9 +76,9 @@ fun HomeScreen(
         if (effectiveFilter != null) uiState.items.filter { it.categoryId == effectiveFilter.first }
         else uiState.items
     }
-    val ownedItems = filteredItems.filter { it.status in listOf("active", "idle", "repair") }
+    val ownedItems = filteredItems.filter { ItemStatus.fromCode(it.status).isOwned }
     val heroCount = filteredItems.size
-    val groupedSaleRevenue = uiState.items.filter { it.status == "sold" && it.salePrice != null }
+    val groupedSaleRevenue = uiState.items.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && it.salePrice != null }
         .let { soldItems ->
             if (effectiveFilter != null) soldItems.filter { it.categoryId == effectiveFilter.first }
             else soldItems
@@ -170,7 +171,7 @@ fun HomeScreen(
                     val photoH = if (isWide) 160.dp else 135.dp
                     val nameSz = if (isWide) 17.sp else 15.sp
                     val priceSz = if (isWide) 18.sp else 16.sp
-                    val isOwned = item.status in listOf("active", "idle", "repair")
+                    val isOwned = ItemStatus.fromCode(item.status).isOwned
                     Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }
                         .then(if (isOwned) Modifier.shadow(3.dp, RoundedCornerShape(20.dp)) else Modifier)
                         .then(if (!isOwned) Modifier.alpha(0.50f) else Modifier),

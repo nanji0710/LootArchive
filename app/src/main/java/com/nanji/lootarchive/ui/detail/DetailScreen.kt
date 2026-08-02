@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.theme.*
 import java.io.File
@@ -92,7 +93,7 @@ fun DetailScreen(
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = TextAuxiliary().copy(alpha = 0.12f))
                 DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}", valueColor = Primary())
-                if (data.item.status == "sold" && data.item.salePrice != null) {
+                if (ItemStatus.fromCode(data.item.status) == ItemStatus.SOLD && data.item.salePrice != null) {
                     DetailRow("售出收益", "+${currencySymbol}${numberFormat.format(data.item.salePrice!!)}", valueColor = StatusSold)
                     if (data.item.saleDate != null) {
                         DetailRow("售出日期", dateFormat.format(Date(data.item.saleDate!!)))
@@ -159,7 +160,9 @@ fun DetailScreen(
             Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                 Text("更改物品状态", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(16.dp))
-                listOf("active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失").forEach { (key, label) ->
+                ItemStatus.entries.forEach { status ->
+                    val key = status.code
+                    val label = status.label
                     Surface(
                         onClick = { viewModel.updateItemStatus(key) },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),

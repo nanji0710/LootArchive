@@ -3,6 +3,7 @@ package com.nanji.lootarchive.ui.statistics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.data.repository.CategoryRepository
 import com.nanji.lootarchive.data.repository.ItemRepository
@@ -53,7 +54,7 @@ class StatisticsViewModel @Inject constructor(
                 _refreshCounter
             ) { items, ownedValue, categories, filter, _ ->
                 // 仅统计当前拥有的物品（在用+闲置+待修）
-                val ownedItems = items.filter { it.status in listOf("active", "idle", "repair") }
+                val ownedItems = items.filter { ItemStatus.fromCode(it.status).isOwned }
                 val now = System.currentTimeMillis()
                 val cutoff = when (filter) {
                     "3months" -> now - 90L * 24 * 60 * 60 * 1000
@@ -68,7 +69,7 @@ class StatisticsViewModel @Inject constructor(
                 }.filter { it.totalValue > 0 } // 只展示有金额的分类
                 val filteredTotalValue = filteredItems.sumOf { it.purchasePrice }
                 // 已出物品售出收益（不受时间筛选影响）
-                val saleRevenue = items.filter { it.status == "sold" && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
+                val saleRevenue = items.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = filteredItems.size,

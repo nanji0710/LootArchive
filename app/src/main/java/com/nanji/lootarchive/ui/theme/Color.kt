@@ -3,6 +3,7 @@ package com.nanji.lootarchive.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.nanji.lootarchive.domain.model.ItemStatus
 
 // ═══════════════════════════════════════════════════════════════
 //  v5.0 Warm Glassmorphism 色板
@@ -86,14 +87,7 @@ fun statusColor(status: String): Color = when (status) {
 }
 
 @Composable
-fun statusLabel(status: String): String = when (status) {
-    "active" -> "在用"
-    "idle" -> "闲置"
-    "sold" -> "已出"
-    "repair" -> "待修"
-    "lost" -> "丢失"
-    else -> "在用"
-}
+fun statusLabel(status: String): String = ItemStatus.fromCode(status).label
 
 // ── 图表色板 (12色，暖色调优先) ──
 val ChartColors = listOf(

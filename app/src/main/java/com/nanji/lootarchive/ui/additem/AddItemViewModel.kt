@@ -3,6 +3,7 @@ package com.nanji.lootarchive.ui.additem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.data.local.entity.ItemPhotoEntity
 import com.nanji.lootarchive.data.repository.CategoryRepository
@@ -149,7 +150,7 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun updateStatus(status: String) {
-        _uiState.update { it.copy(status = status, salePriceText = if (status == "sold") it.salePriceText else "", saleDate = if (status == "sold") it.saleDate else null) }
+        _uiState.update { it.copy(status = status, salePriceText = if (ItemStatus.fromCode(status) == ItemStatus.SOLD) it.salePriceText else "", saleDate = if (ItemStatus.fromCode(status) == ItemStatus.SOLD) it.saleDate else null) }
     }
 
     fun updateSalePrice(text: String) {

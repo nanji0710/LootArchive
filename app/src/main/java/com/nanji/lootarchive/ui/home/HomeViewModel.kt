@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
 import com.nanji.lootarchive.util.Quintet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,7 +57,7 @@ class HomeViewModel @Inject constructor(
                 ) { quintet, appName ->
                     // 批量取首图，避免逐物品 N+1 查询
                     val paths = try { itemRepository.getAllFirstPhotos() } catch (e: Exception) { android.util.Log.e("HomeVM", "Load photos failed", e); emptyMap() }
-                    val saleRev = quintet.first.filter { it.status == "sold" && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
+                    val saleRev = quintet.first.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
                     HomeUiState(
                         isLoading = false, items = quintet.first, photoPaths = paths,
                         totalCount = quintet.second, totalValue = quintet.third,

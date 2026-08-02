@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.ItemEntity
+import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.theme.*
@@ -49,7 +50,7 @@ fun SearchScreen(
     var showSortMenu by remember { mutableStateOf(false) }
     var showTagRow by remember { mutableStateOf(false) }
     val scopeLabels = remember { mapOf(null to "全部范围", "name" to "名称", "location" to "位置", "desc" to "备注", "warranty" to "保修") }
-    val statusLabels = remember { mapOf(null to "全部状态", "active" to "在用", "idle" to "闲置", "sold" to "已出", "repair" to "待修", "lost" to "丢失") }
+    val statusLabels = remember { mapOf(null to "全部状态") + ItemStatus.entries.associate { it.code to it.label } }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
