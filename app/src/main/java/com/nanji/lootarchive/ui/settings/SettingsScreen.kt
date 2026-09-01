@@ -91,7 +91,27 @@ fun SettingsScreen(
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("显示模式", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                            Surface(
+                                Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                                color = Primary().copy(alpha = 0.10f)
+                            ) {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Rounded.Palette, null, Modifier.size(20.dp), tint = Primary())
+                                }
+                            }
+                            Spacer(Modifier.width(14.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("显示模式", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                                Text(
+                                    when (uiState.themeMode) {
+                                        "system" -> "跟随系统"
+                                        "light" -> "浅色"
+                                        "dark" -> "深色"
+                                        else -> "跟随系统"
+                                    },
+                                    fontSize = 12.sp, color = TextAuxiliary()
+                                )
+                            }
                         }
                         LiquidSegmentedControl(
                             options = listOf(
@@ -126,8 +146,19 @@ fun SettingsScreen(
                                 .padding(horizontal = 16.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("跟随壁纸动态色", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                            Text("Android 12+", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(end = 8.dp))
+                            Surface(
+                                Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                                color = Primary().copy(alpha = 0.10f)
+                            ) {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Rounded.AutoAwesome, null, Modifier.size(20.dp), tint = Primary())
+                                }
+                            }
+                            Spacer(Modifier.width(14.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("跟随壁纸动态色", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                                Text("Android 12+ 跟随壁纸", fontSize = 12.sp, color = TextAuxiliary())
+                            }
                         }
                         LiquidToggle(
                             checked = uiState.dynamicColor,
@@ -142,7 +173,19 @@ fun SettingsScreen(
                         Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("自定义头像", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Surface(
+                            Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                            color = Primary().copy(alpha = 0.10f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.AccountCircle, null, Modifier.size(20.dp), tint = Primary())
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("自定义头像", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                            Text("从相册选择", fontSize = 12.sp, color = TextAuxiliary())
+                        }
                         if (uiState.avatarUri.isNotEmpty()) {
                             Surface(
                                 onClick = { viewModel.setAvatarUri("") },
@@ -165,7 +208,19 @@ fun SettingsScreen(
                         }.padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("重新查看引导", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Surface(
+                            Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                            color = Primary().copy(alpha = 0.10f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.School, null, Modifier.size(20.dp), tint = Primary())
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("重新查看引导", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                            Text("下次启动重新展示", fontSize = 12.sp, color = TextAuxiliary())
+                        }
                         Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
                 }
