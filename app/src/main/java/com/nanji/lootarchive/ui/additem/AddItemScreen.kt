@@ -132,10 +132,9 @@ fun AddItemScreen(
                     enabled = !uiState.isLoading,
                     height = 36.dp,
                     horizontalPadding = 14.dp,
-                    tint = Primary(),
                     modifier = Modifier.align(Alignment.CenterEnd)
                 ) {
-                    Text("保存", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text("保存", color = Primary(), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         },
@@ -284,10 +283,9 @@ fun AddItemScreen(
                         backdrop = step1NextRowBackdrop,
                         height = 48.dp,
                         horizontalPadding = 20.dp,
-                        tint = Primary(),
                         modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
-                        Text("下一步 →", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
                 }
             }
@@ -494,10 +492,9 @@ fun AddItemScreen(
                             onClick = { currentStep = 2 },
                             backdrop = step2RowBackdrop,
                             height = 48.dp,
-                            horizontalPadding = 20.dp,
-                            tint = Primary()
+                            horizontalPadding = 20.dp
                         ) {
-                            Text("下一步 →", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         }
                     }
                 }
@@ -583,14 +580,13 @@ fun AddItemScreen(
                             backdrop = step3RowBackdrop,
                             enabled = !uiState.isLoading,
                             height = 48.dp,
-                            horizontalPadding = 20.dp,
-                            tint = Primary()
+                            horizontalPadding = 20.dp
                         ) {
                             if (uiState.isLoading) {
-                                CircularProgressIndicator(Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
+                                CircularProgressIndicator(Modifier.size(16.dp), color = Primary(), strokeWidth = 2.dp)
                                 Spacer(Modifier.width(8.dp))
                             }
-                            Text("完成保存 ✓", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text("完成保存 ✓", color = Primary(), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         }
                     }
                 }

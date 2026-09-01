@@ -168,12 +168,11 @@ fun AboutScreen(
                 backdrop = backdrop,
                 modifier = Modifier.fillMaxWidth(),
                 height = 52.dp,
-                enabled = !isChecking,
-                tint = Primary()
+                enabled = !isChecking
             ) {
-                Icon(Icons.Rounded.Refresh, null, Modifier.size(20.dp), tint = Color.White)
+                Icon(Icons.Rounded.Refresh, null, Modifier.size(20.dp), tint = Primary())
                 Spacer(Modifier.width(8.dp))
-                Text(if (isChecking) "正在检查..." else "检查更新", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(if (isChecking) "正在检查..." else "检查更新", color = Primary(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
