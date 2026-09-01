@@ -20,8 +20,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.LiquidIconButton
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.clickable
@@ -49,15 +54,33 @@ fun CategoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val fabBrush = backgroundBrush()
+    val fabBackdrop = rememberLayerBackdrop {
+        drawRect(brush = fabBrush)
+        drawContent()
+    }
+
     Scaffold(
         containerColor = Color.Transparent,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.showAddDialog() },
-                containerColor = Primary(),
-                shape = RoundedCornerShape(18.dp)
-            ) {
-                Icon(Icons.Rounded.Add, "新增", tint = Color.White)
+            Box(Modifier.size(56.dp)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(fabBackdrop)
+                )
+                LiquidGlassButton(
+                    onClick = { viewModel.showAddDialog() },
+                    backdrop = fabBackdrop,
+                    modifier = Modifier.align(Alignment.Center),
+                    height = 48.dp,
+                    horizontalPadding = 16.dp,
+                    tint = Primary()
+                ) {
+                    Icon(Icons.Rounded.Add, "新增", Modifier.size(20.dp), tint = Color.White)
+                    Spacer(Modifier.width(4.dp))
+                    Text("新增", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     ) { padding ->
@@ -166,28 +189,37 @@ private fun CategoryGridCard(
         colors = CardDefaults.cardColors(containerColor = CardBg()),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Surface(
-                Modifier.size(48.dp), RoundedCornerShape(16.dp),
-                color = Primary().copy(alpha = 0.10f)
+        val cardBrush = backgroundBrush()
+        val cardBackdrop = rememberLayerBackdrop {
+            drawRect(brush = cardBrush)
+            drawContent()
+        }
+        Box(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.fillMaxWidth().layerBackdrop(cardBackdrop).padding(20.dp).padding(bottom = 56.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(icon, category.name, tint = Primary(), modifier = Modifier.size(26.dp))
+                Surface(
+                    Modifier.size(48.dp), RoundedCornerShape(16.dp),
+                    color = Primary().copy(alpha = 0.10f)
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(icon, category.name, tint = Primary(), modifier = Modifier.size(26.dp))
+                    }
                 }
+                Spacer(Modifier.height(12.dp))
+                Text(category.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center, maxLines = 1)
+                Spacer(Modifier.height(4.dp))
+                Text("$itemCount 件物品", fontSize = 12.sp, color = TextAuxiliary())
             }
-            Spacer(Modifier.height(12.dp))
-            Text(category.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center, maxLines = 1)
-            Spacer(Modifier.height(4.dp))
-            Text("$itemCount 件物品", fontSize = 12.sp, color = TextAuxiliary())
-            Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.Center) {
-                IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+            Row(
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LiquidIconButton(onClick = onEdit, backdrop = cardBackdrop, size = 32.dp) {
                     Icon(Icons.Rounded.Edit, "编辑", tint = Primary(), modifier = Modifier.size(16.dp))
                 }
-                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                LiquidIconButton(onClick = onDelete, backdrop = cardBackdrop, size = 32.dp) {
                     Icon(Icons.Rounded.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(16.dp))
                 }
             }
