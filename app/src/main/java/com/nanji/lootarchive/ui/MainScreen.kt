@@ -4,11 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,10 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,10 +35,8 @@ import coil.compose.AsyncImage
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
-import com.nanji.lootarchive.ui.component.GlassPanel
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.PhotoQueue
-import dev.chrisbanes.haze.HazeState
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.nanji.lootarchive.ui.liquidglass.*
@@ -79,7 +69,6 @@ fun MainScreen() {
     val avatarUri by settingsVM.uiState.collectAsState()
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var showCategorySheet by remember { mutableStateOf(false) }
-    val hazeState = remember { HazeState() }
     val bgBrush = backgroundBrush()
     val backdrop = rememberLayerBackdrop {
         drawRect(brush = bgBrush)
@@ -222,63 +211,19 @@ fun MainScreen() {
                 }
             }
 
-            // ── v5.0 浮动胶囊式底部导航 ──
+            // ── v5.0 液态玻璃可拖拽底部导航 ──
             if (!isSubPage) {
-                GlassPanel(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp, start = 20.dp, end = 20.dp),
-                    hazeState = hazeState,
-                    shape = RoundedCornerShape(24.dp),
-                    shadowElevation = 8.dp,
-                    blurRadius = 24.dp
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        MainTab.entries.forEachIndexed { index, tab ->
-                            val selected = currentTab == index
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .semantics { role = Role.Tab; this.selected = selected }
-                                    .clickable { switchTab(index) }
-                                    .padding(vertical = 3.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(if (selected) 36.dp else 28.dp)
-                                        .then(
-                                            if (selected)
-                                                Modifier.background(
-                                                    Primary().copy(alpha = 0.12f),
-                                                    RoundedCornerShape(12.dp)
-                                                )
-                                            else Modifier
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        if (selected) tab.selectedIcon else tab.unselectedIcon,
-                                        tab.label,
-                                        modifier = Modifier.size(24.dp),
-                                        tint = if (selected) Primary() else TextAuxiliary()
-                                    )
-                                }
-                                Spacer(Modifier.height(1.dp))
-                                Text(
-                                    tab.label,
-                                    fontSize = 11.sp,
-                                    color = if (selected) Primary() else TextAuxiliary(),
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                                )
-                            }
-                        }
-                    }
+                val backdrop = LocalPageBackdrop.current
+                if (backdrop != null) {
+                    LiquidGlassBottomBar(
+                        tabs = MainTab.entries.map { LiquidGlassTab(it.label, it.unselectedIcon, it.selectedIcon) },
+                        selectedTabIndex = currentTab,
+                        onTabSelected = ::switchTab,
+                        backdrop = backdrop,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
+                    )
                 }
             }
             } // close ProvidePageBackdrop
