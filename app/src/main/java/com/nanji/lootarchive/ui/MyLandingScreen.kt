@@ -33,6 +33,10 @@ import coil.compose.AsyncImage
 import java.text.NumberFormat
 
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
 import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.util.ApkDownloadManager
 import com.nanji.lootarchive.util.Feedback
@@ -317,8 +321,24 @@ fun MyLandingScreen(
                 MyMenuItem(Icons.Rounded.Backup, "备份与恢复", "导出/导入数据", onNavigateToBackup)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                 MyMenuItem(Icons.Rounded.Delete, "回收站", "查看和还原已删除物品", onNavigateToRecycleBin)
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Rounded.SystemUpdate, "检查更新", "检测GitHub最新版本") {
+            }
+        }
+
+        // ── v6.8 检查更新（液态玻璃按钮）──
+        val updateBgBrush = backgroundBrush()
+        val updateBackdrop = rememberLayerBackdrop {
+            drawRect(brush = updateBgBrush)
+            drawContent()
+        }
+        Box(Modifier.fillMaxWidth()) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .layerBackdrop(updateBackdrop)
+            )
+            LiquidGlassButton(
+                onClick = {
                     if (!isChecking) {
                         isChecking = true
                         scope.launch {
@@ -332,7 +352,26 @@ fun MyLandingScreen(
                             isChecking = false
                         }
                     }
+                },
+                backdrop = updateBackdrop,
+                modifier = Modifier.fillMaxWidth(),
+                height = 56.dp,
+                horizontalPadding = 16.dp
+            ) {
+                Surface(
+                    Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                    color = Primary().copy(alpha = 0.10f)
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.SystemUpdate, null, Modifier.size(20.dp), tint = Primary())
+                    }
                 }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("检查更新", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                    Text("检测GitHub最新版本", fontSize = 12.sp, color = TextAuxiliary())
+                }
+                Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
             }
         }
 
