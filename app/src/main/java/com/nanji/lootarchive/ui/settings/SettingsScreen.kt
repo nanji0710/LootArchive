@@ -22,9 +22,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import android.widget.Toast
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentOption
+import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentedControl
+import com.nanji.lootarchive.ui.liquidglass.LiquidToggle
 import com.nanji.lootarchive.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,38 +78,61 @@ fun SettingsScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column {
-                    // 显示模式
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("显示模式", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("system" to "跟随", "light" to "浅色", "dark" to "深色").forEach { (mode, label) ->
-                                FilterChip(
-                                    selected = uiState.themeMode == mode,
-                                    onClick = { if (uiState.themeMode != mode) viewModel.setThemeMode(mode) },
-                                    label = { Text(label, fontSize = 12.sp) },
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Primary().copy(alpha = 0.15f),
-                                        selectedLabelColor = Primary()
-                                    )
-                                )
-                            }
+                    // 显示模式（液态分段控件）
+                    val themeRowSurfaceColor = LocalGlassColors.current.cardBg
+                    val themeRowSurface = rememberLayerBackdrop {
+                        drawRect(themeRowSurfaceColor)
+                        drawContent()
+                    }
+                    Box(Modifier.fillMaxWidth()) {
+                        Row(
+                            Modifier.fillMaxWidth().layerBackdrop(themeRowSurface)
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("显示模式", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
                         }
+                        LiquidSegmentedControl(
+                            options = listOf(
+                                LiquidSegmentOption("跟随", Icons.Rounded.SystemUpdateAlt),
+                                LiquidSegmentOption("浅色", Icons.Rounded.LightMode),
+                                LiquidSegmentOption("深色", Icons.Rounded.DarkMode)
+                            ),
+                            selectedIndex = when (uiState.themeMode) {
+                                "light" -> 1; "dark" -> 2; else -> 0
+                            },
+                            onSelected = { idx ->
+                                viewModel.setThemeMode(listOf("system", "light", "dark")[idx])
+                            },
+                            backdrop = themeRowSurface,
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            containerHeight = 40.dp,
+                            contentPadding = 3.dp,
+                            showIcons = false,
+                            labelFontSize = 12.sp,
+                            showSelectionShadow = false
+                        )
                     }
                     // v6.7 跟随壁纸动态色（Android 12+）
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("跟随壁纸动态色", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                        Text("Android 12+", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(end = 8.dp))
-                        Switch(
+                    val dynamicRowBackdropColor = LocalGlassColors.current.cardBg
+                    val dynamicRowBackdrop = rememberLayerBackdrop {
+                        drawRect(dynamicRowBackdropColor)
+                        drawContent()
+                    }
+                    Box(Modifier.fillMaxWidth()) {
+                        Row(
+                            Modifier.fillMaxWidth().layerBackdrop(dynamicRowBackdrop)
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("跟随壁纸动态色", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                            Text("Android 12+", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(end = 8.dp))
+                        }
+                        LiquidToggle(
                             checked = uiState.dynamicColor,
                             onCheckedChange = viewModel::setDynamicColor,
-                            colors = SwitchDefaults.colors(checkedTrackColor = Primary())
+                            backdrop = dynamicRowBackdrop,
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 14.dp)
                         )
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
@@ -177,15 +205,24 @@ fun SettingsScreen(
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                     // v6.0 备份提醒开关
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("备份提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
-                        Switch(
+                    val reminderRowBackdropColor = LocalGlassColors.current.cardBg
+                    val reminderRowBackdrop = rememberLayerBackdrop {
+                        drawRect(reminderRowBackdropColor)
+                        drawContent()
+                    }
+                    Box(Modifier.fillMaxWidth()) {
+                        Row(
+                            Modifier.fillMaxWidth().layerBackdrop(reminderRowBackdrop)
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("备份提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        }
+                        LiquidToggle(
                             checked = uiState.backupReminderEnabled,
-                            onCheckedChange = { viewModel.setBackupReminder(it) },
-                            colors = SwitchDefaults.colors(checkedTrackColor = Primary().copy(alpha = 0.5f), checkedThumbColor = Primary())
+                            onCheckedChange = viewModel::setBackupReminder,
+                            backdrop = reminderRowBackdrop,
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 14.dp)
                         )
                     }
                 }
