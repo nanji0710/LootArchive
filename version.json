@@ -1,7 +1,7 @@
 {
-  "versionName": "6.9.1",
-  "versionCode": 691,
+  "versionName": "6.9.2",
+  "versionCode": 692,
   "updateDate": "2026-09-01",
-  "updateLog": "v6.9.1 稳定性修复\n- 修复: 关于页、新增/编辑物品页闪退（液态玻璃捕获层自采样问题，按钮统一移至层外）\n- 修复: 主页面左右滑动切换时底部导航延迟与错位（底栏实时跟随滑动）\n- 修复: 设置页「显示模式」深浅色切换控件遮挡标题\n- 修复: 分类页新增按钮文字截断；新增按钮改为通透液态玻璃效果（主色图标）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.1/LootArchive-release-v6.9.1.apk"
+  "updateLog": "v6.9.2 视觉优化\n- 检查更新按钮：去除底色，改为纯通透液态玻璃（主色图标与文字）\n- 新增/编辑物品向导按钮（保存/下一步/完成保存）：去除底色，纯通透玻璃 + 主色文字\n- 分类管理新增按钮：统一为通透液态玻璃效果（与首页新增物品按钮风格一致）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.2/LootArchive-release-v6.9.2.apk"
 }

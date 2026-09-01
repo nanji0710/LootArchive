@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.9.1-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.9.2-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -287,11 +287,16 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.9.1.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.9.2.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.9.2 (2026-09-01) 视觉优化
+- 检查更新按钮：去除底色，改为纯通透液态玻璃（主色图标与文字）
+- 新增/编辑物品向导按钮（保存/下一步/完成保存）：去除底色，纯通透玻璃 + 主色文字
+- 分类管理新增按钮：统一为通透液态玻璃效果（与首页新增物品按钮风格一致）
 
 ### v6.9.1 (2026-09-01) 稳定性修复
 - 修复: 关于页、新增/编辑物品页闪退（液态玻璃捕获层自采样问题，按钮统一移至层外）
