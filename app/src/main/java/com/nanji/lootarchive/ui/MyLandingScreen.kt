@@ -1,8 +1,6 @@
 package com.nanji.lootarchive.ui
 
-import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,21 +31,7 @@ import java.text.NumberFormat
 
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
-import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
-import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.nanji.lootarchive.BuildConfig
-import com.nanji.lootarchive.util.ApkDownloadManager
 import com.nanji.lootarchive.util.Feedback
-import com.nanji.lootarchive.util.UpdateChecker
-import com.nanji.lootarchive.util.UpdateInfo
-import com.nanji.lootarchive.util.isValidVersionName
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
-private val CURRENT_VERSION_CODE: Int get() = com.nanji.lootarchive.BuildConfig.VERSION_CODE
 
 @Composable
 fun MyLandingScreen(
@@ -56,24 +39,12 @@ fun MyLandingScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToCategory: () -> Unit,
     onNavigateToBackup: () -> Unit,
-    onNavigateToRecycleBin: () -> Unit
+    onNavigateToRecycleBin: () -> Unit,
+    onNavigateToAbout: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var isChecking by remember { mutableStateOf(false) }
-    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var showNoUpdate by remember { mutableStateOf(false) }
-    var checkError by remember { mutableStateOf<String?>(null) }
-
-    var isDownloading by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableStateOf(ApkDownloadManager.Progress()) }
-    var downloadError by remember { mutableStateOf<String?>(null) }
     var showLevelDialog by remember { mutableStateOf(false) }
     var showExpDialog by remember { mutableStateOf(false) }
     var showAchievementDetail by remember { mutableStateOf<com.nanji.lootarchive.data.local.entity.AchievementEntity?>(null) }
-
-    val downloader = remember { ApkDownloadManager(context) }
 
     val homeVM: com.nanji.lootarchive.ui.home.HomeViewModel = hiltViewModel()
     val homeState by homeVM.uiState.collectAsState()
@@ -107,6 +78,7 @@ fun MyLandingScreen(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Text("我的", fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
         // ── v5.5 收藏家卡片（方案A：双行分区）──
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -322,71 +294,8 @@ fun MyLandingScreen(
                 MyMenuItem(Icons.Rounded.Backup, "备份与恢复", "导出/导入数据", onNavigateToBackup)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                 MyMenuItem(Icons.Rounded.Delete, "回收站", "查看和还原已删除物品", onNavigateToRecycleBin)
-            }
-        }
-
-        // ── v6.8 检查更新（液态玻璃按钮）──
-        val updateBgBrush = backgroundBrush()
-        val updateBackdrop = rememberLayerBackdrop {
-            drawRect(brush = updateBgBrush)
-            drawContent()
-        }
-        Box(Modifier.fillMaxWidth()) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .layerBackdrop(updateBackdrop)
-            )
-            LiquidGlassButton(
-                onClick = {
-                    if (!isChecking) {
-                        isChecking = true
-                        scope.launch {
-                            try {
-                                val result = UpdateChecker.check(CURRENT_VERSION_CODE)
-                                result.onSuccess { info ->
-                                    if (info != null) { updateInfo = info; showUpdateDialog = true }
-                                    else { showNoUpdate = true }
-                                }.onFailure { e -> checkError = e.message }
-                            } catch (e: Exception) { checkError = e.message }
-                            isChecking = false
-                        }
-                    }
-                },
-                backdrop = updateBackdrop,
-                modifier = Modifier.fillMaxWidth(),
-                height = 56.dp,
-                horizontalPadding = 16.dp
-            ) {
-                Surface(
-                    Modifier.size(38.dp), RoundedCornerShape(12.dp),
-                    color = Primary().copy(alpha = 0.10f)
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.SystemUpdate, null, Modifier.size(20.dp), tint = Primary())
-                    }
-                }
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("检查更新", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                    Text("检测GitHub最新版本", fontSize = 12.sp, color = TextAuxiliary())
-                }
-                Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
-            }
-        }
-
-        // ── 关于 ──
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBg()),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-        ) {
-            Column(Modifier.padding(18.dp)) {
-                Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
-                Spacer(Modifier.height(4.dp))
-                Text("当前版本 v${BuildConfig.VERSION_NAME}", fontSize = 13.sp, color = TextAuxiliary())
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
+                MyMenuItem(Icons.Rounded.Info, "关于", "版本信息、检查更新", onNavigateToAbout)
             }
         }
 
@@ -394,106 +303,6 @@ fun MyLandingScreen(
     }
 
     // ...弹窗保持原有逻辑...
-    if (showUpdateDialog && updateInfo != null) {
-        LiquidAlertDialog(
-            onDismissRequest = { showUpdateDialog = false },
-            title = { Text("发现新版本", fontWeight = FontWeight.Bold, color = TextPrimary()) },
-            text = {
-                Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState()).fillMaxWidth()) {
-                    Text("版本：${updateInfo!!.versionName}", fontSize = 16.sp, color = TextPrimary())
-                    Spacer(Modifier.height(4.dp))
-                    Text("更新日期：${updateInfo!!.updateDate}", fontSize = 14.sp, color = TextSecondary())
-                    Spacer(Modifier.height(8.dp))
-                    Text("更新内容：", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                    Text(updateInfo!!.updateLog, fontSize = 13.sp, color = TextSecondary())
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val url = updateInfo!!.apkDownloadUrl
-                    val safeVersion = updateInfo!!.versionName.takeIf { isValidVersionName(it) }
-                    val fileName = safeVersion?.let { "LootArchive-v$it.apk" } ?: return@TextButton
-                    if (url.isNotEmpty()) {
-                        showUpdateDialog = false; isDownloading = true
-                        downloadError = null; downloadProgress = ApkDownloadManager.Progress()
-                        scope.launch {
-                            val result = downloader.download(url, fileName) { progress -> downloadProgress = progress }
-                            result.onSuccess { file ->
-                                isDownloading = false
-                                if (!downloader.install(file)) downloadError = "无法启动安装器"
-                            }.onFailure { e ->
-                                isDownloading = false
-                                downloadError = "下载失败: ${e.message ?: "未知错误"}"
-                            }
-                        }
-                    } else { Toast.makeText(context, "暂无下载地址", Toast.LENGTH_SHORT).show() }
-                }) { Text("下载并安装", color = Primary(), fontWeight = FontWeight.SemiBold) }
-            },
-            dismissButton = { TextButton(onClick = { showUpdateDialog = false }) { Text("取消") } }
-        )
-    }
-
-    if (showNoUpdate) {
-        LiquidAlertDialog(
-            onDismissRequest = { showNoUpdate = false },
-            title = { Text("已是最新版本", color = TextPrimary()) },
-            text = { Text("当前已是最新版本 v${BuildConfig.VERSION_NAME}", color = TextSecondary()) },
-            confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
-        )
-    }
-
-    if (checkError != null) {
-        LiquidAlertDialog(
-            onDismissRequest = { checkError = null },
-            title = { Text("检查失败", color = TextPrimary()) },
-            text = { Text("无法连接到更新服务器：${checkError}", color = TextSecondary()) },
-            confirmButton = { TextButton(onClick = { checkError = null }) { Text("确定", color = Primary()) } }
-        )
-    }
-
-    if (isChecking) {
-        LiquidAlertDialog(
-            onDismissRequest = {},
-            title = { Text("正在检查更新...", color = TextPrimary()) },
-            text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator(color = Primary()) } },
-            confirmButton = { }
-        )
-    }
-
-    if (isDownloading) {
-        LiquidAlertDialog(
-            onDismissRequest = {},
-            title = { Text("正在下载更新...", fontWeight = FontWeight.Bold, color = TextPrimary()) },
-            text = {
-                Column(Modifier.fillMaxWidth()) {
-                    LinearProgressIndicator(
-                        progress = { downloadProgress.percentage / 100f },
-                        modifier = Modifier.fillMaxWidth(), color = Primary(),
-                        trackColor = Primary().copy(alpha = 0.12f)
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(downloadProgress.percentText, fontSize = 14.sp, color = Primary(), fontWeight = FontWeight.Bold)
-                        Text(downloadProgress.speedText, fontSize = 12.sp, color = TextAuxiliary())
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Text(downloadProgress.sizeText, fontSize = 12.sp, color = TextAuxiliary())
-                }
-            },
-            confirmButton = { },
-            dismissButton = { }
-        )
-    }
-
-    if (downloadError != null) {
-        LiquidAlertDialog(
-            onDismissRequest = { downloadError = null },
-            title = { Text("下载失败", color = TextPrimary()) },
-            text = { Text(downloadError!!, color = TextSecondary()) },
-            confirmButton = { TextButton(onClick = { downloadError = null }) { Text("确定", color = Primary()) } }
-        )
-    }
-
     if (showLevelDialog) {
         LiquidAlertDialog(
             onDismissRequest = { showLevelDialog = false },

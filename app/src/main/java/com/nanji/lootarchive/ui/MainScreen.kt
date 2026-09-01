@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.additem.AddItemScreen
+import com.nanji.lootarchive.ui.about.AboutScreen
 import com.nanji.lootarchive.ui.backup.BackupScreen
 import com.nanji.lootarchive.ui.camera.CameraScreen
 import com.nanji.lootarchive.ui.recyclebin.RecycleBinScreen
@@ -52,6 +53,7 @@ private object Route {
     const val ADD="add"; const val DETAIL="detail"; const val SEARCH="search"
     const val SETTINGS="settings"; const val CATEGORY="category"
     const val BACKUP="backup"; const val CAMERA="camera"; const val RECYCLEBIN="recyclebin"
+    const val ABOUT="about"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -139,7 +141,8 @@ fun MainScreen() {
                             onNavigateToSettings = { navigate(Route.SETTINGS) },
                             onNavigateToCategory = { navigate(Route.CATEGORY) },
                             onNavigateToBackup = { navigate(Route.BACKUP) },
-                            onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) }
+                            onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) },
+                            onNavigateToAbout = { navigate(Route.ABOUT) }
                         )
                         Route.ADD -> AddItemScreen(
                             editItemId = editItemId,
@@ -163,6 +166,7 @@ fun MainScreen() {
                         Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                         Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
                         Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
+                        Route.ABOUT -> AboutScreen(onNavigateBack={goBack()})
                         Route.CAMERA -> CameraScreen(
                             onBack = { goBack() },
                             onPhotoTaken = { paths ->
