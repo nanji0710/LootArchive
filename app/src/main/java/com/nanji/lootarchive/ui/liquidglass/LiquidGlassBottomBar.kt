@@ -221,14 +221,22 @@ internal fun LiquidBottomTabs(
             if (pendingCallback == index) pendingCallback = null
         }
 
-        val interactiveHighlight = remember(animationScope) {
+        val selectionHeightPx = with(LocalDensity.current) { (containerHeight - contentPadding * 2).toPx() }
+        val interactiveHighlight = remember(animationScope, selectionHeightPx) {
             InteractiveHighlight(
                 animationScope = animationScope,
                 position = { size, offset ->
+                    val lensCenterX =
+                        if (isLtr) {
+                            (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
+                        } else {
+                            size.width -
+                                (dampedDragAnimation.value + 0.5f) * tabWidth +
+                                panelOffset
+                        }
                     Offset(
-                        if (isLtr) (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
-                        else size.width - (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset,
-                        size.height / 2f
+                        lensCenterX + (offset.x - tabWidth / 2f),
+                        size.height / 2f + (offset.y - selectionHeightPx / 2f)
                     )
                 }
             )
