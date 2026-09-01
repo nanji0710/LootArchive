@@ -25,8 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidIconButton
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import java.io.File
 import java.text.NumberFormat
@@ -146,12 +150,31 @@ fun DetailScreen(
                 Box(Modifier.fillMaxWidth().height(100.dp).align(Alignment.BottomCenter).background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.30f)))))
                 if (data.photos.size > 1) { Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { data.photos.indices.forEach { i -> Surface(Modifier.size(if (i == cp) 8.dp else 6.dp), RoundedCornerShape(4.dp), color = if (i == cp) Color.White else Color.White.copy(alpha = 0.45f)) {} } } }
             } else { Box(Modifier.fillMaxSize().background(Brush.linearGradient(if (LocalDarkTheme.current) listOf(Color(0xFF3D2A1A), Color(0xFF2D2010)) else listOf(Color(0xFFFFD4B8), Color(0xFFFFB890)))), contentAlignment = Alignment.Center) { Text(data.item.name.take(1), fontSize = 90.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.30f), fontFamily = FredokaFont) } }
-            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 10.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(onClick = onNavigateBack, modifier = Modifier.size(40.dp), shape = RoundedCornerShape(20.dp), color = Color.Black.copy(alpha = 0.22f)) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = Color.White, modifier = Modifier.size(20.dp)) } }
-                Spacer(Modifier.weight(1f))
-                Surface(onClick = { onNavigateToEdit(data.item.id) }, modifier = Modifier.size(40.dp), shape = RoundedCornerShape(20.dp), color = Color.Black.copy(alpha = 0.22f)) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Edit, "编辑", tint = Color.White, modifier = Modifier.size(18.dp)) } }
-                Spacer(Modifier.width(8.dp))
-                Surface(onClick = { viewModel.showDeleteConfirm() }, modifier = Modifier.size(40.dp), shape = RoundedCornerShape(20.dp), color = Color.Black.copy(alpha = 0.22f)) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(18.dp)) } }
+            val topActionsBrush = backgroundBrush()
+            val topActionsBackdrop = rememberLayerBackdrop {
+                drawRect(brush = topActionsBrush)
+                drawContent()
+            }
+            Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 10.dp, vertical = 10.dp)) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .layerBackdrop(topActionsBackdrop)
+                )
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    LiquidIconButton(onClick = onNavigateBack, backdrop = topActionsBackdrop) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.weight(1f))
+                    LiquidIconButton(onClick = { onNavigateToEdit(data.item.id) }, backdrop = topActionsBackdrop) {
+                        Icon(Icons.Rounded.Edit, "编辑", tint = TextPrimary(), modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    LiquidIconButton(onClick = { viewModel.showDeleteConfirm() }, backdrop = topActionsBackdrop) {
+                        Icon(Icons.Rounded.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(18.dp))
+                    }
+                }
             }
         }
     }
