@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.ui.MainScreen
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.onboarding.OnboardingScreen
 import com.nanji.lootarchive.ui.theme.LootArchiveTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,7 +44,11 @@ class MainActivity : ComponentActivity() {
                 showOnboarding = !settingsRepository.onboardingCompleted.first()
             }
             LootArchiveTheme(themeMode = themeMode, primaryColor = primaryColor, dynamicColor = dynamicColor) {
-                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(backgroundBrush())
+                ) {
                     if (showOnboarding) {
                         val scope = rememberCoroutineScope()
                         OnboardingScreen(

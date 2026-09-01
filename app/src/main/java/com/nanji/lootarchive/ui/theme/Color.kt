@@ -24,6 +24,12 @@ val _OnSecondary = Color(0xFFFFFFFF)
 val _BackgroundLight = Color(0xFFFBF9F6)    // 暖象牙白 — 有温度的画布
 val _BackgroundDark = Color(0xFF0C0C10)      // 深暖黑
 
+// ── 渐变背景（液态玻璃画布）──
+val _BackgroundGradientLightStart = Color(0xFFFBF9F6)
+val _BackgroundGradientLightEnd = Color(0xFFF4E9DD)   // 暖奶油
+val _BackgroundGradientDarkStart = Color(0xFF0C0C10)
+val _BackgroundGradientDarkEnd = Color(0xFF171118)     // 暖黑
+
 val _SurfaceLight = Color(0xFFFFFFFF)        // 纯白表面
 val _SurfaceDark = Color(0xFF1C1C24)         // 深紫灰
 
