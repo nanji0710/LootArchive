@@ -140,6 +140,14 @@
 - [ ] Step 3: `rg "FilterChip|FloatingActionButton|OutlinedButton|Button\(" app/src/main/java` 残留盘点（仅允许 TextButton 用于弹窗内 + 合理例外，逐条说明）
 - [ ] Step 4: 最终审查 + 收尾
 
+### Task 13: 版本迭代 + 更新日志 + README（用户追加要求）
+
+- [ ] Step 1: `app/build.gradle.kts` versionCode 680→690、versionName "6.8.0"→"6.9.0"
+- [ ] Step 2: `version.json` 同步（updateDate 当日、详细 updateLog 覆盖本轮全部改动、apkDownloadUrl → V6.9.0）
+- [ ] Step 3: `README.md` 徽章/技术栈/更新日志首条（v6.9.0）同步
+- [ ] Step 4: `.\gradlew.bat :app:assembleRelease -x lintVitalRelease` + APK 复制到桌面
+- [ ] Step 5: 提交（3 文件）
+
 ---
 
 ## Self-Review 结论
