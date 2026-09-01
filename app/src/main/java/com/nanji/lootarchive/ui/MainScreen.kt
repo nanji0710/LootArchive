@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,12 +16,8 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.saveable.rememberSaveable
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,7 +47,9 @@ import com.nanji.lootarchive.ui.component.GlassPanel
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.PhotoQueue
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.nanji.lootarchive.ui.liquidglass.*
 
 enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
     HOME("首页", Icons.Rounded.Home, Icons.Outlined.Home),
@@ -83,6 +80,11 @@ fun MainScreen() {
     var drawerCategoryFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var showCategorySheet by remember { mutableStateOf(false) }
     val hazeState = remember { HazeState() }
+    val bgBrush = backgroundBrush()
+    val backdrop = rememberLayerBackdrop {
+        drawRect(brush = bgBrush)
+        drawContent()
+    }
     var backStack by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
     fun navigate(route: String, id: Long? = null) {
@@ -109,9 +111,9 @@ fun MainScreen() {
         topBar = { /* 不使用 TopAppBar */ },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
-            // 内容区：hazeSource + 提供 LocalHazeState 给子组件
-            Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
-                CompositionLocalProvider(LocalHazeState provides hazeState) {
+            // 捕获层：绘制页面 backdrop 供悬浮玻璃组件采样
+            ProvidePageBackdrop(backdrop) {
+                Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
                 AnimatedContent(
                     targetState = currentRoute,
                     transitionSpec = {
@@ -180,65 +182,42 @@ fun MainScreen() {
                         )
                     }
                 }
-                } // close CompositionLocalProvider
-            } // close hazeSource Box
+                } // close layerBackdrop Box
 
-            // ── v5.1.4 首页悬浮搜索栏（Haze 玻璃模糊，在 hazeSource 之上）──
+            // ── 首页悬浮搜索栏（液态玻璃，采样页面 backdrop）──
             if (isHome) {
-                val dark = LocalDarkTheme.current
-                val searchGlassColor = if (dark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.55f)
-                val searchGlassStyle = HazeStyle(
-                    backgroundColor = Color.Transparent,
-                    tints = listOf(
-                        HazeTint(searchGlassColor),
-                        HazeTint(if (dark) Color.White.copy(alpha = 0.02f) else Color.White.copy(alpha = 0.06f))
-                    ),
-                    blurRadius = 20.dp,
-                    noiseFactor = 0f,
-                    fallbackTint = HazeTint(searchGlassColor)
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .height(48.dp)
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(22.dp),
-                            ambientColor = if (dark) Color.Black.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.04f),
-                            spotColor = if (dark) Color.Black.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.04f)
-                        )
-                        .clip(RoundedCornerShape(22.dp))
-                        .hazeEffect(state = hazeState, style = searchGlassStyle)
-                        .clickable { navigate(Route.SEARCH) }
-                ) {
-                    Row(
-                        Modifier.fillMaxSize().padding(horizontal = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                val backdrop = LocalPageBackdrop.current
+                if (backdrop != null) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
-                        Spacer(Modifier.width(8.dp))
-                        Text("搜索物品...", fontSize = 14.sp, color = TextAuxiliary())
+                        LiquidGlassButton(
+                            onClick = { navigate(Route.SEARCH) },
+                            backdrop = backdrop,
+                            modifier = Modifier.fillMaxWidth(),
+                            height = 48.dp,
+                            horizontalPadding = 14.dp
+                        ) {
+                            Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
+                            Spacer(Modifier.width(8.dp))
+                            Text("搜索物品...", fontSize = 14.sp, color = TextAuxiliary())
+                        }
                     }
-                }
 
-                // v5.1.4 胶囊形 FAB（缩小版）
-                Surface(
-                    onClick = { navigate(Route.ADD) },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 90.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    color = Primary(),
-                    shadowElevation = 6.dp
-                ) {
-                    Row(
-                        Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Color.White)
-                        Spacer(Modifier.width(4.dp))
-                        Text("新增物品", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    // 液态玻璃 FAB（缩小版）
+                    Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp)) {
+                        LiquidGlassButton(
+                            onClick = { navigate(Route.ADD) },
+                            backdrop = backdrop,
+                            height = 40.dp,
+                            horizontalPadding = 18.dp
+                        ) {
+                            Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Primary())
+                            Spacer(Modifier.width(4.dp))
+                            Text("新增物品", color = TextPrimary(), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }
@@ -302,6 +281,7 @@ fun MainScreen() {
                     }
                 }
             }
+            } // close ProvidePageBackdrop
         }
     }
 }
