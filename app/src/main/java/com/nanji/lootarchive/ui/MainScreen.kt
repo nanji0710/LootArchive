@@ -5,6 +5,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -94,6 +96,13 @@ fun MainScreen() {
     }
 
     val isSubPage = currentRoute !in listOf(Route.HOME, Route.STATS, Route.MY)
+    val pagerState = rememberPagerState(initialPage = currentTab, pageCount = { 3 })
+    LaunchedEffect(currentTab) {
+        if (pagerState.currentPage != currentTab) pagerState.animateScrollToPage(currentTab)
+    }
+    LaunchedEffect(pagerState.settledPage) {
+        if (pagerState.settledPage != currentTab && !isSubPage) switchTab(pagerState.settledPage)
+    }
     val isHome = currentRoute == Route.HOME
 
     BackHandler(enabled = isSubPage) { goBack() }
@@ -108,75 +117,82 @@ fun MainScreen() {
                 ProvideLiquidDialogHost(hostState) {
                     Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
                     AnimatedContent(
-                        targetState = currentRoute,
+                        targetState = if (isSubPage) currentRoute else "tabs",
                         transitionSpec = {
                             (fadeIn(animationSpec = tween(220)) + slideInHorizontally { it / 10 }) togetherWith
                             (fadeOut(animationSpec = tween(180)) + slideOutHorizontally { -it / 10 })
                         },
                         label = "page"
-                    ) { route ->
-                        when (route) {
-                        Route.HOME -> {
-                            HomeScreen(
-                                categoryFilter = drawerCategoryFilter,
-                                onNavigateToAddItem = { navigate(Route.ADD) },
-                                onNavigateToDetail = { navigate(Route.DETAIL, it) },
-                                onNavigateToSearch = { navigate(Route.SEARCH) },
-                                onNavigateToStats = { switchTab(1) },
-                                onNavigateToCategory = { navigate(Route.CATEGORY) },
-                                onExportExcel = { navigate(Route.BACKUP) },
-                                onImportExcel = { navigate(Route.BACKUP) },
-                                onBackupData = { navigate(Route.BACKUP) }
-                            )
-                        }
-                        Route.STATS -> {
-                            StatisticsScreen(
-                                onNavigateBack={goBack()},
-                                onNavigateToDetail={navigate(Route.DETAIL, it)},
-                                isTabMode=true
-                            )
-                        }
-                        Route.MY -> MyLandingScreen(
-                            avatarUri = avatarUri.avatarUri,
-                            onNavigateToSettings = { navigate(Route.SETTINGS) },
-                            onNavigateToCategory = { navigate(Route.CATEGORY) },
-                            onNavigateToBackup = { navigate(Route.BACKUP) },
-                            onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) },
-                            onNavigateToAbout = { navigate(Route.ABOUT) }
-                        )
-                        Route.ADD -> AddItemScreen(
-                            editItemId = editItemId,
-                            onNavigateBack = { editItemId = null; goBack() },
-                            onNavigateToCamera = { navigate(Route.CAMERA) },
-                            photoSession = cameraSession
-                        )
-                        Route.DETAIL -> DetailScreen(
-                            itemId=detailItemId,
-                            onNavigateBack={goBack()},
-                            onNavigateToEdit={navigate(Route.ADD, it)}
-                        )
-                        Route.SEARCH -> SearchScreen(
-                            onNavigateBack={goBack()},
-                            onNavigateToDetail={navigate(Route.DETAIL, it)}
-                        )
-                        Route.SETTINGS -> SettingsScreen(
-                            onNavigateBack={goBack()},
-                            onNavigateToCategory={navigate(Route.CATEGORY)}
-                        )
-                        Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
-                        Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
-                        Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
-                        Route.ABOUT -> AboutScreen(onNavigateBack={goBack()})
-                        Route.CAMERA -> CameraScreen(
-                            onBack = { goBack() },
-                            onPhotoTaken = { paths ->
-                                PhotoQueue.enqueue(paths)
-                                cameraSession++
-                                goBack()
+                    ) { state ->
+                        if (state == "tabs") {
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.fillMaxSize(),
+                                key = { it }
+                            ) { page ->
+                                when (page) {
+                                    0 -> HomeScreen(
+                                        categoryFilter = drawerCategoryFilter,
+                                        onNavigateToAddItem = { navigate(Route.ADD) },
+                                        onNavigateToDetail = { navigate(Route.DETAIL, it) },
+                                        onNavigateToSearch = { navigate(Route.SEARCH) },
+                                        onNavigateToStats = { switchTab(1) },
+                                        onNavigateToCategory = { navigate(Route.CATEGORY) },
+                                        onExportExcel = { navigate(Route.BACKUP) },
+                                        onImportExcel = { navigate(Route.BACKUP) },
+                                        onBackupData = { navigate(Route.BACKUP) }
+                                    )
+                                    1 -> StatisticsScreen(
+                                        onNavigateBack={goBack()},
+                                        onNavigateToDetail={navigate(Route.DETAIL, it)},
+                                        isTabMode=true
+                                    )
+                                    else -> MyLandingScreen(
+                                        avatarUri = avatarUri.avatarUri,
+                                        onNavigateToSettings = { navigate(Route.SETTINGS) },
+                                        onNavigateToCategory = { navigate(Route.CATEGORY) },
+                                        onNavigateToBackup = { navigate(Route.BACKUP) },
+                                        onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) },
+                                        onNavigateToAbout = { navigate(Route.ABOUT) }
+                                    )
+                                }
                             }
-                        )
+                        } else {
+                            when (state) {
+                                Route.ADD -> AddItemScreen(
+                                    editItemId = editItemId,
+                                    onNavigateBack = { editItemId = null; goBack() },
+                                    onNavigateToCamera = { navigate(Route.CAMERA) },
+                                    photoSession = cameraSession
+                                )
+                                Route.DETAIL -> DetailScreen(
+                                    itemId=detailItemId,
+                                    onNavigateBack={goBack()},
+                                    onNavigateToEdit={navigate(Route.ADD, it)}
+                                )
+                                Route.SEARCH -> SearchScreen(
+                                    onNavigateBack={goBack()},
+                                    onNavigateToDetail={navigate(Route.DETAIL, it)}
+                                )
+                                Route.SETTINGS -> SettingsScreen(
+                                    onNavigateBack={goBack()},
+                                    onNavigateToCategory={navigate(Route.CATEGORY)}
+                                )
+                                Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
+                                Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
+                                Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
+                                Route.ABOUT -> AboutScreen(onNavigateBack={goBack()})
+                                Route.CAMERA -> CameraScreen(
+                                    onBack = { goBack() },
+                                    onPhotoTaken = { paths ->
+                                        PhotoQueue.enqueue(paths)
+                                        cameraSession++
+                                        goBack()
+                                    }
+                                )
+                            }
+                        }
                     }
-                }
                     } // close layerBackdrop Box
 
                 // ── 首页悬浮搜索栏（液态玻璃，采样页面 backdrop）──
