@@ -5,12 +5,19 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.8.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.9.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
 
 ## 功能
+
+### 页面与交互
+
+- 我的页：分组式布局（收藏家 / 收藏亮点 / 功能入口）
+- 关于页：动态光斑背景 + 检查更新
+- 三主页面横向滑动切换（首页 / 统计 / 我的）
+- 全站液态玻璃按钮（向导 / 筛选 / 统计 / 详情 / 回收站 / 分类 / 备份）
 
 ### 物品管理
 
@@ -280,11 +287,24 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.8.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.9.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.9.0 (2026-09-01) 页面重构与全站玻璃化
+- **我的页**：重构为 RiseDiary 式分组布局（大标题 + 收藏家 + 收藏亮点 + 功能入口），新增「关于」入口
+- **关于页**：全新页面——动态暖色光斑背景、Logo 与版本、GitHub 链接、使用说明与数据隐私、底部液态玻璃「检查更新」按钮
+- **检查更新**：迁入关于页，按钮升级（主色 tint + 刷新图标 + 检查中状态），下载安装流程不变
+- **三主页滑动**：首页/统计/我的支持左右滑动切换（HorizontalPager），底栏点击与滑动双向同步
+- **光效跟手**：底部导航玻璃高光随手指滑动移动，按压交互更跟手
+- **设置页**：「个性化」模块重构——4 行补齐图标块与副标题（显示模式/动态色/头像/引导）
+- **向导按钮**：新增/编辑物品的保存、上一步、下一步、完成全部升级液态玻璃（主操作主色 tint）
+- **分类筛选**：首页「全部/分类」筛选升级液态玻璃胶囊（LiquidFilterChip）
+- **统计页**：时间筛选升级液态分段控件（可滑动镜头）；导出 CSV 升级液态玻璃按钮；修复浅色模式模块灰圈（玻璃卡阴影优化）
+- **更多按钮**：详情页编辑/删除、回收站清空/还原/删除、分类管理 FAB 与卡片操作、备份一键导出/导入 全部玻璃化
+- **工程**：新增 LiquidIconButton / LiquidFilterChip 组件，LiquidGlassButton 支持 tint/surfaceColor
 
 ### v6.8.0 (2026-09-01) 液态玻璃全面升级
 - **视觉引擎**：全站升级 Kyant Backdrop 液态玻璃（活力 vibrancy + 模糊 blur + 折射 lens + 按压高光 + 弹簧物理），Android 13+ 完整效果，Android 12/12L 自动降级兼容
