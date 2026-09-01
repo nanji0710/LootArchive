@@ -1,6 +1,8 @@
 package com.nanji.lootarchive.ui.about
 
 import android.widget.Toast
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +18,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -66,6 +70,7 @@ fun AboutScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
+        AnimatedOrbsBackground(Modifier.fillMaxSize())
         Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
@@ -271,5 +276,69 @@ private fun AboutTextItem(title: String, desc: String) {
         Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
         Spacer(Modifier.height(4.dp))
         Text(desc, fontSize = 13.sp, color = TextSecondary())
+    }
+}
+
+/**
+ * 动态光斑背景 —— 暖色光斑缓慢漂移（自研，全 API 级别可用）。
+ */
+@Composable
+private fun AnimatedOrbsBackground(modifier: Modifier = Modifier) {
+    val dark = LocalDarkTheme.current
+    val transition = rememberInfiniteTransition(label = "orbs")
+    val driftX by transition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(9000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "driftX"
+    )
+    val driftY by transition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(13000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "driftY"
+    )
+    val pulse by transition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(7000, easing = EaseInOutCubic), RepeatMode.Reverse),
+        label = "pulse"
+    )
+    val amber = Color(0xFFE8782A)
+    val purple = Color(0xFF7C3AED)
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val r = w * 0.28f
+        // 光斑1：暖琥珀（左上↔右下漂移）
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = if (dark) listOf(amber.copy(alpha = 0.16f + 0.04f * pulse), Color.Transparent)
+                else listOf(amber.copy(alpha = 0.14f + 0.05f * pulse), Color.Transparent),
+                center = Offset(w * (0.25f + 0.2f * driftX), h * (0.2f + 0.15f * driftY)),
+                radius = r
+            ),
+            radius = r,
+            center = Offset(w * (0.25f + 0.2f * driftX), h * (0.2f + 0.15f * driftY))
+        )
+        // 光斑2：优雅紫（右下↔左上漂移，相位相反）
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = if (dark) listOf(purple.copy(alpha = 0.12f + 0.03f * (1f - pulse)), Color.Transparent)
+                else listOf(purple.copy(alpha = 0.10f + 0.04f * (1f - pulse)), Color.Transparent),
+                center = Offset(w * (0.75f - 0.18f * driftX), h * (0.75f - 0.15f * driftY)),
+                radius = r
+            ),
+            radius = r,
+            center = Offset(w * (0.75f - 0.18f * driftX), h * (0.75f - 0.15f * driftY))
+        )
+        // 光斑3：柔白/柔金（中部小光斑）
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = if (dark) listOf(amber.copy(alpha = 0.06f + 0.03f * pulse), Color.Transparent)
+                else listOf(Color(0xFFFFF3E0).copy(alpha = 0.10f + 0.04f * pulse), Color.Transparent),
+                center = Offset(w * (0.5f + 0.12f * driftX), h * (0.5f + 0.1f * driftY)),
+                radius = w * 0.18f
+            ),
+            radius = w * 0.18f,
+            center = Offset(w * (0.5f + 0.12f * driftX), h * (0.5f + 0.1f * driftY))
+        )
     }
 }
