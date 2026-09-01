@@ -27,8 +27,8 @@ import com.nanji.lootarchive.ui.theme.*
 private val CardShape = RoundedCornerShape(20.dp)
 
 /**
- * v6.7 标准玻璃卡片 — 统一 Card 样板（CardBg 底 + 20dp 圆角 + 1dp 海拔）。
- * 消除各页面重复的 CardDefaults 样板。
+ * v6.7 标准玻璃卡片 — 统一 Card 样板（玻璃底 + 20dp 圆角 + 0 海拔，NeoCard 同款柔和阴影）。
+ * 消除各页面重复的 CardDefaults 样板；0 海拔避免半透明玻璃底透出灰圈。
  */
 @Composable
 fun GlassSurface(
@@ -36,11 +36,12 @@ fun GlassSurface(
     shape: Shape = CardShape,
     content: @Composable () -> Unit
 ) {
+    val glass = LocalGlassColors.current
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().shadow(4.dp, shape, ambientColor = Color.White.copy(alpha = 0.3f), spotColor = glass.shadow),
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = LocalGlassColors.current.glassBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = glass.glassBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         content = { content() }
     )
 }

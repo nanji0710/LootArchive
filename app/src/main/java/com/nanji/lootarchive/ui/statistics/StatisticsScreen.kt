@@ -28,7 +28,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentOption
+import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentedControl
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.component.GlassSurface
 import com.nanji.lootarchive.ui.component.RadarAxis
 import com.nanji.lootarchive.ui.component.RadarChart
@@ -63,7 +69,7 @@ fun StatisticsScreen(
             else Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = CardPadding, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
 
                 // ── 资产总览 ──
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = if (LocalDarkTheme.current) _CardDark else Color(0xFFFFF8F0)), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+                GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
                         Row(Modifier.fillMaxWidth()) {
                             Column(Modifier.weight(1f)) {
@@ -78,13 +84,40 @@ fun StatisticsScreen(
                             }
                         }
                         Spacer(Modifier.height(16.dp))
-                        Surface(Modifier.fillMaxWidth(), RoundedCornerShape(14.dp), color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.03f)) {
-                            Row(Modifier.padding(3.dp)) {
-                                listOf("all" to "全部", "3months" to "近三月", "6months" to "近半年", "1year" to "近一年").forEach { (k, l) ->
-                                    val sel = timeFilter == k
-                                    Surface(onClick = { timeFilter = k; viewModel.setTimeFilter(k) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), color = if (sel) Primary() else Color.Transparent) { Text(l, fontSize = 12.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal, color = if (sel) Color.White else TextSecondary(), modifier = Modifier.padding(vertical = 8.dp), textAlign = TextAlign.Center, fontFamily = FredokaFont) }
-                                }
-                            }
+                        // ── 液态玻璃时间筛选 ──
+                        val filterRowBrush = backgroundBrush()
+                        val filterBackdrop = rememberLayerBackdrop {
+                            drawRect(brush = filterRowBrush)
+                            drawContent()
+                        }
+                        Box(Modifier.fillMaxWidth()) {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(40.dp)
+                                    .layerBackdrop(filterBackdrop)
+                            )
+                            LiquidSegmentedControl(
+                                options = listOf(
+                                    LiquidSegmentOption("全部", Icons.Rounded.AllInclusive),
+                                    LiquidSegmentOption("近三月", Icons.Rounded.DateRange),
+                                    LiquidSegmentOption("近半年", Icons.Rounded.CalendarMonth),
+                                    LiquidSegmentOption("近一年", Icons.Rounded.CalendarToday)
+                                ),
+                                selectedIndex = when (timeFilter) { "3months" -> 1; "6months" -> 2; "1year" -> 3; else -> 0 },
+                                onSelected = { idx ->
+                                    val key = listOf("all", "3months", "6months", "1year")[idx]
+                                    timeFilter = key
+                                    viewModel.setTimeFilter(key)
+                                },
+                                backdrop = filterBackdrop,
+                                modifier = Modifier.fillMaxWidth(),
+                                containerHeight = 40.dp,
+                                contentPadding = 3.dp,
+                                showIcons = false,
+                                labelFontSize = 12.sp,
+                                showSelectionShadow = false
+                            )
                         }
                         // v6.6 已出收益（仅>0时显示）
                         if (uiState.saleRevenue > 0) {
@@ -287,38 +320,54 @@ fun StatisticsScreen(
                         Text("数据导出", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))
                         var showExportDone by remember { mutableStateOf(false) }
-                        Button(
-                            onClick = {
-                                try {
-                                    val csv = buildString {
-                                        appendLine("名称,分类,价格,位置,购入日期,状态,标签")
-                                        uiState.items.forEach { item ->
-                                            val cat = uiState.categorySummaries.find { it.category.id == item.categoryId }?.category?.name ?: "未知"
-                                            val date = item.purchaseDate?.let { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: ""
-                                            appendLine(listOf(item.name, cat, item.purchasePrice.toString(), item.storageLocation, date, item.status, item.tags).joinToString(",") { csvEscape(it) })
+                        // ── 导出 CSV（液态玻璃按钮）──
+                        val exportBrush = backgroundBrush()
+                        val exportBackdrop = rememberLayerBackdrop {
+                            drawRect(brush = exportBrush)
+                            drawContent()
+                        }
+                        Box(Modifier.fillMaxWidth()) {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                                    .layerBackdrop(exportBackdrop)
+                            )
+                            LiquidGlassButton(
+                                onClick = {
+                                    try {
+                                        val csv = buildString {
+                                            appendLine("名称,分类,价格,位置,购入日期,状态,标签")
+                                            uiState.items.forEach { item ->
+                                                val cat = uiState.categorySummaries.find { it.category.id == item.categoryId }?.category?.name ?: "未知"
+                                                val date = item.purchaseDate?.let { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: ""
+                                                appendLine(listOf(item.name, cat, item.purchasePrice.toString(), item.storageLocation, date, item.status, item.tags).joinToString(",") { csvEscape(it) })
+                                            }
                                         }
+                                        val fileName = "物品资产_${java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())}.csv"
+                                        val file = java.io.File(context.cacheDir, fileName)
+                                        file.writeText(csv, java.nio.charset.Charset.forName("UTF-8"))
+                                        val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                            type = "text/csv"
+                                            putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        context.startActivity(android.content.Intent.createChooser(intent, "导出CSV文件"))
+                                        showExportDone = true
+                                    } catch (e: Exception) {
+                                        android.widget.Toast.makeText(context, "导出失败: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
                                     }
-                                    val fileName = "物品资产_${java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())}.csv"
-                                    val file = java.io.File(context.cacheDir, fileName)
-                                    file.writeText(csv, java.nio.charset.Charset.forName("UTF-8"))
-                                    val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                        type = "text/csv"
-                                        putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    }
-                                    context.startActivity(android.content.Intent.createChooser(intent, "导出CSV文件"))
-                                    showExportDone = true
-                                } catch (e: Exception) {
-                                    android.widget.Toast.makeText(context, "导出失败: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Primary())
-                        ) {
-                            Icon(Icons.Rounded.FileDownload, null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("导出CSV文件", fontWeight = FontWeight.Medium)
+                                },
+                                backdrop = exportBackdrop,
+                                modifier = Modifier.fillMaxWidth(),
+                                height = 48.dp,
+                                tint = Primary()
+                            ) {
+                                Icon(Icons.Rounded.FileDownload, null, Modifier.size(18.dp), tint = Color.White)
+                                Spacer(Modifier.width(8.dp))
+                                Text("导出 CSV", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                         if (showExportDone) {
                             Spacer(Modifier.height(6.dp))
