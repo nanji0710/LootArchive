@@ -171,6 +171,7 @@ fun BackupScreen(
         if (uiState.message != null && !uiState.isSuccess) {
             LiquidAlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
+                icon = { Icon(Icons.Rounded.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
                 title = { Text("操作失败", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 13.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定", color = Primary()) } }
@@ -184,6 +185,7 @@ fun BackupScreen(
         if (uiState.message != null && uiState.isSuccess) {
             LiquidAlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
+                icon = { Icon(Icons.Rounded.CheckCircle, null, tint = Primary()) },
                 title = { Text("操作成功", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 14.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的", color = Primary()) } }

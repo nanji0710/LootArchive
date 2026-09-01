@@ -340,12 +340,15 @@ fun LiquidDialogSurface(
 @Composable
 fun LiquidAlertDialog(
     onDismissRequest: () -> Unit,
+    icon: (@Composable () -> Unit)? = null,
     title: @Composable () -> Unit = {},
     text: @Composable () -> Unit = {},
     confirmButton: @Composable () -> Unit = {},
     dismissButton: @Composable () -> Unit = {}
 ) {
     LiquidDialog(onDismissRequest = onDismissRequest) {
+        icon?.invoke()
+        Spacer(Modifier.height(8.dp))
         title()
         Spacer(Modifier.height(8.dp))
         text()

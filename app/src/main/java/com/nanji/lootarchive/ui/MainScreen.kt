@@ -104,16 +104,16 @@ fun MainScreen() {
             // 捕获层：绘制页面 backdrop 供悬浮玻璃组件采样
             ProvidePageBackdrop(backdrop) {
                 ProvideLiquidDialogHost(hostState) {
-                Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        (fadeIn(animationSpec = tween(220)) + slideInHorizontally { it / 10 }) togetherWith
-                        (fadeOut(animationSpec = tween(180)) + slideOutHorizontally { -it / 10 })
-                    },
-                    label = "page"
-                ) { route ->
-                    when (route) {
+                    Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
+                    AnimatedContent(
+                        targetState = currentRoute,
+                        transitionSpec = {
+                            (fadeIn(animationSpec = tween(220)) + slideInHorizontally { it / 10 }) togetherWith
+                            (fadeOut(animationSpec = tween(180)) + slideOutHorizontally { -it / 10 })
+                        },
+                        label = "page"
+                    ) { route ->
+                        when (route) {
                         Route.HOME -> {
                             HomeScreen(
                                 categoryFilter = drawerCategoryFilter,
@@ -173,62 +173,62 @@ fun MainScreen() {
                         )
                     }
                 }
-                } // close layerBackdrop Box
+                    } // close layerBackdrop Box
 
-            // ── 首页悬浮搜索栏（液态玻璃，采样页面 backdrop）──
-            if (isHome) {
-                val backdrop = LocalPageBackdrop.current
-                if (backdrop != null) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        LiquidGlassButton(
-                            onClick = { navigate(Route.SEARCH) },
-                            backdrop = backdrop,
-                            modifier = Modifier.fillMaxWidth(),
-                            height = 48.dp,
-                            horizontalPadding = 14.dp
+                // ── 首页悬浮搜索栏（液态玻璃，采样页面 backdrop）──
+                if (isHome) {
+                    val backdrop = LocalPageBackdrop.current
+                    if (backdrop != null) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
-                            Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
-                            Spacer(Modifier.width(8.dp))
-                            Text("搜索物品...", fontSize = 14.sp, color = TextAuxiliary())
+                            LiquidGlassButton(
+                                onClick = { navigate(Route.SEARCH) },
+                                backdrop = backdrop,
+                                modifier = Modifier.fillMaxWidth(),
+                                height = 48.dp,
+                                horizontalPadding = 14.dp
+                            ) {
+                                Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
+                                Spacer(Modifier.width(8.dp))
+                                Text("搜索物品...", fontSize = 14.sp, color = TextAuxiliary())
+                            }
                         }
-                    }
 
-                    // 液态玻璃 FAB（缩小版）
-                    Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp)) {
-                        LiquidGlassButton(
-                            onClick = { navigate(Route.ADD) },
-                            backdrop = backdrop,
-                            height = 40.dp,
-                            horizontalPadding = 18.dp
-                        ) {
-                            Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Primary())
-                            Spacer(Modifier.width(4.dp))
-                            Text("新增物品", color = TextPrimary(), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        // 液态玻璃 FAB（缩小版）
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp)) {
+                            LiquidGlassButton(
+                                onClick = { navigate(Route.ADD) },
+                                backdrop = backdrop,
+                                height = 40.dp,
+                                horizontalPadding = 18.dp
+                            ) {
+                                Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Primary())
+                                Spacer(Modifier.width(4.dp))
+                                Text("新增物品", color = TextPrimary(), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }
-            }
 
-            // ── v5.0 液态玻璃可拖拽底部导航 ──
-            if (!isSubPage) {
-                val backdrop = LocalPageBackdrop.current
-                if (backdrop != null) {
-                    LiquidGlassBottomBar(
-                        tabs = MainTab.entries.map { LiquidGlassTab(it.label, it.unselectedIcon, it.selectedIcon) },
-                        selectedTabIndex = currentTab,
-                        onTabSelected = ::switchTab,
-                        backdrop = backdrop,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
-                    )
+                // ── v5.0 液态玻璃可拖拽底部导航 ──
+                if (!isSubPage) {
+                    val backdrop = LocalPageBackdrop.current
+                    if (backdrop != null) {
+                        LiquidGlassBottomBar(
+                            tabs = MainTab.entries.map { LiquidGlassTab(it.label, it.unselectedIcon, it.selectedIcon) },
+                            selectedTabIndex = currentTab,
+                            onTabSelected = ::switchTab,
+                            backdrop = backdrop,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
+                        )
+                    }
                 }
-            }
-            LiquidDialogHost(hostState, backdrop)
+                LiquidDialogHost(hostState, backdrop)
                 } // close ProvideLiquidDialogHost
             } // close ProvidePageBackdrop
         }

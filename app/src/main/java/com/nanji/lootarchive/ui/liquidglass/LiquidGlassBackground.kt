@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import com.kyant.backdrop.Backdrop
 import com.nanji.lootarchive.ui.theme.*
 
@@ -28,7 +27,3 @@ fun backgroundBrush(): Brush {
         else listOf(_BackgroundGradientLightStart, _BackgroundGradientLightEnd)
     )
 }
-
-/** 降级实体玻璃底色（Android 12/12L 与无 Backdrop 作用域时使用） */
-@Composable
-fun liquidFallbackContainer(): Color = LocalGlassColors.current.cardBg
