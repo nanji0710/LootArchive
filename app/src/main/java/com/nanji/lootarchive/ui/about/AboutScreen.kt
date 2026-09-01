@@ -77,12 +77,11 @@ fun AboutScreen(
                     .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 顶栏：玻璃返回 + 标题
-                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    LiquidIconButton(onClick = onNavigateBack, backdrop = backdrop) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
-                    }
-                    Spacer(Modifier.width(12.dp))
+                // 顶栏：标题（返回按钮为层外悬浮兄弟，避免自采样崩溃）
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 8.dp).padding(start = 52.dp, end = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text("关于", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(16.dp))
@@ -134,6 +133,17 @@ fun AboutScreen(
                 }
 
                 Spacer(Modifier.height(120.dp))
+            }
+        }
+
+        // 返回按钮：层外兄弟（安全采样，与层内标题行分开）
+        Box(
+            Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 20.dp, top = 8.dp)
+        ) {
+            LiquidIconButton(onClick = onNavigateBack, backdrop = backdrop) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
             }
         }
 

@@ -239,7 +239,7 @@ fun MainScreen() {
                     if (backdrop != null) {
                         LiquidGlassBottomBar(
                             tabs = MainTab.entries.map { LiquidGlassTab(it.label, it.unselectedIcon, it.selectedIcon) },
-                            selectedTabIndex = currentTab,
+                            selectedTabIndex = pagerState.currentPage,
                             onTabSelected = ::switchTab,
                             backdrop = backdrop,
                             modifier = Modifier

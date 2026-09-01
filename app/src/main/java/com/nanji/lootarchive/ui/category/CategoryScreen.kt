@@ -63,7 +63,7 @@ fun CategoryScreen(
     Scaffold(
         containerColor = Color.Transparent,
         floatingActionButton = {
-            Box(Modifier.size(56.dp)) {
+            Box(Modifier.width(96.dp).height(48.dp)) {
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -74,12 +74,11 @@ fun CategoryScreen(
                     backdrop = fabBackdrop,
                     modifier = Modifier.align(Alignment.Center),
                     height = 48.dp,
-                    horizontalPadding = 16.dp,
-                    tint = Primary()
+                    horizontalPadding = 16.dp
                 ) {
-                    Icon(Icons.Rounded.Add, "新增", Modifier.size(20.dp), tint = Color.White)
+                    Icon(Icons.Rounded.Add, "新增", Modifier.size(20.dp), tint = Primary())
                     Spacer(Modifier.width(4.dp))
-                    Text("新增", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text("新增", color = Primary(), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

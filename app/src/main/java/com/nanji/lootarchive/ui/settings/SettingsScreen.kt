@@ -101,7 +101,7 @@ fun SettingsScreen(
                             }
                             Spacer(Modifier.width(14.dp))
                             Column(Modifier.weight(1f)) {
-                                Text("显示模式", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                                Text("显示模式", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), modifier = Modifier.weight(1f).padding(end = 186.dp))
                                 Text(
                                     when (uiState.themeMode) {
                                         "system" -> "跟随系统"
@@ -126,7 +126,7 @@ fun SettingsScreen(
                                 viewModel.setThemeMode(listOf("system", "light", "dark")[idx])
                             },
                             backdrop = themeRowSurface,
-                            modifier = Modifier.align(Alignment.CenterEnd),
+                            modifier = Modifier.align(Alignment.CenterEnd).width(170.dp),
                             containerHeight = 40.dp,
                             contentPadding = 3.dp,
                             showIcons = false,
