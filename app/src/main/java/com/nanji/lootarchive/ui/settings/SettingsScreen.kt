@@ -157,7 +157,6 @@ fun SettingsScreen(
                             Spacer(Modifier.width(14.dp))
                             Column(Modifier.weight(1f)) {
                                 Text("跟随壁纸动态色", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                                Text("Android 12+ 跟随壁纸", fontSize = 12.sp, color = TextAuxiliary())
                             }
                         }
                         LiquidToggle(
