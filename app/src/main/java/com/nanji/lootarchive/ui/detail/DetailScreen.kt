@@ -127,7 +127,7 @@ fun DetailScreen(
         },
         sheetPeekHeight = 260.dp,
         sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        sheetContainerColor = CardBg(),
+        sheetContainerColor = if (LocalDarkTheme.current) Color(0xE61C1C24) else Color(0xF2FFFFFF),
         sheetTonalElevation = 4.dp,
         containerColor = Color.Transparent,
         topBar = {}
@@ -161,7 +161,7 @@ fun DetailScreen(
     if (uiState.showStatusSheet) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.dismissStatusSheet() },
-            containerColor = CardBg(),
+            containerColor = if (LocalDarkTheme.current) Color(0xE61C1C24) else Color(0xF2FFFFFF),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {

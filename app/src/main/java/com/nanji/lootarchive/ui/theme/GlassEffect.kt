@@ -1,13 +1,11 @@
 package com.nanji.lootarchive.ui.theme
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.HazeState
 
 /**
  * v5.0 Glass 规格 — 毛玻璃效果层级
@@ -23,11 +21,6 @@ enum class GlassTier(
     FAB(28, 8, 14),
     SHEET(28, 12, 30)
 }
-
-// ═══════════════════════════════════════════════════════════════
-//  v5.0: 全局 HazeState — 让所有子组件都能访问玻璃模糊
-// ═══════════════════════════════════════════════════════════════
-val LocalHazeState = compositionLocalOf<HazeState?> { null }
 
 /**
  * v5.0 玻璃态效果 Modifier
