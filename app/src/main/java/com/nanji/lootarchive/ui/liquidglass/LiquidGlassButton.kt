@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,8 @@ fun LiquidGlassButton(
     pressExpansion: Dp = 4.dp,
     highlightIntensity: Float = 1f,
     highlightRadiusMultiplier: Float = 1.5f,
+    tint: Color = Color.Unspecified,
+    surfaceColor: Color = Color.Unspecified,
     content: @Composable RowScope.() -> Unit
 ) {
     val dark = LocalDarkTheme.current
@@ -76,7 +80,14 @@ fun LiquidGlassButton(
                         scaleY = scale + maxDragScale * abs(sin(offsetAngle) * offset.y / size.maxDimension) * (heightPx / width).coerceAtMost(1f)
                     }
                 },
-                onDrawSurface = { drawRect(containerColor) }
+                onDrawSurface = {
+                    if (tint.isSpecified) {
+                        drawRect(tint, blendMode = BlendMode.Hue)
+                        drawRect(tint.copy(alpha = tint.alpha * 0.75f))
+                    }
+                    if (surfaceColor.isSpecified) drawRect(surfaceColor)
+                    drawRect(containerColor)
+                }
             )
             .clickable(
                 enabled = enabled,
