@@ -130,7 +130,7 @@ fun AddItemScreen(
                     enabled = !uiState.isLoading,
                     height = 36.dp,
                     horizontalPadding = 14.dp,
-                    tint = Primary().copy(alpha = 0.15f)
+                    tint = Primary()
                 ) {
                     Text("保存", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }

@@ -159,7 +159,7 @@ fun AboutScreen(
                 modifier = Modifier.fillMaxWidth(),
                 height = 52.dp,
                 enabled = !isChecking,
-                tint = Primary().copy(alpha = 0.075f)
+                tint = Primary()
             ) {
                 Icon(Icons.Rounded.Refresh, null, Modifier.size(20.dp), tint = Color.White)
                 Spacer(Modifier.width(8.dp))

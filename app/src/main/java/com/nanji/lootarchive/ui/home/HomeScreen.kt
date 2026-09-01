@@ -143,7 +143,7 @@ fun HomeScreen(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .height(40.dp)
+                            .height(44.dp)
                             .layerBackdrop(chipsBackdrop)
                     )
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
