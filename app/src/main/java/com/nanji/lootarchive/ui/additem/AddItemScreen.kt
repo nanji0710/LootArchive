@@ -29,9 +29,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.WheelDatePickerDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.PhotoUtil
 import java.io.File
@@ -82,10 +86,34 @@ fun AddItemScreen(
     }
     LaunchedEffect(uiState.isSaved) { if (uiState.isSaved) onNavigateBack() }
 
+    // R2: 向导按钮局部捕获层（每行独立，禁止采样页面层）
+    val wizardRowBrush = backgroundBrush()
+    val saveRowBackdrop = rememberLayerBackdrop {
+        drawRect(brush = wizardRowBrush)
+        drawContent()
+    }
+    val step1RowBackdrop = rememberLayerBackdrop {
+        drawRect(brush = wizardRowBrush)
+        drawContent()
+    }
+    val step1NextRowBackdrop = rememberLayerBackdrop {
+        drawRect(brush = wizardRowBrush)
+        drawContent()
+    }
+    val step2RowBackdrop = rememberLayerBackdrop {
+        drawRect(brush = wizardRowBrush)
+        drawContent()
+    }
+    val step3RowBackdrop = rememberLayerBackdrop {
+        drawRect(brush = wizardRowBrush)
+        drawContent()
+    }
+
     Scaffold(
         topBar = {
             Row(
-                Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 6.dp, vertical = 8.dp),
+                Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 6.dp, vertical = 8.dp)
+                    .layerBackdrop(saveRowBackdrop),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { viewModel.onScreenDisposed(); onNavigateBack() }) {
@@ -96,8 +124,15 @@ fun AddItemScreen(
                     fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(),
                     modifier = Modifier.weight(1f), fontFamily = FredokaFont
                 )
-                TextButton(onClick = { viewModel.saveItem() }, enabled = !uiState.isLoading) {
-                    Text("保存", fontWeight = FontWeight.SemiBold, color = Primary(), fontSize = 16.sp)
+                LiquidGlassButton(
+                    onClick = { viewModel.saveItem() },
+                    backdrop = saveRowBackdrop,
+                    enabled = !uiState.isLoading,
+                    height = 36.dp,
+                    horizontalPadding = 14.dp,
+                    tint = Primary().copy(alpha = 0.15f)
+                ) {
+                    Text("保存", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         },
@@ -201,36 +236,43 @@ fun AddItemScreen(
                     }
 
                     Spacer(Modifier.height(14.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
+                    Row(
+                        modifier = Modifier.fillMaxWidth().layerBackdrop(step1RowBackdrop),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        LiquidGlassButton(
                             onClick = onNavigateToCamera, modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Primary()),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                            backdrop = step1RowBackdrop,
+                            height = 48.dp,
+                            horizontalPadding = 20.dp,
+                            tint = Primary()
                         ) {
-                            Icon(Icons.Rounded.CameraAlt, null, Modifier.size(16.dp))
+                            Icon(Icons.Rounded.CameraAlt, null, Modifier.size(16.dp), tint = Color.White)
                             Spacer(Modifier.width(4.dp))
-                            Text("拍照", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                            Text("拍照", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                         }
-                        OutlinedButton(
+                        LiquidGlassButton(
                             onClick = { galleryLauncher.launch("image/*") }, modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(14.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                            backdrop = step1RowBackdrop,
+                            height = 48.dp,
+                            horizontalPadding = 20.dp
                         ) {
-                            Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(16.dp))
+                            Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(16.dp), tint = TextPrimary())
                             Spacer(Modifier.width(4.dp))
-                            Text("从相册选择", fontSize = 13.sp)
+                            Text("从相册选择", color = TextPrimary(), fontSize = 13.sp)
                         }
                     }
                 }
 
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Button(
+                Row(Modifier.fillMaxWidth().layerBackdrop(step1NextRowBackdrop), horizontalArrangement = Arrangement.End) {
+                    LiquidGlassButton(
                         onClick = { currentStep = 1 },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary())
+                        backdrop = step1NextRowBackdrop,
+                        height = 48.dp,
+                        horizontalPadding = 20.dp,
+                        tint = Primary()
                     ) {
-                        Text("下一步 →", fontWeight = FontWeight.SemiBold)
+                        Text("下一步 →", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
                 }
             }
@@ -420,19 +462,23 @@ fun AddItemScreen(
                     )
                 }
 
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    OutlinedButton(
+                Row(Modifier.fillMaxWidth().layerBackdrop(step2RowBackdrop), horizontalArrangement = Arrangement.SpaceBetween) {
+                    LiquidGlassButton(
                         onClick = { currentStep = 0 },
-                        shape = RoundedCornerShape(16.dp)
+                        backdrop = step2RowBackdrop,
+                        height = 48.dp,
+                        horizontalPadding = 20.dp
                     ) {
-                        Text("← 上一步")
+                        Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
                     }
-                    Button(
+                    LiquidGlassButton(
                         onClick = { currentStep = 2 },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary())
+                        backdrop = step2RowBackdrop,
+                        height = 48.dp,
+                        horizontalPadding = 20.dp,
+                        tint = Primary()
                     ) {
-                        Text("下一步 →", fontWeight = FontWeight.SemiBold)
+                        Text("下一步 →", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
                 }
             }
@@ -499,24 +545,28 @@ fun AddItemScreen(
                     }
                 }
 
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    OutlinedButton(
+                Row(Modifier.fillMaxWidth().layerBackdrop(step3RowBackdrop), horizontalArrangement = Arrangement.SpaceBetween) {
+                    LiquidGlassButton(
                         onClick = { currentStep = 1 },
-                        shape = RoundedCornerShape(16.dp)
+                        backdrop = step3RowBackdrop,
+                        height = 48.dp,
+                        horizontalPadding = 20.dp
                     ) {
-                        Text("← 上一步")
+                        Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
                     }
-                    Button(
+                    LiquidGlassButton(
                         onClick = { viewModel.saveItem() },
+                        backdrop = step3RowBackdrop,
                         enabled = !uiState.isLoading,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary())
+                        height = 48.dp,
+                        horizontalPadding = 20.dp,
+                        tint = Primary()
                     ) {
                         if (uiState.isLoading) {
                             CircularProgressIndicator(Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
                         }
-                        Text("完成保存 ✓", fontWeight = FontWeight.SemiBold)
+                        Text("完成保存 ✓", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
                 }
             }
