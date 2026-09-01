@@ -74,6 +74,7 @@ fun MainScreen() {
         drawRect(brush = bgBrush)
         drawContent()
     }
+    val hostState = rememberLiquidDialogHostState()
     var backStack by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
     fun navigate(route: String, id: Long? = null) {
@@ -102,6 +103,7 @@ fun MainScreen() {
         Box(Modifier.padding(padding).fillMaxSize()) {
             // 捕获层：绘制页面 backdrop 供悬浮玻璃组件采样
             ProvidePageBackdrop(backdrop) {
+                ProvideLiquidDialogHost(hostState) {
                 Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
                 AnimatedContent(
                     targetState = currentRoute,
@@ -226,6 +228,8 @@ fun MainScreen() {
                     )
                 }
             }
+            LiquidDialogHost(hostState, backdrop)
+                } // close ProvideLiquidDialogHost
             } // close ProvidePageBackdrop
         }
     }

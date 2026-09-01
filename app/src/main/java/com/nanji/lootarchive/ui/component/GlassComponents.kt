@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.theme.*
 
 // ═══════════════════════════════════════════════════════════════
@@ -137,7 +138,8 @@ fun NeoEmptyState(
  */
 @Composable
 fun NeoAlertDialog(title: String, message: String, confirmText: String = "确认", dismissText: String = "取消", onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(onDismissRequest = onDismiss, shape = RoundedCornerShape(28.dp), containerColor = CardBg(), tonalElevation = 0.dp,
+    LiquidAlertDialog(
+        onDismissRequest = onDismiss,
         title = { Text(title, fontWeight = FontWeight.SemiBold, color = TextPrimary()) },
         text = { Text(message, color = TextSecondary(), fontSize = 14.sp) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirmText, color = Primary(), fontWeight = FontWeight.SemiBold) } },
