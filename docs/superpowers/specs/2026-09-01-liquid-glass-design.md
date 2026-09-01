@@ -112,3 +112,64 @@ MainActivity 根背景 → 暖色垂直渐变 backgroundBrush()
 | 阿里云镜像拉取 kyant0 构件失败 | mavenCentral() 提前/直接解析 |
 | 物理交互代码复杂度高 | 先移植底栏（核心视觉）跑通，再铺开其余组件 |
 | R8 minify（release）与 backdrop AGSL | 以 debug 验证为主；必要时补 proguard 规则 |
+
+---
+
+# 设计增补（2026-09-01 第二轮：全站按钮玻璃化 + 页面重构）
+
+## A. 我的页重构（参考 RiseDiary 设置页布局）
+
+RiseDiary 布局范式：大标题 + 分组卡片（组标题 + 圆角卡内多行「图标块+标题+副标题+箭头」）。
+- 顶部大标题「我的」（Fredoka 30sp SemiBold）
+- 「收藏家」组：保留现有收藏家卡片（头像/等级/成就徽章）
+- 「收藏亮点」组：保留最贵/最老双卡
+- 「功能」组：设置/分类/备份/回收站 4 行 + 新增「关于」行（Info 图标，进入新关于页）
+- 移除：原「关于」Card 与「检查更新」液态按钮（迁往关于页）
+- 弹窗（等级/成就/解锁）原样保留
+
+## B. 新「关于」页面（新路由 ABOUT，参考 RiseDiary AboutScreen）
+
+- 玻璃返回按钮（LiquidIconButton 箭头）+ 标题「关于」
+- 页面局部捕获层（渐变 + 内容）
+- Logo 区：mipmap ic_launcher（100dp）+ 「拾物集 ItemGlow」（35sp Bold）+ 版本号（14sp）
+- 链接卡：GitHub 仓库（UriHandler 打开 https://github.com/nanji0710/LootArchive）
+- 信息卡：使用说明 + 数据隐私（纯本地存储声明）
+- 底部全宽液态玻璃「检查更新」按钮（52dp、Refresh 图标、主色淡 tint、检查中显示「正在检查...」并禁用）
+- 更新弹窗全家桶（发现新版本+下载安装 / 已是最新 / 检查失败 / 检查中 / 下载中）从我的页整迁，逻辑零改动
+
+## C. 设置页「个性化」模块重构（参考 RiseDiary 行样式）
+
+4 行全部补上图标块 + 副标题，保持现有液态控件：
+- 显示模式（Palette 图标 + 液态分段控件）
+- 跟随壁纸动态色（AutoAwesome 图标 + 副标题「Android 12+」+ LiquidToggle）
+- 自定义头像（AccountCircle 图标 + 副标题 + 还原 + 箭头）
+- 重新查看引导（School 图标 + 副标题 + 箭头）
+
+## D. 全站按钮玻璃化清单
+
+| 位置 | 现状 | 目标 |
+|---|---|---|
+| AddItemScreen 向导（上一步/下一步/完成保存/顶部保存） | Button/OutlinedButton/TextButton | 主操作=主色 tint 液态按钮（白字）；次操作=中性玻璃按钮 |
+| 首页分类 Chips（全部/食品饮料…） | M3 FilterChip | 新组件 LiquidFilterChip 玻璃胶囊 |
+| 统计页时间筛选（全部/近三月…） | 内嵌 Surface 分段 | LiquidSegmentedControl（行内捕获层） |
+| 统计页导出 CSV | Button | 液态玻璃按钮（主色 tint） |
+| 统计页浅色灰圈 | GlassSurface 海拔 1dp 阴影透出半透明底 | 海拔→0 + NeoCard 同款柔和阴影；资产总览卡统一 GlassSurface |
+| 详情页编辑/删除圆钮 | 40dp Surface 黑底 | LiquidIconButton 玻璃圆钮 |
+| 回收站清空/还原/删除 | TextButton/行内按钮 | 红色系玻璃胶囊 + 小型玻璃按钮 |
+| 分类管理添加 FAB + 卡片编辑/删除 | FloatingActionButton/IconButton | 玻璃胶囊 FAB + 小型玻璃圆钮 |
+| 备份页一键导出/一键导入 | 卡片行 | 全宽液态玻璃按钮（图标+文字） |
+
+## E. 组件增强（向后兼容）
+
+- `LiquidGlassButton` 增加可选 `tint: Color = Color.Unspecified` / `surfaceColor: Color = Color.Unspecified`
+- 新增 `LiquidIconButton`（圆形玻璃图标钮：返回/编辑/删除/还原等）
+- 新增 `LiquidFilterChip`（玻璃胶囊筛选片，选中=主色淡底+主色字）
+- 弹窗内文字按钮（确定/取消）保持 M3 TextButton（已在玻璃弹窗内，无需模糊）
+
+## F. 质量规范（美观度 / 可行性 / 易读性）—— 所有玻璃实现必须遵守
+
+1. **易读性（对比度）**：玻璃容器上的文字必须清晰可读——主操作按钮（主色 tint）一律白字/onPrimary；半透明底上的正文用 TextPrimary、辅助用 TextSecondary/TextAuxiliary，禁止在文字背后叠加高模糊；选中态芯片文字主色加粗
+2. **统一规格**：胶囊按钮高 48dp（触摸目标）、图标钮 40dp 圆形、chips 32dp 高、圆角统一 ContinuousCapsule/既有 20dp；玻璃参数与已落地组件一致（vibrancy + blur(2dp) + lens(12,24)）
+3. **可行性（捕获层纪律）**：页面内按钮必须用局部捕获层（画渐变底），禁止直接采样页面捕获层（自采样）；Android 12/12L 保持实体降级路径且降级样式同样可读
+4. **性能**：不叠加过多模糊层；静态卡片维持半透明+描边（不模糊）；避免整页模糊
+5. **一致性**：与已审查通过的液态组件参数/配色完全一致（琥珀主色、0xFF121212 深色系、玻璃白亮色系）
