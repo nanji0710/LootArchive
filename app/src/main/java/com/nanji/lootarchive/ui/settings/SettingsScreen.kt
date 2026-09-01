@@ -27,6 +27,7 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentOption
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentedControl
 import com.nanji.lootarchive.ui.liquidglass.LiquidToggle
@@ -290,10 +291,8 @@ fun SettingsScreen(
 
     // 弹窗（保持原有逻辑）
     if (showReminderDialog) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { showReminderDialog = false },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("保修提醒阈值", color = TextPrimary(), fontWeight = FontWeight.SemiBold) },
             text = {
                 OutlinedTextField(

@@ -23,6 +23,7 @@ import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextPrimary
 import com.nanji.lootarchive.ui.theme.TextSecondary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
+import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -74,9 +75,8 @@ fun WheelDatePickerDialog(
         if (selectedDay > effectiveMaxDay) selectedDay = effectiveMaxDay
     }
 
-    AlertDialog(
+    LiquidAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFFFCFAF6),
         title = {
             Text(title, fontWeight = FontWeight.Bold, color = TextPrimary(), fontSize = 18.sp)
         },

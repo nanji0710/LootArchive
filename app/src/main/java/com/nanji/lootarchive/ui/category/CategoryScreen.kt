@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.theme.*
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.clickable
@@ -99,10 +100,8 @@ fun CategoryScreen(
 
     // 新增/编辑对话框
     if (uiState.showAddDialog || uiState.showEditDialog) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { viewModel.dismissDialogs() },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = {
                 Text(
                     if (uiState.showAddDialog) "新增分类" else "编辑分类",
@@ -137,10 +136,8 @@ fun CategoryScreen(
 
     // 删除确认
     if (uiState.showDeleteDialog) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { viewModel.dismissDialogs() },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("删除分类", color = TextPrimary(), fontWeight = FontWeight.Bold) },
             text = { Text("分类删除后，该分类下的物品将归入「其他」分类。确定删除？", color = TextSecondary()) },
             confirmButton = {

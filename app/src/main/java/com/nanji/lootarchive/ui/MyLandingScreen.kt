@@ -33,6 +33,7 @@ import coil.compose.AsyncImage
 import java.text.NumberFormat
 
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -394,10 +395,8 @@ fun MyLandingScreen(
 
     // ...弹窗保持原有逻辑...
     if (showUpdateDialog && updateInfo != null) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { showUpdateDialog = false },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("发现新版本", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
                 Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState()).fillMaxWidth()) {
@@ -435,10 +434,8 @@ fun MyLandingScreen(
     }
 
     if (showNoUpdate) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { showNoUpdate = false },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("已是最新版本", color = TextPrimary()) },
             text = { Text("当前已是最新版本 v${BuildConfig.VERSION_NAME}", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { showNoUpdate = false }) { Text("好的", color = Primary()) } }
@@ -446,10 +443,8 @@ fun MyLandingScreen(
     }
 
     if (checkError != null) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { checkError = null },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("检查失败", color = TextPrimary()) },
             text = { Text("无法连接到更新服务器：${checkError}", color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { checkError = null }) { Text("确定", color = Primary()) } }
@@ -457,10 +452,8 @@ fun MyLandingScreen(
     }
 
     if (isChecking) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = {},
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("正在检查更新...", color = TextPrimary()) },
             text = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator(color = Primary()) } },
             confirmButton = { }
@@ -468,10 +461,8 @@ fun MyLandingScreen(
     }
 
     if (isDownloading) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = {},
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("正在下载更新...", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
                 Column(Modifier.fillMaxWidth()) {
@@ -495,10 +486,8 @@ fun MyLandingScreen(
     }
 
     if (downloadError != null) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { downloadError = null },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("下载失败", color = TextPrimary()) },
             text = { Text(downloadError!!, color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { downloadError = null }) { Text("确定", color = Primary()) } }
@@ -506,10 +495,8 @@ fun MyLandingScreen(
     }
 
     if (showLevelDialog) {
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { showLevelDialog = false },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("收藏家等级", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
                 Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
@@ -547,10 +534,8 @@ fun MyLandingScreen(
     // v5.5 EXP 详情弹窗
     if (showExpDialog && profileState.profile != null) {
         val p = profileState.profile!!
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { showExpDialog = false },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("收藏家详情", fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont) },
             text = {
                 Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
@@ -599,10 +584,8 @@ fun MyLandingScreen(
         val isUnlocked = ach.isUnlocked
         val progressVal = ach.progress
         val targetVal = ach.target
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { showAchievementDetail = null },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -651,10 +634,8 @@ fun MyLandingScreen(
             kotlinx.coroutines.delay(Feedback.ACHIEVEMENT_DISMISS)
             profileVM.clearUnlockMessage()
         }
-        AlertDialog(
+        LiquidAlertDialog(
             onDismissRequest = { profileVM.clearUnlockMessage() },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("成就解锁！", fontWeight = FontWeight.Bold, color = Primary(), fontSize = 18.sp, fontFamily = FredokaFont) },
             text = { Text(unlockMsg, fontSize = 15.sp, color = TextPrimary()) },
             confirmButton = { TextButton(onClick = { profileVM.clearUnlockMessage() }) { Text("太棒了！", color = Primary()) } }

@@ -24,6 +24,7 @@ import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -168,11 +169,8 @@ fun BackupScreen(
 
         // 错误/成功弹窗（保持原有逻辑）
         if (uiState.message != null && !uiState.isSuccess) {
-            AlertDialog(
+            LiquidAlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
-                shape = RoundedCornerShape(28.dp),
-                containerColor = MaterialTheme.colorScheme.surface,
-                icon = { Icon(Icons.Rounded.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
                 title = { Text("操作失败", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 13.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定", color = Primary()) } }
@@ -184,11 +182,8 @@ fun BackupScreen(
             }
         }
         if (uiState.message != null && uiState.isSuccess) {
-            AlertDialog(
+            LiquidAlertDialog(
                 onDismissRequest = { viewModel.clearMessage() },
-                shape = RoundedCornerShape(28.dp),
-                containerColor = MaterialTheme.colorScheme.surface,
-                icon = { Icon(Icons.Rounded.CheckCircle, null, tint = Primary()) },
                 title = { Text("操作成功", fontWeight = FontWeight.Bold, color = TextPrimary()) },
                 text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 14.sp) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的", color = Primary()) } }
