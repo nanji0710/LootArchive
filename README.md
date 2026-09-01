@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.9.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.9.1-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -287,11 +287,17 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.9.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.9.1.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.9.1 (2026-09-01) 稳定性修复
+- 修复: 关于页、新增/编辑物品页闪退（液态玻璃捕获层自采样问题，按钮统一移至层外）
+- 修复: 主页面左右滑动切换时底部导航延迟与错位（底栏实时跟随滑动）
+- 修复: 设置页「显示模式」深浅色切换控件遮挡标题
+- 修复: 分类页新增按钮文字截断；新增按钮改为通透液态玻璃效果（主色图标）
 
 ### v6.9.0 (2026-09-01) 页面重构与全站玻璃化
 - **我的页**：重构为 RiseDiary 式分组布局（大标题 + 收藏家 + 收藏亮点 + 功能入口），新增「关于」入口
