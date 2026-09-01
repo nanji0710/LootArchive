@@ -126,9 +126,13 @@ dependencies {
     // Coil (Image Loading)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // Haze (Glass blur effect)
+    // Haze (Glass blur effect) — to be removed in Task 9 after migration
     implementation("dev.chrisbanes.haze:haze:1.5.2")
     implementation("dev.chrisbanes.haze:haze-materials:1.5.2")
+
+    // Liquid Glass (Kyant Backdrop — blur/lens/vibrancy RuntimeShader)
+    implementation("io.github.kyant0:backdrop:1.0.0")
+    implementation("io.github.kyant0:capsule:2.1.1")
 
     // Vico removed - using manual Compose charts (saves ~2MB)
 
