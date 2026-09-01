@@ -21,10 +21,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nanji.lootarchive.data.local.entity.BackupRecordEntity
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -66,68 +70,78 @@ fun BackupScreen(
             }
             item { Text("数据备份", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBg()),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                ) {
-                    Surface(
+                val exportBrush = backgroundBrush()
+                val exportBackdrop = rememberLayerBackdrop {
+                    drawRect(brush = exportBrush)
+                    drawContent()
+                }
+                Box(Modifier.fillMaxWidth()) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .layerBackdrop(exportBackdrop)
+                    )
+                    LiquidGlassButton(
                         onClick = { viewModel.fullExport() },
+                        backdrop = exportBackdrop,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        color = Color.Transparent
+                        height = 80.dp,
+                        horizontalPadding = 18.dp
                     ) {
-                        Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                Modifier.size(46.dp), RoundedCornerShape(14.dp),
-                                color = Primary().copy(alpha = 0.10f)
-                            ) {
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Rounded.FileDownload, null, tint = Primary(), modifier = Modifier.size(22.dp))
-                                }
+                        Surface(
+                            Modifier.size(46.dp), RoundedCornerShape(14.dp),
+                            color = Primary().copy(alpha = 0.10f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.FileDownload, null, tint = Primary(), modifier = Modifier.size(22.dp))
                             }
-                            Spacer(Modifier.width(14.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text("一键导出", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
-                                Text("物品数据 + 照片 + 分类打包为 ZIP", fontSize = 12.sp, color = TextAuxiliary())
-                            }
-                            Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                         }
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("一键导出", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                            Text("物品数据 + 照片 + 分类打包为 ZIP", fontSize = 12.sp, color = TextAuxiliary())
+                        }
+                        Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
                 }
             }
 
             item { Text("数据恢复", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBg()),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                ) {
-                    Surface(
+                val importBrush = backgroundBrush()
+                val importBackdrop = rememberLayerBackdrop {
+                    drawRect(brush = importBrush)
+                    drawContent()
+                }
+                Box(Modifier.fillMaxWidth()) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .layerBackdrop(importBackdrop)
+                    )
+                    LiquidGlassButton(
                         onClick = { launchImport() },
+                        backdrop = importBackdrop,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        color = Color.Transparent
+                        height = 80.dp,
+                        horizontalPadding = 18.dp
                     ) {
-                        Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                Modifier.size(46.dp), RoundedCornerShape(14.dp),
-                                color = Color(0xFF10B981).copy(alpha = 0.10f)
-                            ) {
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Rounded.UploadFile, null, tint = Color(0xFF10B981), modifier = Modifier.size(22.dp))
-                                }
+                        Surface(
+                            Modifier.size(46.dp), RoundedCornerShape(14.dp),
+                            color = Color(0xFF10B981).copy(alpha = 0.10f)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.UploadFile, null, tint = Color(0xFF10B981), modifier = Modifier.size(22.dp))
                             }
-                            Spacer(Modifier.width(14.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text("一键导入", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
-                                Text("选择备份 ZIP 恢复全部数据", fontSize = 12.sp, color = TextAuxiliary())
-                            }
-                            Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                         }
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("一键导入", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                            Text("选择备份 ZIP 恢复全部数据", fontSize = 12.sp, color = TextAuxiliary())
+                        }
+                        Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
                 }
             }
