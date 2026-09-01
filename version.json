@@ -1,7 +1,7 @@
 {
-  "versionName": "6.7.0",
-  "versionCode": 670,
-  "updateDate": "2026-08-02",
-  "updateLog": "v6.7.0\n- 安全与数据: 补齐DB迁移链防升级清库; 修复保修/备份提醒失效; 备份恢复Zip Slip防护; 更新URL/版本名校验\n- 数据一致性: 保存/删除原子化(事务+IO线程); 消除首页/搜索/分类N+1查询; status枚举统一; 照片采样解码防OOM\n- UI/UX: 双主题token统一; 对比度WCAG AA; 动态取色(Android12+); 触摸目标48dp; 大屏自适应网格; 表单错误即时可见\n- 无障碍: 底部导航语义; 照片替代文本; 饼图无障碍摘要\n- 工程化: 25项单元测试; 版本号BuildConfig; 种子去重; 死代码清理; ABI补x86_64",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.7.0/LootArchive-release-v6.7.0.apk"
+  "versionName": "6.8.0",
+  "versionCode": 680,
+  "updateDate": "2026-09-01",
+  "updateLog": "v6.8.0 液态玻璃全面升级\n- 视觉引擎: 全站升级 Kyant Backdrop 液态玻璃（活力 vibrancy + 模糊 blur + 折射 lens + 按压高光 + 弹簧物理），Android 13+ 完整效果，Android 12/12L 自动降级兼容\n- 底部导航: 全新可拖拽液态玻璃导航栏——选中镜头跟随手指滑动、按压形变、速度形变、交互高光\n- 首页: 搜索栏与新增物品按钮升级液态玻璃胶囊，按压位移 + 高光反馈\n- 卡片: 全站卡片半透明化 + 高光描边（暗色模式白色微光边），悬浮感更强\n- 弹窗: 20 处弹窗统一液态玻璃样式（亮度/饱和度增强 + 深度折射 + 玻璃高光 + 弹簧缩放入场），无捕获层场景自动降级实体样式\n- 设置: 主题模式改为液态玻璃分段控件；开关升级液态玻璃滑块（拖动/点击均支持，Android 13+ 全玻璃、低版本实体降级）\n- 我的页: 检查更新升级为独立液态玻璃按钮，渐变背景上的磨砂玻璃质感\n- 详情页: 底部信息面板半透明玻璃化\n- 背景: 暖色垂直渐变画布（浅色暖奶油 / 深色暖黑），为玻璃效果提供画面层次\n- 工程: 移除 Haze 依赖，引入 io.github.kyant0:backdrop + capsule；物理引擎移植自 AndroidLiquidGlass（Apache-2.0 保留署名）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.8.0/LootArchive-release-v6.8.0.apk"
 }

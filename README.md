@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.7.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.8.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -138,7 +138,8 @@
 | 数据库 | Room | 2.6.1 |
 | DI | Hilt | 2.53.1 |
 | 图片 | Coil | 2.7.0 |
-| 模糊 | Haze (Glassmorphism) | 1.5.2 |
+| 液态玻璃 | Kyant Backdrop (blur/lens/vibrancy) | 1.0.0 |
+| 连续曲率形状 | Kyant Capsule | 2.1.1 |
 | 相机 | CameraX | 1.3.4 |
 | 存储 | DataStore Preferences | 1.1.1 |
 | 后台 | WorkManager | 2.10.0 |
@@ -172,7 +173,7 @@ app/src/main/java/com/nanji/lootarchive/
 │   ├── search/           搜索 (三级筛选 + 历史)
 │   ├── settings/         设置
 │   ├── statistics/       统计图表
-│   ├── theme/            主题 (Warm Glassmorphism + Fredoka/Nunito/Mono 字体)
+│   ├── theme/            主题 (Liquid Glass 液态玻璃 + Fredoka/Nunito/Mono 字体)
 │   ├── MainScreen.kt     主导航 (3 Tab 底部胶囊)
 │   └── MyLandingScreen.kt 我的页面
 ├── util/                 工具类
@@ -185,7 +186,7 @@ app/src/main/java/com/nanji/lootarchive/
 
 ## 设计系统
 
-**Warm Glassmorphism** — Haze 实时模糊 + 半透明玻璃 + 柔和阴影。
+**Liquid Glass 液态玻璃** — 基于 Kyant Backdrop（AGSL RuntimeShader）的 模糊+折射+活力 效果链，底栏可拖拽镜头、按压形变、交互高光；Android 13+ 全效果，12/12L 自动降级半透明实体；暖琥珀主色 + 暖色渐变画布 + 玻璃半透明卡片。
 
 | Token | 浅色 | 深色 |
 |:--|:--|:--|
@@ -279,11 +280,23 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.7.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.8.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.8.0 (2026-09-01) 液态玻璃全面升级
+- **视觉引擎**：全站升级 Kyant Backdrop 液态玻璃（活力 vibrancy + 模糊 blur + 折射 lens + 按压高光 + 弹簧物理），Android 13+ 完整效果，Android 12/12L 自动降级兼容
+- **底部导航**：全新可拖拽液态玻璃导航栏——选中镜头跟随手指滑动、按压形变、速度形变、交互高光
+- **首页**：搜索栏与新增物品按钮升级液态玻璃胶囊，按压位移 + 高光反馈
+- **卡片**：全站卡片半透明化 + 高光描边（暗色模式白色微光边），悬浮感更强
+- **弹窗**：20 处弹窗统一液态玻璃样式（亮度/饱和度增强 + 深度折射 + 玻璃高光 + 弹簧缩放入场），无捕获层场景自动降级实体样式
+- **设置**：主题模式改为液态玻璃分段控件；开关升级液态玻璃滑块（拖动/点击均支持，Android 13+ 全玻璃、低版本实体降级）
+- **我的页**：检查更新升级为独立液态玻璃按钮，渐变背景上的磨砂玻璃质感
+- **详情页**：底部信息面板半透明玻璃化
+- **背景**：暖色垂直渐变画布（浅色暖奶油 / 深色暖黑），为玻璃效果提供画面层次
+- **工程**：移除 Haze 依赖，引入 io.github.kyant0:backdrop + capsule；物理引擎移植自 AndroidLiquidGlass（Apache-2.0 保留署名）
 
 ### v6.7.0 (2026-08-02) 全方面优化
 - **安全与数据**：补齐 DB 迁移链防升级清库；修复保修/备份提醒失效；备份恢复 Zip Slip 防护；更新 URL/版本名校验；release 签名环境变量化
@@ -348,7 +361,7 @@ APK 输出：`LootArchive-release-v6.7.0.apk`（约 7.5 MB，arm64-v8a + armeabi
 - 5 种物品状态 + 标签系统
 
 ### v5.0 (2026-07-27) Warm Glassmorphism
-- Haze 模糊 + 暖琥珀色板 + Fredoka/Nunito/Mono 字体 + Canvas 饼图 + 便当网格
+- 液态玻璃（Kyant Backdrop）模糊 + 暖琥珀色板 + Fredoka/Nunito/Mono 字体 + Canvas 饼图 + 便当网格
 
 ---
 
