@@ -1,7 +1,6 @@
 package com.nanji.lootarchive.ui.component
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -19,9 +17,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.theme.*
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 
 // ═══════════════════════════════════════════════════════════════
 //  v5.0 Warm Glassmorphism — 对标 HTML .glass-card
@@ -43,15 +38,15 @@ fun GlassSurface(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = CardBg()),
+        colors = CardDefaults.cardColors(containerColor = LocalGlassColors.current.glassBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         content = { content() }
     )
 }
 
 /**
- * v5.0 玻璃卡片 — Haze 实时模糊 + 半透明背景 + 玻璃边框
- * 对标 HTML .glass-card: backdrop-blur(20px) + shadow 0 4px 24px rgba(0,0,0,0.05)
+ * v6.8 LiquidCard — 半透明 + 高光边框（RiseCard 模式）
+ * 依赖 Task 3 渐变背景，半透明玻璃底即可读作毛玻璃
  */
 @Composable
 fun NeoCard(
@@ -61,40 +56,21 @@ fun NeoCard(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val glass = LocalGlassColors.current
-    val haze = LocalHazeState.current
-    val cardBg = glass.glassBg
-    val borderClr = glass.glassBorder
-    val shadowClr = glass.shadow
-
-    Box(
+    val dark = LocalDarkTheme.current
+    Card(
         modifier = modifier
+            .fillMaxWidth()
             .then(
-                if (haze != null) Modifier.hazeEffect(
-                    state = haze,
-                    style = HazeStyle(
-                        backgroundColor = Color.Transparent,
-                        tints = listOf(HazeTint(cardBg)),
-                        blurRadius = 20.dp,
-                        noiseFactor = 0f,
-                        fallbackTint = HazeTint(glass.cardBg)
-                    )
-                ) else Modifier.background(glass.cardBg, CardShape)
+                if (dark) Modifier.border(0.5.dp, Color.White.copy(alpha = 0.07f), CardShape)
+                else Modifier.border(0.5.dp, glass.glassBorder, CardShape)
             )
-            .shadow(4.dp, CardShape, ambientColor = Color.White.copy(alpha = 0.3f), spotColor = shadowClr)
-            .border(0.5.dp, borderClr, CardShape)
-            .clip(CardShape)
+            .shadow(4.dp, CardShape, ambientColor = Color.White.copy(alpha = 0.3f), spotColor = glass.shadow),
+        shape = CardShape,
+        colors = CardDefaults.cardColors(containerColor = glass.glassBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        onClick = onClick ?: {}
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = CardShape,
-            colors = CardDefaults.cardColors(
-                containerColor = if (haze != null) Color.Transparent else glass.cardBg
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-            onClick = onClick ?: {}
-        ) {
-            Column(Modifier.padding(contentPadding), content = content)
-        }
+        Column(Modifier.padding(contentPadding), content = content)
     }
 }
 
