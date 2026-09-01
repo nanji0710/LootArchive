@@ -20,7 +20,11 @@ import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import androidx.compose.ui.graphics.Color
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -47,16 +51,30 @@ fun RecycleBinScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
         ) {
-            Row(
-                Modifier.fillMaxWidth().padding(top = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(22.dp))
+            val topRowBrush = backgroundBrush()
+            val topRowBackdrop = rememberLayerBackdrop {
+                drawRect(brush = topRowBrush)
+                drawContent()
+            }
+            Box(Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth().layerBackdrop(topRowBackdrop).padding(top = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(22.dp))
+                    }
+                    Text("回收站", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
+                    Spacer(Modifier.width(90.dp))
                 }
-                Text("回收站", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
                 if (uiState.deletedItems.isNotEmpty()) {
-                    TextButton(onClick = { viewModel.showEmptyConfirm() }) {
+                    LiquidGlassButton(
+                        onClick = { viewModel.showEmptyConfirm() },
+                        backdrop = topRowBackdrop,
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                        height = 34.dp,
+                        horizontalPadding = 14.dp
+                    ) {
                         Text("清空", color = WarrantyExpired, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
@@ -154,58 +172,56 @@ private fun TrashItemCard(
         colors = CardDefaults.cardColors(containerColor = CardBg()),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 左：名称 + 金额（同一行）
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(item.name, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                    Spacer(Modifier.width(8.dp))
-                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.SemiBold)
+        val cardBrush = backgroundBrush()
+        val cardBackdrop = rememberLayerBackdrop {
+            drawRect(brush = cardBrush)
+            drawContent()
+        }
+        Box(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().layerBackdrop(cardBackdrop).padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 左：名称 + 金额（原 Column 原样）
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(item.name, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        Spacer(Modifier.width(8.dp))
+                        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.SemiBold)
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    val remainingDays = item.deletedAt?.let {
+                        val expiry = it + 14L * 24 * 60 * 60 * 1000
+                        ((expiry - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).toInt()
+                    }
+                    val rdColor = when {
+                        remainingDays != null && remainingDays <= 1 -> WarrantyExpired
+                        remainingDays != null && remainingDays <= 3 -> WarrantyExpiring
+                        else -> TextAuxiliary()
+                    }
+                    item.deletedAt?.let {
+                        Text("删除于 ${dateFormat.format(Date(it))}", fontSize = 11.sp, color = TextAuxiliary())
+                    }
+                    if (remainingDays != null) {
+                        Text("${remainingDays}天后清空", fontSize = 11.sp, color = rdColor)
+                    }
                 }
-                Spacer(Modifier.height(2.dp))
-                val remainingDays = item.deletedAt?.let {
-                    val expiry = it + 14L * 24 * 60 * 60 * 1000
-                    ((expiry - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).toInt()
-                }
-                val rdColor = when {
-                    remainingDays != null && remainingDays <= 1 -> WarrantyExpired
-                    remainingDays != null && remainingDays <= 3 -> WarrantyExpiring
-                    else -> TextAuxiliary()
-                }
-                item.deletedAt?.let {
-                    Text("删除于 ${dateFormat.format(Date(it))}", fontSize = 11.sp, color = TextAuxiliary())
-                }
-                if (remainingDays != null) {
-                    Text("${remainingDays}天后清空", fontSize = 11.sp, color = rdColor)
-                }
+                Spacer(Modifier.width(96.dp))
             }
-            // 右：还原 + 删除按钮
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Surface(
-                    onClick = onRestore,
-                    shape = RoundedCornerShape(10.dp),
-                    color = Primary().copy(alpha = 0.10f)
-                ) {
-                    Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Restore, "还原", tint = Primary(), modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(3.dp))
-                        Text("还原", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary())
-                    }
+            Row(
+                modifier = Modifier.align(Alignment.CenterEnd).padding(horizontal = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LiquidGlassButton(onClick = onRestore, backdrop = cardBackdrop, height = 32.dp, horizontalPadding = 10.dp) {
+                    Icon(Icons.Rounded.Restore, "还原", tint = Primary(), modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(3.dp))
+                    Text("还原", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary())
                 }
-                Spacer(Modifier.width(4.dp))
-                Surface(
-                    onClick = onDelete,
-                    shape = RoundedCornerShape(10.dp),
-                    color = WarrantyExpired.copy(alpha = 0.10f)
-                ) {
-                    Row(Modifier.padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.DeleteForever, "删除", tint = WarrantyExpired, modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("删除", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = WarrantyExpired)
-                    }
+                LiquidGlassButton(onClick = onDelete, backdrop = cardBackdrop, height = 32.dp, horizontalPadding = 12.dp) {
+                    Icon(Icons.Rounded.DeleteForever, "删除", tint = WarrantyExpired, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("删除", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = WarrantyExpired)
                 }
             }
         }
