@@ -36,11 +36,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidFilterChip
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.FormatUtil
 import java.io.File
@@ -128,16 +132,41 @@ fun HomeScreen(
                 }
             }
 
-            // ── 对标 HTML .ph-chips: 水平圆角胶囊 ──
+            // ── 液态玻璃分类筛选（局部捕获层采样应用渐变）──
             item(span = { GridItemSpan(maxLineSpan) }) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
-                    item {
-                        FilterChip(selected = effectiveFilter == null, onClick = { chipFilter = null }, label = { Text("全部", fontSize = 13.sp) }, shape = RoundedCornerShape(20.dp), colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Primary(), selectedLabelColor = Color.White))
-                    }
-                    items(catState.categories.size) { idx ->
-                        val cat = catState.categories[idx]
-                        val sel = effectiveFilter?.first == cat.id
-                        FilterChip(selected = sel, onClick = { chipFilter = if (sel) null else Pair(cat.id, cat.name) }, label = { Text(cat.name, fontSize = 13.sp) }, shape = RoundedCornerShape(20.dp), colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Primary(), selectedLabelColor = Color.White))
+                val chipsBrush = backgroundBrush()
+                val chipsBackdrop = rememberLayerBackdrop {
+                    drawRect(brush = chipsBrush)
+                    drawContent()
+                }
+                Box(Modifier.fillMaxWidth()) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .layerBackdrop(chipsBackdrop)
+                    )
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
+                        item {
+                            LiquidFilterChip(
+                                selected = effectiveFilter == null,
+                                onClick = { chipFilter = null },
+                                backdrop = chipsBackdrop,
+                                label = "全部",
+                                height = 34.dp
+                            )
+                        }
+                        items(catState.categories.size) { idx ->
+                            val cat = catState.categories[idx]
+                            val sel = effectiveFilter?.first == cat.id
+                            LiquidFilterChip(
+                                selected = sel,
+                                onClick = { chipFilter = if (sel) null else Pair(cat.id, cat.name) },
+                                backdrop = chipsBackdrop,
+                                label = cat.name,
+                                height = 34.dp
+                            )
+                        }
                     }
                 }
             }
