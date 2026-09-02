@@ -105,7 +105,7 @@ fun MainScreen() {
     LaunchedEffect(pagerState.settledPage) {
         if (pagerState.settledPage != currentTab && !isSubPage) switchTab(pagerState.settledPage)
     }
-    val isHome = currentRoute == Route.HOME
+    val isHome = !isSubPage && pagerState.currentPage == 0
 
     BackHandler(enabled = isSubPage) { goBack() }
 
