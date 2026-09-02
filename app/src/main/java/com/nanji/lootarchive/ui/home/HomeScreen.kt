@@ -94,10 +94,11 @@ fun HomeScreen(
     val animValue by animateFloatAsState(heroValue.toFloat(), animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
     val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
 
-    PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { viewModel.refresh(); delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().statusBarsPadding().background(Color.Transparent)) {
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { viewModel.refresh(); delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 160.dp), modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp, bottom = 140.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp + statusBarTop, bottom = 140.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // ── Hero: 当前拥有资产 大数字 + 3个小统计 ──
