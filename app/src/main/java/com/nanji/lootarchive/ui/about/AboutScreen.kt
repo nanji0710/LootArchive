@@ -79,7 +79,7 @@ fun AboutScreen(
             ) {
                 // 顶栏：标题（返回按钮为层外悬浮兄弟，避免自采样崩溃）
                 Row(
-                    Modifier.fillMaxWidth().padding(top = 8.dp).padding(start = 52.dp, end = 20.dp),
+                    Modifier.fillMaxWidth().statusBarsPadding().padding(top = 8.dp).padding(start = 52.dp, end = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("关于", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
@@ -140,6 +140,7 @@ fun AboutScreen(
         Box(
             Modifier
                 .align(Alignment.TopStart)
+                .statusBarsPadding()
                 .padding(start = 20.dp, top = 8.dp)
         ) {
             LiquidIconButton(onClick = onNavigateBack, backdrop = backdrop) {
@@ -148,7 +149,7 @@ fun AboutScreen(
         }
 
         // 底部：检查更新玻璃按钮
-        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
+        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 16.dp)) {
             LiquidGlassButton(
                 onClick = {
                     if (!isChecking) {

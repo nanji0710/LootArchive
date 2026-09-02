@@ -111,6 +111,7 @@ fun MainScreen() {
 
     Scaffold(
         containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { /* 不使用 TopAppBar */ },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -206,6 +207,7 @@ fun MainScreen() {
                         Box(
                             Modifier
                                 .fillMaxWidth()
+                                .statusBarsPadding()
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             LiquidGlassButton(
@@ -222,7 +224,7 @@ fun MainScreen() {
                         }
 
                         // 液态玻璃 FAB（缩小版）
-                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp)) {
+                        Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 90.dp)) {
                             LiquidGlassButton(
                                 onClick = { navigate(Route.ADD) },
                                 backdrop = backdrop,
@@ -248,6 +250,7 @@ fun MainScreen() {
                             backdrop = backdrop,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
                                 .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
                         )
                     }
