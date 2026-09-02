@@ -1,7 +1,7 @@
 {
-  "versionName": "6.9.3",
-  "versionCode": 693,
+  "versionName": "6.9.4",
+  "versionCode": 694,
   "updateDate": "2026-09-01",
-  "updateLog": "v6.9.3 体验优化\n- 修复: 从子页返回主页面时保留滚动位置（首页/统计/我的页面状态保存）\n- 设置页: 移除「关于」模块（已由独立关于页替代）\n- 设置页: 「清除缓存」按钮升级液态玻璃样式",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.3/LootArchive-release-v6.9.3.apk"
+  "updateLog": "v6.9.4 全屏体验\n- 修复: 主页面滑动切换时，首页搜索框与新增按钮随滑动实时隐藏（与点击切换行为一致）\n- 全屏 Edge-to-Edge: 状态栏/导航栏透明化，暖色渐变背景铺满全屏，消除各页面顶部空白条带与双重内边距（对齐 RiseDiary 的沉浸式布局）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.4/LootArchive-release-v6.9.4.apk"
 }
