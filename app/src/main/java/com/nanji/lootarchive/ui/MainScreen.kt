@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -97,6 +98,7 @@ fun MainScreen() {
 
     val isSubPage = currentRoute !in listOf(Route.HOME, Route.STATS, Route.MY)
     val pagerState = rememberPagerState(initialPage = currentTab, pageCount = { 3 })
+    val tabStateHolder = rememberSaveableStateHolder()
     LaunchedEffect(currentTab) {
         if (pagerState.currentPage != currentTab) pagerState.animateScrollToPage(currentTab)
     }
@@ -130,31 +132,33 @@ fun MainScreen() {
                                 modifier = Modifier.fillMaxSize(),
                                 key = { it }
                             ) { page ->
-                                when (page) {
-                                    0 -> HomeScreen(
-                                        categoryFilter = drawerCategoryFilter,
-                                        onNavigateToAddItem = { navigate(Route.ADD) },
-                                        onNavigateToDetail = { navigate(Route.DETAIL, it) },
-                                        onNavigateToSearch = { navigate(Route.SEARCH) },
-                                        onNavigateToStats = { switchTab(1) },
-                                        onNavigateToCategory = { navigate(Route.CATEGORY) },
-                                        onExportExcel = { navigate(Route.BACKUP) },
-                                        onImportExcel = { navigate(Route.BACKUP) },
-                                        onBackupData = { navigate(Route.BACKUP) }
-                                    )
-                                    1 -> StatisticsScreen(
-                                        onNavigateBack={goBack()},
-                                        onNavigateToDetail={navigate(Route.DETAIL, it)},
-                                        isTabMode=true
-                                    )
-                                    else -> MyLandingScreen(
-                                        avatarUri = avatarUri.avatarUri,
-                                        onNavigateToSettings = { navigate(Route.SETTINGS) },
-                                        onNavigateToCategory = { navigate(Route.CATEGORY) },
-                                        onNavigateToBackup = { navigate(Route.BACKUP) },
-                                        onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) },
-                                        onNavigateToAbout = { navigate(Route.ABOUT) }
-                                    )
+                                tabStateHolder.SaveableStateProvider(page) {
+                                    when (page) {
+                                        0 -> HomeScreen(
+                                            categoryFilter = drawerCategoryFilter,
+                                            onNavigateToAddItem = { navigate(Route.ADD) },
+                                            onNavigateToDetail = { navigate(Route.DETAIL, it) },
+                                            onNavigateToSearch = { navigate(Route.SEARCH) },
+                                            onNavigateToStats = { switchTab(1) },
+                                            onNavigateToCategory = { navigate(Route.CATEGORY) },
+                                            onExportExcel = { navigate(Route.BACKUP) },
+                                            onImportExcel = { navigate(Route.BACKUP) },
+                                            onBackupData = { navigate(Route.BACKUP) }
+                                        )
+                                        1 -> StatisticsScreen(
+                                            onNavigateBack={goBack()},
+                                            onNavigateToDetail={navigate(Route.DETAIL, it)},
+                                            isTabMode=true
+                                        )
+                                        else -> MyLandingScreen(
+                                            avatarUri = avatarUri.avatarUri,
+                                            onNavigateToSettings = { navigate(Route.SETTINGS) },
+                                            onNavigateToCategory = { navigate(Route.CATEGORY) },
+                                            onNavigateToBackup = { navigate(Route.BACKUP) },
+                                            onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) },
+                                            onNavigateToAbout = { navigate(Route.ABOUT) }
+                                        )
+                                    }
                                 }
                             }
                         } else {
