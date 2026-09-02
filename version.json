@@ -1,7 +1,7 @@
 {
-  "versionName": "6.9.5",
-  "versionCode": 695,
+  "versionName": "6.9.6",
+  "versionCode": 696,
   "updateDate": "2026-09-01",
-  "updateLog": "v6.9.5 统计图表优化\n- 统计页: 资产总值与物品总数大数字自适应字号，超长数字不再换行\n- 统计页: 资产净值趋势折线图横轴标签按宽度自适应抽稀，月份多时不再重叠\n- 统计页: 折线图纵轴数值标签不再被遮挡（加大绘图边距 + 边缘钳制）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.5/LootArchive-release-v6.9.5.apk"
+  "updateLog": "v6.9.6 沉浸式与图表优化\n- 修复: 首页/统计页顶部白色遮挡条——内容可滑入透明状态栏实时可见（与我的页一致的沉浸式滚动）\n- 统计页: 资产净值趋势折线图改为横向滚动（固定列宽永不重叠、初始显示最新月份、无坐标轴遮挡，对齐月度购入趋势）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.6/LootArchive-release-v6.9.6.apk"
 }

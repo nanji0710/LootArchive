@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.9.5-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.9.6-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -287,11 +287,15 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.9.5.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.9.6.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.9.6 (2026-09-01) 沉浸式与图表优化
+- 修复: 首页/统计页顶部白色遮挡条——内容可滑入透明状态栏实时可见（与我的页一致的沉浸式滚动）
+- 统计页: 资产净值趋势折线图改为横向滚动（固定列宽永不重叠、初始显示最新月份、无坐标轴遮挡，对齐月度购入趋势）
 
 ### v6.9.5 (2026-09-01) 统计图表优化
 - 统计页: 资产总值与物品总数大数字自适应字号，超长数字不再换行
