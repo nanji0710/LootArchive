@@ -75,12 +75,33 @@ fun StatisticsScreen(
                             Column(Modifier.weight(1f)) {
                                 Text("全部资产总值", fontSize = 13.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
                                 Spacer(Modifier.height(4.dp))
-                                Text("¥${numberFormat.format(uiState.totalValue)}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+                                val totalText = "¥${numberFormat.format(uiState.totalValue)}"
+                                Text(
+                                    totalText,
+                                    fontSize = when (totalText.length) {
+                                        in 0..7 -> 28.sp
+                                        in 8..10 -> 24.sp
+                                        in 11..13 -> 20.sp
+                                        else -> 17.sp
+                                    },
+                                    fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis
+                                )
                             }
                             Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                                 Text("物品总数", fontSize = 13.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
                                 Spacer(Modifier.height(4.dp))
-                                Text("${uiState.totalCount}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                                val countText = numberFormat.format(uiState.totalCount)
+                                Text(
+                                    countText,
+                                    fontSize = when (countText.length) {
+                                        in 0..7 -> 28.sp
+                                        in 8..10 -> 24.sp
+                                        else -> 20.sp
+                                    },
+                                    fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis
+                                )
                             }
                         }
                         Spacer(Modifier.height(16.dp))
