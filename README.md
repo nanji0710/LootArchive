@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.9.4-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.9.5-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -287,11 +287,16 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.9.4.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.9.5.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.9.5 (2026-09-01) 统计图表优化
+- 统计页: 资产总值与物品总数大数字自适应字号，超长数字不再换行
+- 统计页: 资产净值趋势折线图横轴标签按宽度自适应抽稀，月份多时不再重叠
+- 统计页: 折线图纵轴数值标签不再被遮挡（加大绘图边距 + 边缘钳制）
 
 ### v6.9.4 (2026-09-01) 全屏体验
 - 修复: 主页面滑动切换时，首页搜索框与新增按钮随滑动实时隐藏（与点击切换行为一致）

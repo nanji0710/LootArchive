@@ -1,7 +1,7 @@
 {
-  "versionName": "6.9.4",
-  "versionCode": 694,
+  "versionName": "6.9.5",
+  "versionCode": 695,
   "updateDate": "2026-09-01",
-  "updateLog": "v6.9.4 全屏体验\n- 修复: 主页面滑动切换时，首页搜索框与新增按钮随滑动实时隐藏（与点击切换行为一致）\n- 全屏 Edge-to-Edge: 状态栏/导航栏透明化，暖色渐变背景铺满全屏，消除各页面顶部空白条带与双重内边距（对齐 RiseDiary 的沉浸式布局）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.4/LootArchive-release-v6.9.4.apk"
+  "updateLog": "v6.9.5 统计图表优化\n- 统计页: 资产总值与物品总数大数字自适应字号，超长数字不再换行\n- 统计页: 资产净值趋势折线图横轴标签按宽度自适应抽稀，月份多时不再重叠\n- 统计页: 折线图纵轴数值标签不再被遮挡（加大绘图边距 + 边缘钳制）",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.5/LootArchive-release-v6.9.5.apk"
 }
