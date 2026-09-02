@@ -24,10 +24,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import android.widget.Toast
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
+import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentOption
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentedControl
 import com.nanji.lootarchive.ui.liquidglass.LiquidToggle
@@ -291,51 +292,43 @@ fun SettingsScreen(
                 colors = CardDefaults.cardColors(containerColor = CardBg()),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text("缓存大小", fontSize = 15.sp, color = TextPrimary())
-                        Spacer(Modifier.height(2.dp))
-                        if (uiState.isCalculatingCache) {
-                            Text("计算中...", fontSize = 13.sp, color = TextAuxiliary())
-                        } else {
-                            Text(uiState.cacheSizeFormatted, fontSize = 13.sp, color = TextAuxiliary())
+                val storageBrush = backgroundBrush()
+                val storageBackdrop = rememberLayerBackdrop {
+                    drawRect(brush = storageBrush)
+                    drawContent()
+                }
+                Box(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.fillMaxWidth().layerBackdrop(storageBackdrop)
+                            .padding(horizontal = 16.dp, vertical = 14.dp).padding(end = 140.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text("缓存大小", fontSize = 15.sp, color = TextPrimary())
+                            Spacer(Modifier.height(2.dp))
+                            if (uiState.isCalculatingCache) {
+                                Text("计算中...", fontSize = 13.sp, color = TextAuxiliary())
+                            } else {
+                                Text(uiState.cacheSizeFormatted, fontSize = 13.sp, color = TextAuxiliary())
+                            }
                         }
                     }
-                    OutlinedButton(
+                    LiquidGlassButton(
                         onClick = { showClearCacheDialog = true },
-                        enabled = !uiState.isClearing,
-                        shape = RoundedCornerShape(12.dp)
+                        backdrop = storageBackdrop,
+                        modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
+                        height = 40.dp,
+                        horizontalPadding = 14.dp,
+                        enabled = !uiState.isClearing
                     ) {
                         if (uiState.isClearing) {
                             CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = Primary())
                         } else {
-                            Icon(Icons.Rounded.DeleteSweep, null, Modifier.size(16.dp))
+                            Icon(Icons.Rounded.DeleteSweep, null, Modifier.size(16.dp), tint = Primary())
+                            Spacer(Modifier.width(6.dp))
+                            Text("清除缓存", fontSize = 13.sp, color = Primary())
                         }
-                        Spacer(Modifier.width(6.dp))
-                        Text("清除缓存", fontSize = 13.sp)
                     }
-                }
-            }
-
-            // ── v5.0 关于 ──
-            SectionHeader(Icons.Rounded.Info, "关于")
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBg()),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("拾物集 ItemGlow", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
-                    Spacer(Modifier.height(4.dp))
-                    Text("当前版本 v${BuildConfig.VERSION_NAME}", fontSize = 13.sp, color = TextAuxiliary())
-                    Spacer(Modifier.height(8.dp))
-                    Text("数据看板", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
-                    Spacer(Modifier.height(2.dp))
-                    Text("回收站: ${uiState.trashItemCount} 件", fontSize = 12.sp, color = TextAuxiliary())
                 }
             }
 
