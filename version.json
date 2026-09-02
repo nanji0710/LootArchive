@@ -1,7 +1,7 @@
 {
-  "versionName": "6.9.2",
-  "versionCode": 692,
+  "versionName": "6.9.3",
+  "versionCode": 693,
   "updateDate": "2026-09-01",
-  "updateLog": "v6.9.2 视觉优化\n- 检查更新按钮：去除底色，改为纯通透液态玻璃（主色图标与文字）\n- 新增/编辑物品向导按钮（保存/下一步/完成保存）：去除底色，纯通透玻璃 + 主色文字\n- 分类管理新增按钮：统一为通透液态玻璃效果（与首页新增物品按钮风格一致）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.2/LootArchive-release-v6.9.2.apk"
+  "updateLog": "v6.9.3 体验优化\n- 修复: 从子页返回主页面时保留滚动位置（首页/统计/我的页面状态保存）\n- 设置页: 移除「关于」模块（已由独立关于页替代）\n- 设置页: 「清除缓存」按钮升级液态玻璃样式",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.3/LootArchive-release-v6.9.3.apk"
 }

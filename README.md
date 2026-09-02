@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.9.2-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.9.3-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -287,11 +287,16 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.9.2.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.9.3.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.9.3 (2026-09-01) 体验优化
+- 修复: 从子页返回主页面时保留滚动位置（首页/统计/我的页面状态保存）
+- 设置页: 移除「关于」模块（已由独立关于页替代）
+- 设置页: 「清除缓存」按钮升级液态玻璃样式
 
 ### v6.9.2 (2026-09-01) 视觉优化
 - 检查更新按钮：去除底色，改为纯通透液态玻璃（主色图标与文字）
