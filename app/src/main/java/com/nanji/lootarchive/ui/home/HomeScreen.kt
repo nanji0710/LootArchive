@@ -49,6 +49,7 @@ import com.nanji.lootarchive.ui.liquidglass.LiquidFilterChip
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.FormatUtil
+import com.nanji.lootarchive.util.sortedForHome
 import java.io.File
 import java.text.NumberFormat
 import kotlinx.coroutines.delay
@@ -80,8 +81,10 @@ fun HomeScreen(
     val effectiveFilter = categoryFilter ?: chipFilter
 
     val filteredItems = remember(uiState.items, effectiveFilter) {
-        if (effectiveFilter != null) uiState.items.filter { it.categoryId == effectiveFilter.first }
+        val base = if (effectiveFilter != null) uiState.items.filter { it.categoryId == effectiveFilter.first }
         else uiState.items
+        // 分组：在用→待修→闲置→已出→丢失；组内（在用等）按剩余保修期从高到低
+        base.sortedForHome()
     }
     val ownedItems = filteredItems.filter { ItemStatus.fromCode(it.status).isOwned }
     val heroCount = filteredItems.size
@@ -101,7 +104,9 @@ fun HomeScreen(
     val gridState = rememberLazyGridState()
     PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { viewModel.refresh(); delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 160.dp),
+            // 固定 2 列：第一张卡片跨满整行（见 span 逻辑），其余每行两张。
+            // 之前用 Adaptive(minSize=160)，宽屏上列数会变成 3~4 —— 就不是"一行两个"了。
+            columns = GridCells.Fixed(2),
             state = gridState,
             // 顶部渐隐：卡片滑到状态栏底下时化掉，而不是被视口硬切一刀
             modifier = Modifier.fillMaxSize().topFade(gridState),
@@ -282,7 +287,9 @@ fun HomeScreen(
     }
 
     if (showWarrantyDialog) {
-        val expiringItems = uiState.items.filter { it.warrantyExpiryDate != null && it.warrantyExpiryDate < System.currentTimeMillis() + uiState.warrantyReminderDays * 24L * 60 * 60 * 1000 }.sortedBy { it.warrantyExpiryDate }
+        // 与指标卡计数同源：DAO 已按"未删除 && 非已出 && 保修到期≤阈值"查询、
+        // 并按到期日升序排好（见 ItemDao.getWarrantyExpiringItems）。
+        val expiringItems = uiState.warrantyExpiringItems
         val count = expiringItems.size
         LiquidAlertDialog(onDismissRequest = { showWarrantyDialog = false }, title = { Text("保修待提醒 ($count)", fontWeight = FontWeight.SemiBold, color = TextPrimary()) }, text = {
             if (count == 0) Text("暂无即将到期的保修物品", color = TextSecondary())

@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.10.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.10.1-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -287,11 +287,16 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.10.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.10.1.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.10.1 (2026-09-30) 首页排序与保修提醒优化
+- **首页卡片排序**：按状态分组 在用→待修→闲置→已出→丢失；在用按剩余保修期从高到低，无保修的排组内最后
+- **首页卡片布局**：固定两列——第一张卡片横向占满整行，其余每行两张（大屏不再动态变成三/四列）
+- **保修待提醒**：剔除已出售物品；指标卡计数与点开明细由同一查询驱动，不再出现"卡片说 3 个、明细里 5 个"的不一致
 
 ### v6.10.0 (2026-09-30) UI 统一与动效体系
 - **动效体系**：新增 `Motion`（时长/曲线/弹簧的唯一来源），曲线改为活泼取向——展开带末尾过冲、收起带起始预判；页面转场、弹层、数字滚动、底栏镜头回弹全部接入

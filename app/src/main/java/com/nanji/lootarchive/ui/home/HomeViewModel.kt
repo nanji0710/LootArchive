@@ -20,6 +20,8 @@ data class HomeUiState(
     val totalCount: Int = 0,
     val totalValue: Double = 0.0,
     val warrantyExpiringCount: Int = 0,
+    /** 保修待提醒明细 —— 与 [warrantyExpiringCount] 同源（DAO 已剔除已出、按到期日升序） */
+    val warrantyExpiringItems: List<ItemEntity> = emptyList(),
     val warrantyReminderDays: Int = 7,
     val currency: String = "CNY",
     val saleRevenue: Double = 0.0,
@@ -48,20 +50,24 @@ class HomeViewModel @Inject constructor(
                         itemRepository.getAllItems(),
                         itemRepository.getOwnedCount(),
                         itemRepository.getOwnedValue(),
-                        itemRepository.getWarrantyExpiringCount(threshold),
+                        // 直接取明细列表：计数 = 列表尺寸，指标卡与点开明细
+                        // 由同一个查询驱动，不会再出现"卡片说 3 个、明细里 5 个"的分裂。
+                        itemRepository.getWarrantyExpiringItems(threshold),
                         settingsRepository.currency
-                    ) { items, count, value, expiringCount, currency ->
-                        Quintet(items, count, value, expiringCount, currency)
+                    ) { items, count, value, expiringItems, currency ->
+                        Quintet(items, count, value, expiringItems, currency)
                     },
                     settingsRepository.appName
                 ) { quintet, appName ->
                     // 批量取首图，避免逐物品 N+1 查询
                     val paths = try { itemRepository.getAllFirstPhotos() } catch (e: Exception) { android.util.Log.e("HomeVM", "Load photos failed", e); emptyMap() }
                     val saleRev = quintet.first.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
+                    val expiringItems = quintet.fourth
                     HomeUiState(
                         isLoading = false, items = quintet.first, photoPaths = paths,
                         totalCount = quintet.second, totalValue = quintet.third,
-                        warrantyExpiringCount = quintet.fourth, warrantyReminderDays = reminderDays.toInt(),
+                        warrantyExpiringCount = expiringItems.size, warrantyExpiringItems = expiringItems,
+                        warrantyReminderDays = reminderDays.toInt(),
                         currency = quintet.fifth, saleRevenue = saleRev, appName = appName
                     )
                 }.catch { e ->
