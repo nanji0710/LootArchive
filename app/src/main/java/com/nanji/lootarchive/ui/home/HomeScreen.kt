@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,6 +43,7 @@ import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
+import com.nanji.lootarchive.ui.component.topFade
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidFilterChip
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
@@ -90,42 +92,47 @@ fun HomeScreen(
         }.sumOf { it.salePrice!! }
     val heroValue = ownedItems.sumOf { it.purchasePrice } + groupedSaleRevenue
 
-    val animCount by animateIntAsState(heroCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
-    val animValue by animateFloatAsState(heroValue.toFloat(), animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
-    val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(600, easing = androidx.compose.animation.core.EaseOutCubic))
+    val animCount by animateIntAsState(heroCount, animationSpec = tween(MotionDuration.Count, easing = MotionCurve.EaseOut))
+    val animValue by animateFloatAsState(heroValue.toFloat(), animationSpec = tween(MotionDuration.Count, easing = MotionCurve.EaseOut))
+    val animWarranty by animateIntAsState(uiState.warrantyExpiringCount, animationSpec = tween(MotionDuration.Count, easing = MotionCurve.EaseOut))
 
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    // 网格状态提到外面：顶栏渐隐要读它的滚动量（见 ui/component/ScrollFade.kt）。
+    val gridState = rememberLazyGridState()
     PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { viewModel.refresh(); delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 160.dp), modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 68.dp + statusBarTop, bottom = 140.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
+            columns = GridCells.Adaptive(minSize = 160.dp),
+            state = gridState,
+            // 顶部渐隐：卡片滑到状态栏底下时化掉，而不是被视口硬切一刀
+            modifier = Modifier.fillMaxSize().topFade(gridState),
+            contentPadding = PaddingValues(start = AppSpacing.pageEdge, end = AppSpacing.pageEdge, top = 68.dp + statusBarTop, bottom = AppSpacing.bottomBarClearance),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg), verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
         ) {
             // ── Hero: 当前拥有资产 大数字 + 3个小统计 ──
             item(span = { GridItemSpan(maxLineSpan) }) {
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(if (LocalDarkTheme.current) _CardDark else Color(0xFFFFF8F0)).padding(20.dp)) {
+                Box(Modifier.fillMaxWidth().clip(AppShape.sheet).background(if (LocalDarkTheme.current) _CardDark else HeroCardLight).padding(20.dp)) {
                     Column {
-                        Text("当前拥有", fontSize = 13.sp, color = TextAuxiliary())
+                        Text("当前拥有", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                         Spacer(Modifier.height(4.dp))
-                        Text("¥${numberFormat.format(animValue)}", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = MonoFont)
+                        Text("¥${numberFormat.format(animValue)}", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = MonoFont)
                         Spacer(Modifier.height(14.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(Primary().copy(alpha = 0.06f)).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+                            Box(Modifier.weight(1f).clip(AppShape.panel).background(Primary().copy(alpha = 0.06f)).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("$animCount", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
-                                    Text("物品总数", fontSize = 11.sp, color = TextAuxiliary())
+                                    Text("$animCount", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                                    Text("物品总数", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                                 }
                             }
-                            Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(if (uiState.warrantyExpiringCount > 0) WarrantyExpiring.copy(alpha = 0.10f) else Primary().copy(alpha = 0.06f)).padding(horizontal = 12.dp, vertical = 10.dp).clickable { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true }, contentAlignment = Alignment.Center) {
+                            Box(Modifier.weight(1f).clip(AppShape.panel).background(if (uiState.warrantyExpiringCount > 0) WarrantyExpiring.copy(alpha = 0.10f) else Primary().copy(alpha = 0.06f)).padding(horizontal = 12.dp, vertical = 10.dp).clickable { if (uiState.warrantyExpiringCount > 0) showWarrantyDialog = true }, contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("$animWarranty", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = if (uiState.warrantyExpiringCount > 0) Color(0xFFEF4444) else Primary(), fontFamily = FredokaFont)
-                                    Text("保修待提醒", fontSize = 11.sp, color = TextAuxiliary())
+                                    Text("$animWarranty", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = if (uiState.warrantyExpiringCount > 0) Color(0xFFEF4444) else Primary(), fontFamily = FredokaFont)
+                                    Text("保修待提醒", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                                 }
                             }
-                            Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(Secondary().copy(alpha = 0.08f)).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+                            Box(Modifier.weight(1f).clip(AppShape.panel).background(Secondary().copy(alpha = 0.08f)).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("${catState.categories.size}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Secondary(), fontFamily = FredokaFont)
-                                    Text("分类数", fontSize = 11.sp, color = TextAuxiliary())
+                                    Text("${catState.categories.size}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Secondary(), fontFamily = FredokaFont)
+                                    Text("分类数", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                                 }
                             }
                         }
@@ -175,13 +182,13 @@ fun HomeScreen(
             // ── 对标 HTML .ph-section-title: "最近添加" ──
             if (filteredItems.isNotEmpty() && !uiState.isLoading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text("最近添加", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.padding(vertical = 4.dp))
+                    Text("最近添加", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
 
             // 骨架加载
             if (uiState.isLoading && filteredItems.isEmpty()) {
-                for (i in 1..6) { item { Card(Modifier.fillMaxWidth().height(200.dp), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))) { Box(Modifier.fillMaxWidth().height(130.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))); Column(Modifier.padding(14.dp)) { Box(Modifier.fillMaxWidth(0.7f).height(16.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(6.dp))); Spacer(Modifier.height(8.dp)); Box(Modifier.fillMaxWidth(0.4f).height(14.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(6.dp))) } } } }
+                for (i in 1..6) { item { Card(Modifier.fillMaxWidth().height(200.dp), shape = AppShape.card, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))) { Box(Modifier.fillMaxWidth().height(130.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))); Column(Modifier.padding(14.dp)) { Box(Modifier.fillMaxWidth(0.7f).height(16.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), AppShape.chip)); Spacer(Modifier.height(8.dp)); Box(Modifier.fillMaxWidth(0.4f).height(14.dp).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), AppShape.chip)) } } } }
             }
 
             // 空状态
@@ -204,34 +211,34 @@ fun HomeScreen(
                     val priceSz = if (isWide) 18.sp else 16.sp
                     val isOwned = ItemStatus.fromCode(item.status).isOwned
                     Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }
-                        .then(if (isOwned) Modifier.shadow(3.dp, RoundedCornerShape(20.dp)) else Modifier)
+                        .then(if (isOwned) Modifier.shadow(3.dp, AppShape.card) else Modifier)
                         .then(if (!isOwned) Modifier.alpha(0.50f) else Modifier),
-                        shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+                        shape = AppShape.card, colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                         Column {
-                            Box(Modifier.fillMaxWidth().height(photoH).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))) {
+                            Box(Modifier.fillMaxWidth().height(photoH).clip(RoundedCornerShape(topStart = AppRadius.xl, topEnd = AppRadius.xl))) {
                                 if (uiState.photoPaths[item.id] != null) AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                                 else Box(Modifier.fillMaxSize().background(catColor.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(if (isWide) 52.dp else 44.dp), tint = catColor.copy(alpha = 0.35f)) }
-                                Surface(Modifier.padding(10.dp).size(10.dp).align(Alignment.TopStart), RoundedCornerShape(5.dp), color = catColor) {}
+                                Surface(Modifier.padding(10.dp).size(10.dp).align(Alignment.TopStart), AppShape.chip, color = catColor) {}
                                 if (item.warrantyExpiryDate != null) {
                                     val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24*60*60*1000)
                                     val bdg = when { days < 0 -> WarrantyExpired; days <= 7 -> WarrantyExpiring; else -> WarrantyActive }
-                                    Surface(Modifier.padding(10.dp).align(Alignment.TopEnd), RoundedCornerShape(10.dp), color = bdg.copy(alpha = 0.88f)) {
-                                        Text(when { days < 0 -> "过期"; days == 0L -> "今天"; else -> "${days}天" }, fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                                    Surface(Modifier.padding(10.dp).align(Alignment.TopEnd), AppShape.thumb, color = bdg.copy(alpha = 0.88f)) {
+                                        Text(when { days < 0 -> "过期"; days == 0L -> "今天"; else -> "${days}天" }, style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                                     }
                                 }
                                 if (System.currentTimeMillis() - item.createdAt < 7*24*60*60*1000 && item.warrantyExpiryDate == null)
-                                    Surface(Modifier.padding(10.dp).align(Alignment.TopStart), RoundedCornerShape(6.dp), color = Primary().copy(alpha = 0.85f)) { Text("NEW", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
+                                    Surface(Modifier.padding(10.dp).align(Alignment.TopStart), AppShape.chip, color = Primary().copy(alpha = 0.85f)) { Text("NEW", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
                                 // v5.2 状态圆点（左下角）
                                 if (item.status != "active") {
                                     Surface(
                                         Modifier.padding(10.dp).align(Alignment.BottomStart).size(20.dp),
-                                        RoundedCornerShape(10.dp),
+                                        AppShape.thumb,
                                         color = statusColor(item.status).copy(alpha = 0.88f)
                                     ) {
                                         Box(Modifier.fillMaxSize().wrapContentSize(unbounded = true), contentAlignment = Alignment.Center) {
                                             Text(
                                                 statusLabel(item.status).take(1),
-                                                fontSize = 9.sp,
+                                                style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.White,
                                                 textAlign = TextAlign.Center,
@@ -245,7 +252,7 @@ fun HomeScreen(
                                 Text(item.name, fontSize = nameSz, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(6.dp))
                                 if (isOwned) {
-                                    Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) {
+                                    Surface(shape = AppShape.thumb, color = Primary().copy(alpha = 0.12f)) {
                                         Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
                                     }
                                 } else {
@@ -257,12 +264,12 @@ fun HomeScreen(
                                     Spacer(Modifier.height(6.dp))
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                         itemTags.take(2).forEach { tag ->
-                                            Surface(shape = RoundedCornerShape(6.dp), color = Primary().copy(alpha = 0.08f)) {
-                                                Text(tag, fontSize = 12.sp, color = Primary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                            Surface(shape = AppShape.chip, color = Primary().copy(alpha = 0.08f)) {
+                                                Text(tag, style = MaterialTheme.typography.labelSmall, color = Primary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                             }
                                         }
                                         if (itemTags.size > 2) {
-                                            Text("+${itemTags.size - 2}", fontSize = 12.sp, color = TextAuxiliary())
+                                            Text("+${itemTags.size - 2}", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                                         }
                                     }
                                 }
@@ -279,7 +286,7 @@ fun HomeScreen(
         val count = expiringItems.size
         LiquidAlertDialog(onDismissRequest = { showWarrantyDialog = false }, title = { Text("保修待提醒 ($count)", fontWeight = FontWeight.SemiBold, color = TextPrimary()) }, text = {
             if (count == 0) Text("暂无即将到期的保修物品", color = TextSecondary())
-            else LazyColumn { items(expiringItems, key = { it.id }) { i -> Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(8.dp), RoundedCornerShape(4.dp), color = WarrantyExpiring) {}; Spacer(Modifier.width(10.dp)); Text(i.name, fontSize = 14.sp, color = TextPrimary()) } } }
+            else LazyColumn { items(expiringItems, key = { it.id }) { i -> Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(8.dp), AppShape.bar, color = WarrantyExpiring) {}; Spacer(Modifier.width(10.dp)); Text(i.name, style = MaterialTheme.typography.bodyMedium, color = TextPrimary()) } } }
         }, confirmButton = { TextButton(onClick = { showWarrantyDialog = false }) { Text("关闭", color = Primary()) } })
     }
 }

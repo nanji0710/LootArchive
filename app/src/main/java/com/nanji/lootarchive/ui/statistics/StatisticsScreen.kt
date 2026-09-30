@@ -31,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.component.topFade
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentOption
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentedControl
@@ -66,14 +67,17 @@ fun StatisticsScreen(
         PullToRefreshBox(isRefreshing = refreshing, onRefresh = { refreshing = true; scope.launch { viewModel.refresh(); delay(600); refreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
             if (uiState.isLoading) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Primary()) }
             else if (uiState.categorySummaries.isEmpty()) EmptyState(icon = { Icon(Icons.Rounded.BarChart, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) }, title = "暂无统计数据", subtitle = "添加物品后即可查看统计图表")
-            else Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).statusBarsPadding().navigationBarsPadding().padding(horizontal = CardPadding, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            else {
+                // 滚动状态提到外面：顶栏渐隐要读它的滚动量（见 ui/component/ScrollFade.kt）
+                val scrollState = rememberScrollState()
+                Column(Modifier.fillMaxSize().verticalScroll(scrollState).topFade(scrollState).statusBarsPadding().navigationBarsPadding().padding(horizontal = AppSpacing.pageEdge, vertical = AppSpacing.pageVertical), verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)) {
 
                 // ── 资产总览 ──
                 GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
                         Row(Modifier.fillMaxWidth()) {
                             Column(Modifier.weight(1f)) {
-                                Text("全部资产总值", fontSize = 13.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                Text("全部资产总值", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(), fontFamily = FredokaFont)
                                 Spacer(Modifier.height(4.dp))
                                 val totalText = "¥${numberFormat.format(uiState.totalValue)}"
                                 Text(
@@ -89,7 +93,7 @@ fun StatisticsScreen(
                                 )
                             }
                             Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                                Text("物品总数", fontSize = 13.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                Text("物品总数", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(), fontFamily = FredokaFont)
                                 Spacer(Modifier.height(4.dp))
                                 val countText = numberFormat.format(uiState.totalCount)
                                 Text(
@@ -146,9 +150,9 @@ fun StatisticsScreen(
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.AutoMirrored.Rounded.TrendingUp, null, Modifier.size(16.dp), tint = StatusSold)
                                 Spacer(Modifier.width(6.dp))
-                                Text("售出收益", fontSize = 13.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                Text("售出收益", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(), fontFamily = FredokaFont)
                                 Spacer(Modifier.weight(1f))
-                                Text("+¥${numberFormat.format(uiState.saleRevenue)}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = StatusSold, fontFamily = MonoFont)
+                                Text("+¥${numberFormat.format(uiState.saleRevenue)}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = StatusSold, fontFamily = MonoFont)
                             }
                         }
                     }
@@ -157,7 +161,7 @@ fun StatisticsScreen(
                 // ── 分类资产分布 Donut ──
                 GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
-                        Text("分类资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                        Text("分类资产分布", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(16.dp))
                         val catTotal = uiState.categorySummaries.sumOf { it.totalValue }
                             val totalForPie = catTotal + uiState.saleRevenue
@@ -184,14 +188,14 @@ fun StatisticsScreen(
                             if (uiState.saleRevenue > 0) sweeps.add((uiState.saleRevenue / totalForPie * 360f).toFloat())
                             Canvas(Modifier.size(140.dp)) { var sa = -90f; sweeps.forEachIndexed { i, sw -> if (sw > 0) { val c = if (uiState.saleRevenue > 0 && i == sweeps.lastIndex) StatusSold else ChartColors[i % ChartColors.size]; drawArc(c, sa, sw, true, Offset.Zero, Size(size.width, size.height)); sa += sw } }; drawCircle(holeColor, size.width * 0.28f) }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(FormatUtil.formatPriceShort(uiState.totalValue), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
-                                Text("总资产", fontSize = 12.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                Text(FormatUtil.formatPriceShort(uiState.totalValue), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+                                Text("总资产", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont)
                             }
                         }
                         Spacer(Modifier.height(12.dp))
-                        uiState.categorySummaries.forEachIndexed { i, s -> Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.width(10.dp)); Text(s.category.name, fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(s.totalValue)}", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (s.totalValue / totalForPie * 100).toInt() else 0}%", fontSize = 11.sp, color = TextAuxiliary(), fontFamily = FredokaFont) } }
+                        uiState.categorySummaries.forEachIndexed { i, s -> Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), AppShape.chip, color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.width(10.dp)); Text(s.category.name, style = MaterialTheme.typography.bodySmall, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(s.totalValue)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (s.totalValue / totalForPie * 100).toInt() else 0}%", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont) } }
                         if (uiState.saleRevenue > 0) {
-                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), RoundedCornerShape(5.dp), color = StatusSold) {}; Spacer(Modifier.width(10.dp)); Text("售出收益", fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(uiState.saleRevenue)}", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = StatusSold, fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (uiState.saleRevenue / totalForPie * 100).toInt() else 0}%", fontSize = 11.sp, color = TextAuxiliary(), fontFamily = FredokaFont) }
+                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), AppShape.chip, color = StatusSold) {}; Spacer(Modifier.width(10.dp)); Text("售出收益", style = MaterialTheme.typography.bodySmall, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(uiState.saleRevenue)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, color = StatusSold, fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (uiState.saleRevenue / totalForPie * 100).toInt() else 0}%", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont) }
                         }
                     }
                 }
@@ -205,7 +209,7 @@ fun StatisticsScreen(
                     }
                     GlassSurface {
                         Column(Modifier.padding(CardPadding)) {
-                            Text("分类多维对比", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                            Text("分类多维对比", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(12.dp))
                             RadarChart(radarAxes, Modifier.fillMaxWidth(), sizeDp = 240f)
                         }
@@ -233,7 +237,7 @@ fun StatisticsScreen(
                 if (trendPoints.size >= 2) {
                     GlassSurface {
                         Column(Modifier.padding(CardPadding)) {
-                            Text("资产净值趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                            Text("资产净值趋势", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(8.dp))
                             com.nanji.lootarchive.ui.component.TrendLineChart(trendPoints, Modifier.fillMaxWidth(), sizeDp = 200f)
                         }
@@ -243,7 +247,7 @@ fun StatisticsScreen(
                 // ── 月度购入趋势 Sparkline ──
                 GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
-                        Text("月度购入趋势", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                        Text("月度购入趋势", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(14.dp))
                         val sdf = java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault())
                         val purchaseByMonth = uiState.items.filter { it.purchaseDate != null }
@@ -254,7 +258,7 @@ fun StatisticsScreen(
                             .mapValues { it.value.sumOf { i -> i.salePrice!! } }
                         val allMonths = (purchaseByMonth.keys + saleByMonth.keys).distinct().sorted().takeLast(12)
                         val md = allMonths.map { m -> m to ((purchaseByMonth[m] ?: 0.0) + (saleByMonth[m] ?: 0.0)) }
-                        if (md.isEmpty()) Text("暂无购入数据", fontSize = 14.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                        if (md.isEmpty()) Text("暂无购入数据", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary(), fontFamily = FredokaFont)
                         else {
                             val mv = md.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
                             val colW = 52.dp
@@ -263,12 +267,12 @@ fun StatisticsScreen(
                                 Row(Modifier.fillMaxWidth().height(160.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
                                     md.forEachIndexed { i, (ym, t) ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(colW)) {
-                                            Text(FormatUtil.formatPriceShort(t), fontSize = 10.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
+                                            Text(FormatUtil.formatPriceShort(t), style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
                                             Spacer(Modifier.height(4.dp))
-                                            Surface(Modifier.width(24.dp).height(((t / mv) * 100).dp.coerceAtLeast(4.dp)), shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp), color = ChartColors[i % ChartColors.size]) {}
+                                            Surface(Modifier.width(24.dp).height(((t / mv) * 100).dp.coerceAtLeast(4.dp)), shape = RoundedCornerShape(topStart = AppRadius.sm, topEnd = AppRadius.sm), color = ChartColors[i % ChartColors.size]) {}
                                             Spacer(Modifier.height(6.dp))
                                             val pts = ym.split("-")
-                                            Text(if (pts.size == 2) "${pts[0].takeLast(2)}/${pts[1]}" else ym, fontSize = 10.sp, color = TextAuxiliary(), fontFamily = FredokaFont, textAlign = TextAlign.Center)
+                                            Text(if (pts.size == 2) "${pts[0].takeLast(2)}/${pts[1]}" else ym, style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont, textAlign = TextAlign.Center)
                                         }
                                     }
                                 }
@@ -276,12 +280,12 @@ fun StatisticsScreen(
                                 Row(Modifier.fillMaxWidth().height(160.dp).horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.Bottom) {
                                     md.forEachIndexed { i, (ym, t) ->
                                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(colW)) {
-                                            Text(FormatUtil.formatPriceShort(t), fontSize = 10.sp, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
+                                            Text(FormatUtil.formatPriceShort(t), style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), maxLines = 1, fontFamily = FredokaFont)
                                             Spacer(Modifier.height(4.dp))
-                                            Surface(Modifier.width(24.dp).height(((t / mv) * 100).dp.coerceAtLeast(4.dp)), shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp), color = ChartColors[i % ChartColors.size]) {}
+                                            Surface(Modifier.width(24.dp).height(((t / mv) * 100).dp.coerceAtLeast(4.dp)), shape = RoundedCornerShape(topStart = AppRadius.sm, topEnd = AppRadius.sm), color = ChartColors[i % ChartColors.size]) {}
                                             Spacer(Modifier.height(6.dp))
                                             val pts = ym.split("-")
-                                            Text(if (pts.size == 2) "${pts[0].takeLast(2)}/${pts[1]}" else ym, fontSize = 10.sp, color = TextAuxiliary(), fontFamily = FredokaFont, textAlign = TextAlign.Center)
+                                            Text(if (pts.size == 2) "${pts[0].takeLast(2)}/${pts[1]}" else ym, style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont, textAlign = TextAlign.Center)
                                         }
                                     }
                                 }
@@ -293,15 +297,15 @@ fun StatisticsScreen(
                 // ── 分类排名 ──
                 GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
-                        Text("分类排名", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                        Text("分类排名", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))
                         val rk = uiState.categorySummaries.sortedByDescending { it.totalValue }
                         rk.forEachIndexed { i, s ->
                             Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Surface(Modifier.size(24.dp), RoundedCornerShape(8.dp), color = when (i) { 0 -> Color(0xFFF59E0B); 1 -> Color(0xFFA8A29E); 2 -> Color(0xFFCDA87B); else -> Color.Transparent }) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("${i + 1}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (i < 3) Color.White else TextAuxiliary(), fontFamily = FredokaFont) } }
-                                Spacer(Modifier.width(12.dp)); Text(s.category.name, fontSize = 14.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
-                                Text("¥${numberFormat.format(s.totalValue)}", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Primary(), fontFamily = FredokaFont)
-                                Text("  ${s.itemCount}件", fontSize = 11.sp, color = TextAuxiliary(), fontFamily = FredokaFont)
+                                Surface(Modifier.size(24.dp), AppShape.chip, color = when (i) { 0 -> Color(0xFFF59E0B); 1 -> Color(0xFFA8A29E); 2 -> Color(0xFFCDA87B); else -> Color.Transparent }) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("${i + 1}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = if (i < 3) Color.White else TextAuxiliary(), fontFamily = FredokaFont) } }
+                                Spacer(Modifier.width(12.dp)); Text(s.category.name, style = MaterialTheme.typography.bodyMedium, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
+                                Text("¥${numberFormat.format(s.totalValue)}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = Primary(), fontFamily = FredokaFont)
+                                Text("  ${s.itemCount}件", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont)
                             }
                             if (i < rk.size - 1) HorizontalDivider(Modifier.padding(start = 36.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                         }
@@ -316,18 +320,18 @@ fun StatisticsScreen(
                 if (tagData.isNotEmpty()) {
                     GlassSurface {
                         Column(Modifier.padding(CardPadding)) {
-                            Text("标签资产分布", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                            Text("标签资产分布", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                             Spacer(Modifier.height(12.dp))
                             val maxTagVal = tagData.maxOf { it.value }.coerceAtLeast(1.0)
                             tagData.forEachIndexed { i, (tag, value) ->
                                 Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(tag, fontSize = 12.sp, color = TextPrimary(), modifier = Modifier.width(56.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(tag, style = MaterialTheme.typography.labelSmall, color = TextPrimary(), modifier = Modifier.width(56.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     Spacer(Modifier.width(8.dp))
-                                    Box(Modifier.weight(1f).height(18.dp).clip(RoundedCornerShape(6.dp)).background(TextAuxiliary().copy(alpha = 0.08f))) {
-                                        Box(Modifier.fillMaxHeight().width(((value / maxTagVal) * 200).dp.coerceAtLeast(4.dp)).clip(RoundedCornerShape(6.dp)).background(ChartColors[i % ChartColors.size]))
+                                    Box(Modifier.weight(1f).height(18.dp).clip(AppShape.chip).background(TextAuxiliary().copy(alpha = 0.08f))) {
+                                        Box(Modifier.fillMaxHeight().width(((value / maxTagVal) * 200).dp.coerceAtLeast(4.dp)).clip(AppShape.chip).background(ChartColors[i % ChartColors.size]))
                                     }
                                     Spacer(Modifier.width(8.dp))
-                                    Text("¥${numberFormat.format(value)}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont)
+                                    Text("¥${numberFormat.format(value)}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont)
                                 }
                             }
                         }
@@ -338,7 +342,7 @@ fun StatisticsScreen(
                 val context = LocalContext.current
                 GlassSurface {
                     Column(Modifier.padding(CardPadding)) {
-                        Text("数据导出", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
+                        Text("数据导出", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(12.dp))
                         var showExportDone by remember { mutableStateOf(false) }
                         // ── 导出 CSV（液态玻璃按钮）──
@@ -387,17 +391,18 @@ fun StatisticsScreen(
                             ) {
                                 Icon(Icons.Rounded.FileDownload, null, Modifier.size(18.dp), tint = Color.White)
                                 Spacer(Modifier.width(8.dp))
-                                Text("导出 CSV", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                Text("导出 CSV", color = Color.White, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                             }
                         }
                         if (showExportDone) {
                             Spacer(Modifier.height(6.dp))
-                            Text("CSV已生成，请选择分享方式", fontSize = 11.sp, color = Primary())
+                            Text("CSV已生成，请选择分享方式", style = MaterialTheme.typography.labelSmall, color = Primary())
                         }
                     }
                 }
 
-                Spacer(Modifier.height(100.dp))
+                Spacer(Modifier.height(AppSpacing.bottomBarClearance))
+            }
             }
         }
     }

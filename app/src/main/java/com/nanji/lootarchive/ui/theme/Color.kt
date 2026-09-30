@@ -15,10 +15,10 @@ import com.nanji.lootarchive.domain.model.ItemStatus
 // ── 主色 (暖琥珀系) ──
 val _Primary = Color(0xFFE8782A)            // 暖琥珀 — 有温度的强调色
 val _PrimaryDark = Color(0xFFF5995C)        // 深色模式提亮
-val _OnPrimary = Color(0xFFFFFFFF)
+// _OnPrimary / _OnSecondary 原本在这里，实测**各 0 引用**（Colorscheme 里
+// 用的都是 Color.White / 具体深色，没人读这两个私有 token），已删。
 
 val _Secondary = Color(0xFF7C3AED)          // 优雅紫 — 次强调
-val _OnSecondary = Color(0xFFFFFFFF)
 
 // ── Glass 底色体系 ──
 val _BackgroundLight = Color(0xFFFBF9F6)    // 暖象牙白 — 有温度的画布
@@ -103,19 +103,18 @@ val LocalGlassColors = staticCompositionLocalOf { LightGlassColors }
 @Composable fun TextPrimary() = LocalGlassColors.current.textPrimary
 @Composable fun TextSecondary() = LocalGlassColors.current.textSecondary
 @Composable fun TextAuxiliary() = LocalGlassColors.current.textAuxiliary
-fun OnPrimary() = _OnPrimary
-
-// ── Glass 背景色（读 token，单一来源）──
-@Composable fun GlassBg() = LocalGlassColors.current.glassBg
-@Composable fun GlassBorder() = LocalGlassColors.current.glassBorder
-@Composable fun NavGlassBg() = LocalGlassColors.current.navGlassBg
 @Composable fun CardBg() = LocalGlassColors.current.cardBg
+
+// 说明：原本这里还有 GlassBg() / GlassBorder() / NavGlassBg() / OnPrimary()
+// 四个访问器，实测**全项目 0 引用**（玻璃组件都是直接读
+// `LocalGlassColors.current.glassBg` 这种数据类字段，不走访问器），已删除。
+// 数据类字段本身保留 —— 它们在 GlassComponents 里仍在用。
 
 // ── 功能色 ──
 val WarrantyActive = Color(0xFF10B981)
 val WarrantyExpiring = Color(0xFFF59E0B)
 val WarrantyExpired = Color(0xFFEF4444)
-val SemanticInfo = Color(0xFF3B82F6)
+// 原本还有个 SemanticInfo = 0xFF3B82F6，实测 0 引用，已删。
 
 // ── v5.2 物品状态色板 ──
 val StatusActive = Color(0xFF10B981)     // 在用 — 绿
@@ -146,8 +145,24 @@ val ChartColors = listOf(
     Color(0xFFF97316), Color(0xFF6366F1), Color(0xFF14B8A6)
 )
 
-// ── 渐变色 (用于 Hero / 照片区渐变) ──
-val GradientStartLight = Color(0xFFFFF8F0)
-val GradientEndLight = Color(0xFFFFF0E0)
-val GradientStartDark = Color(0xFF1A1410)
-val GradientEndDark = Color(0xFF181008)
+// ── 卡片 / 占位区渐变 ──
+//
+// 原本这里定义了一组 GradientStartLight/EndLight/StartDark/EndDark，
+// 但实测 **4 个全部 0 引用** —— 真正在用的渐变是下面这两组，它们原来
+// 硬编码散在 HomeScreen 与 DetailScreen 里（各 2 个色值），既重复又
+// 无法统一调整。现在收进这里，两个页面都从这里取。
+//
+// 命名不带 Light/Dark：它们是**同一块内容**在深浅两档下的配色，
+// 调用方按主题取一组即可，比拆成四个独立变量不容易配错。
+
+/** 首页 Hero 卡底色（暖奶油）。浅色一档。 */
+val HeroCardLight = Color(0xFFFFF8F0)
+
+/** 详情页无照片时的占位渐变（暖橙 → 浅橙）。 */
+val PhotoPlaceholderLight = listOf(Color(0xFFFFD4B8), Color(0xFFFFB890))
+
+/** 详情页无照片时的占位渐变（深色一档，暖黑棕）。 */
+val PhotoPlaceholderDark = listOf(Color(0xFF3D2A1A), Color(0xFF2D2010))
+
+/** 头像底的暖色衬底。 */
+val AvatarWarmLight = Color(0xFFFFEDE0)

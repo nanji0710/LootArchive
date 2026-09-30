@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.nanji.lootarchive.ui.theme.AppShape
+import com.nanji.lootarchive.ui.theme.AppSpacing
 import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.util.PhotoUtil
 import java.io.File
@@ -147,7 +150,7 @@ fun CameraScreen(
                             top = with(density) { y.toDp() - 36.dp }
                         )
                         .size(72.dp)
-                        .border(2.dp, Color.White.copy(alpha = 0.92f), RoundedCornerShape(20.dp))
+                        .border(2.dp, Color.White.copy(alpha = 0.92f), AppShape.card)
                 )
             }
         } else {
@@ -164,7 +167,7 @@ fun CameraScreen(
             Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).clickable { onBack() }.padding(12.dp)) {
                 Icon(Icons.Default.Close, "关闭", tint = Color.White)
             }
-            Text(if (capturedPaths.isEmpty()) "拍照" else "已拍 ${capturedPaths.size} 张", color = Color.White, fontSize = 16.sp)
+            Text(if (capturedPaths.isEmpty()) "拍照" else "已拍 ${capturedPaths.size} 张", color = Color.White, style = MaterialTheme.typography.bodyLarge)
             Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f)).clickable { flashEnabled = !flashEnabled }.padding(12.dp)) {
                 Icon(
                     if (flashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
@@ -212,22 +215,22 @@ fun CameraScreen(
 
             if (capturedPaths.isNotEmpty()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("${capturedPaths.size} 张照片", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Color(0xFFFF8C42))
+                    Text("${capturedPaths.size} 张照片", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.bodySmall)
+                    Box(Modifier.clip(AppShape.card).background(Color(0xFFFF8C42))
                         .clickable { onPhotoTaken(capturedPaths.toList()) }.padding(horizontal = 20.dp, vertical = 10.dp)) {
-                        Text("完成", color = Color.White, fontSize = 14.sp)
+                        Text("完成", color = Color.White, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
                 Spacer(Modifier.height(12.dp))
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha = 0.14f))
+                Box(Modifier.clip(AppShape.card).background(Color.White.copy(alpha = 0.14f))
                     .clickable { galleryLauncher.launch("image/*") }.padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.PhotoLibrary, null, tint = Color.White, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("从相册选择", color = Color.White, fontSize = 13.sp)
+                        Text("从相册选择", color = Color.White, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }

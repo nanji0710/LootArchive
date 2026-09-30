@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.theme.AppRadius
+import com.nanji.lootarchive.ui.theme.AppShape
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextPrimary
@@ -78,7 +80,7 @@ fun WheelDatePickerDialog(
     LiquidAlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(title, fontWeight = FontWeight.Bold, color = TextPrimary(), fontSize = 18.sp)
+            Text(title, fontWeight = FontWeight.Bold, color = TextPrimary(), style = MaterialTheme.typography.headlineSmall)
         },
         text = {
             Column(
@@ -88,12 +90,12 @@ fun WheelDatePickerDialog(
                 // 选中预览
                 Surface(
                     Modifier.padding(bottom = 12.dp),
-                    RoundedCornerShape(10.dp),
+                    AppShape.thumb,
                     color = Primary().copy(alpha = 0.12f)
                 ) {
                     Text(
                         "${selectedYear}年${selectedMonth}月${selectedDay}日",
-                        fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary(),
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Primary(),
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
                     )
                 }
@@ -103,9 +105,9 @@ fun WheelDatePickerDialog(
                     Modifier.fillMaxWidth().padding(bottom = 4.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text("年", fontSize = 12.sp, color = TextAuxiliary(), modifier = Modifier.width(72.dp), textAlign = TextAlign.Center)
-                    Text("月", fontSize = 12.sp, color = TextAuxiliary(), modifier = Modifier.width(72.dp), textAlign = TextAlign.Center)
-                    Text("日", fontSize = 12.sp, color = TextAuxiliary(), modifier = Modifier.width(72.dp), textAlign = TextAlign.Center)
+                    Text("年", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), modifier = Modifier.width(72.dp), textAlign = TextAlign.Center)
+                    Text("月", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), modifier = Modifier.width(72.dp), textAlign = TextAlign.Center)
+                    Text("日", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), modifier = Modifier.width(72.dp), textAlign = TextAlign.Center)
                 }
 
                 // 三列滚动选择器（点击选择）
@@ -184,7 +186,7 @@ private fun WheelColumn(
                     Modifier
                         .fillMaxWidth()
                         .height(itemHeight.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(AppShape.chip)
                         .clickable {
                             onSelect(item)
                             scope.launch {

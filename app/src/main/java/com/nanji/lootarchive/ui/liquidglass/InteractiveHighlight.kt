@@ -16,8 +16,10 @@ package com.nanji.lootarchive.ui.liquidglass
 import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -40,13 +42,22 @@ internal class InteractiveHighlight(
     val animationScope: CoroutineScope,
     val position: (size: Size, offset: Offset) -> Offset = { _, offset -> offset },
     val intensity: Float = 1f,
-    val radiusMultiplier: Float = 1.5f
+    val radiusMultiplier: Float = 1.5f,
+    /**
+     * 系统「减弱动效」。这套高光有两条弹簧，同样不受 Compose 的动画时长缩放
+     * 影响（弹簧是物理积分，没有时长），所以必须显式退化，否则开了减弱动效
+     * 之后按压高光仍会跟着手指慢慢移。置 true 时改用 snap()。
+     */
+    val reduceMotion: Boolean = false,
 ) {
 
+    private fun <T> spec(normal: AnimationSpec<T>): AnimationSpec<T> =
+        if (reduceMotion) snap() else normal
+
     private val pressProgressAnimationSpec =
-        spring(0.5f, 300f, 0.001f)
+        spec(spring(0.5f, 300f, 0.001f))
     private val positionAnimationSpec =
-        spring(0.5f, 300f, Offset.VisibilityThreshold)
+        spec(spring(0.5f, 300f, Offset.VisibilityThreshold))
 
     private val pressProgressAnimation =
         Animatable(0f, 0.001f)

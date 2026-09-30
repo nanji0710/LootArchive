@@ -1,7 +1,7 @@
 {
-  "versionName": "6.9.6",
-  "versionCode": 696,
-  "updateDate": "2026-09-01",
-  "updateLog": "v6.9.6 沉浸式与图表优化\n- 修复: 首页/统计页顶部白色遮挡条——内容可滑入透明状态栏实时可见（与我的页一致的沉浸式滚动）\n- 统计页: 资产净值趋势折线图改为横向滚动（固定列宽永不重叠、初始显示最新月份、无坐标轴遮挡，对齐月度购入趋势）",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.9.6/LootArchive-release-v6.9.6.apk"
+  "versionName": "6.10.0",
+  "versionCode": 700,
+  "updateDate": "2026-09-30",
+  "updateLog": "v6.10.0 UI 统一与动效体系\n- 动效: 新增 Motion 动效体系（时长/曲线/弹簧唯一来源），曲线改为活泼取向，带过冲与预判；页面转场、弹层、数字滚动、底栏镜头全部接入\n- 无障碍: 支持系统「减弱动效」——修复开启后液态玻璃弹簧仍满帧播放的问题（底栏拖拽、按压形变、按压高光、开关、弹层）\n- 字号: 253 处硬编码字号收敛进 MaterialTheme.typography（14 档阶梯），字号从此有全局答案\n- 圆角: 18 种半径收敛为 6 档（AppRadius/AppShape）；裸圆角从 107 处降到 0\n- 页面骨架: 三个主页面新增顶部渐隐（内容从状态栏下滑过时化掉而非硬切）；统一页面边缘、卡片间距与底栏避让\n- 清理: 删除零引用死代码（GlassTier/glassEffect/4 个死访问器/死别名/无用色 token）；Hero 卡与占位图的硬编码渐变收进 token",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.10.0/LootArchive-release-v6.10.0.apk"
 }

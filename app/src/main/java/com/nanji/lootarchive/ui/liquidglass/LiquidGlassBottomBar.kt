@@ -78,6 +78,8 @@ import com.kyant.backdrop.shadow.InnerShadow
 import com.kyant.backdrop.shadow.Shadow
 import com.kyant.capsule.ContinuousCapsule
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalReduceMotion
+import com.nanji.lootarchive.ui.theme.MotionSpec
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -164,7 +166,11 @@ internal fun LiquidBottomTabs(
             mutableIntStateOf(selectedTabIndex())
         }
         var pendingCallback by remember { mutableStateOf<Int?>(null) }
-        val dampedDragAnimation = remember(animationScope, tabsCount) {
+        // 减弱动效时把弹簧换成瞬时（见 DampedDragAnimation.reduceMotion）。
+        // 它要进 remember 的键：开了减弱动效之后必须重建这个物理对象，
+        // 否则一直用着按旧值构造的 spec。
+        val reduceMotion = LocalReduceMotion.current
+        val dampedDragAnimation = remember(animationScope, tabsCount, reduceMotion) {
             DampedDragAnimation(
                 animationScope = animationScope,
                 initialValue = selectedTabIndex().toFloat(),
@@ -172,6 +178,7 @@ internal fun LiquidBottomTabs(
                 visibilityThreshold = 0.001f,
                 initialScale = 1f,
                 pressedScale = 78f / 56f,
+                reduceMotion = reduceMotion,
                 onDragStarted = {},
                 onDragStopped = {
                     val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
@@ -181,9 +188,10 @@ internal fun LiquidBottomTabs(
                         pendingCallback = targetIndex
                     }
                     animationScope.launch {
+                        // 面板回弹归位：走 token 里的跟手弹簧
                         offsetAnimation.animateTo(
                             0f,
-                            spring(1f, 300f, 0.5f)
+                            MotionSpec.draggable()
                         )
                     }
                 },
@@ -222,9 +230,10 @@ internal fun LiquidBottomTabs(
         }
 
         val selectionHeightPx = with(LocalDensity.current) { (containerHeight - contentPadding * 2).toPx() }
-        val interactiveHighlight = remember(animationScope, selectionHeightPx) {
+        val interactiveHighlight = remember(animationScope, selectionHeightPx, reduceMotion) {
             InteractiveHighlight(
                 animationScope = animationScope,
+                reduceMotion = reduceMotion,
                 position = { size, offset ->
                     val lensCenterX =
                         if (isLtr) {

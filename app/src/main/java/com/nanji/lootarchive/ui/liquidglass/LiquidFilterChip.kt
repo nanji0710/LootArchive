@@ -2,6 +2,7 @@ package com.nanji.lootarchive.ui.liquidglass
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.capsule.ContinuousCapsule
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalReduceMotion
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextSecondary
 
@@ -44,7 +46,9 @@ fun LiquidFilterChip(
         else if (dark) Color(0xFF121212).copy(alpha = 0.25f)
         else Color(0xFFFFFFFF).copy(alpha = 0.35f)
     val animationScope = rememberCoroutineScope()
-    val highlight = remember(animationScope) { InteractiveHighlight(animationScope) }
+    // 减弱动效时按压高光不再跟手（见 InteractiveHighlight.reduceMotion）
+    val reduceMotion = LocalReduceMotion.current
+    val highlight = remember(animationScope, reduceMotion) { InteractiveHighlight(animationScope, reduceMotion = reduceMotion) }
     Box(
         modifier
             .drawBackdrop(
@@ -73,7 +77,7 @@ fun LiquidFilterChip(
     ) {
         Text(
             label,
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             color = if (selected) primary else TextSecondary(),
             maxLines = 1,

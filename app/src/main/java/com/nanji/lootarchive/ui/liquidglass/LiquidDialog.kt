@@ -60,6 +60,9 @@ import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.highlight.Highlight
 import com.kyant.capsule.ContinuousRoundedRectangle
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.MotionDuration
+import com.nanji.lootarchive.ui.theme.MotionSpec
+import com.nanji.lootarchive.ui.theme.MotionCurve
 
 internal data class LiquidDialogEntry(
     val key: Any,
@@ -127,24 +130,29 @@ fun LiquidDialogHost(
         exit = ExitTransition.None
     ) {
         val transition = this.transition
+        // 弹层动效统一走 Motion token：进场 Medium/Quick，退场一律 Quick
+        // （退场要利落，拖尾会让人觉得"点不动"）。
+        // 缩放那一下用带过冲的弹簧（活泼取向），所以弹层会轻微"弹"出来。
         val scrimAlpha by transition.animateFloat(
             transitionSpec = {
-                if (targetState == EnterExitState.Visible) tween(180) else tween(140)
+                if (targetState == EnterExitState.Visible) tween<Float>(MotionDuration.Quick)
+                else tween<Float>(MotionDuration.Quick, easing = MotionCurve.EaseOut)
             },
             label = "scrimAlpha"
         ) { state -> if (state == EnterExitState.Visible) 1f else 0f }
         val dialogAlpha by transition.animateFloat(
             transitionSpec = {
-                if (targetState == EnterExitState.Visible) tween(160) else tween(120)
+                if (targetState == EnterExitState.Visible) tween<Float>(MotionDuration.Medium, easing = MotionCurve.EaseOut)
+                else tween<Float>(MotionDuration.Quick, easing = MotionCurve.EaseOut)
             },
             label = "dialogAlpha"
         ) { state -> if (state == EnterExitState.Visible) 1f else 0f }
         val dialogScale by transition.animateFloat(
             transitionSpec = {
                 if (targetState == EnterExitState.Visible) {
-                    spring(dampingRatio = 0.6f, stiffness = 250f)
+                    MotionSpec.lively<Float>()
                 } else {
-                    tween(140)
+                    tween<Float>(MotionDuration.Quick, easing = MotionCurve.EaseOut)
                 }
             },
             label = "dialogScale"

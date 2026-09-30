@@ -30,6 +30,7 @@ import coil.compose.AsyncImage
 import java.text.NumberFormat
 
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.ui.component.topFade
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.util.Feedback
 
@@ -74,15 +75,17 @@ fun MyLandingScreen(
         Triple(stars, title, valueBadge)
     }
 
+    // 滚动状态提到外面：顶栏渐隐要读它的滚动量（见 ui/component/ScrollFade.kt）
+    val scrollState = rememberScrollState()
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).statusBarsPadding().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxSize().verticalScroll(scrollState).topFade(scrollState).statusBarsPadding().navigationBarsPadding().padding(horizontal = AppSpacing.pageEdge, vertical = AppSpacing.pageVertical),
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
     ) {
-        Text("我的", fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
+        Text("我的", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
         // ── v5.5 收藏家卡片（方案A：双行分区）──
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = AppShape.sheet,
             colors = CardDefaults.cardColors(
                 containerColor = CardBg()
             ),
@@ -93,8 +96,8 @@ fun MyLandingScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         modifier = Modifier.size(56.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (LocalDarkTheme.current) Primary().copy(alpha = 0.15f) else Color(0xFFFFEDE0),
+                        shape = AppShape.card,
+                        color = if (LocalDarkTheme.current) Primary().copy(alpha = 0.15f) else AvatarWarmLight,
                         shadowElevation = 2.dp
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -107,8 +110,8 @@ fun MyLandingScreen(
                     }
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("拾物集", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
-                        Text("你的私人物品资产管理工具", fontSize = 12.sp, color = TextAuxiliary())
+                        Text("拾物集", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                        Text("你的私人物品资产管理工具", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                     }
                 }
 
@@ -121,12 +124,12 @@ fun MyLandingScreen(
                         if (levelStars.isNotEmpty()) {
                             Surface(
                                 onClick = { showLevelDialog = true },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = AppShape.thumb,
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
                                 Text(
                                     "${if (isValueBadge) "✨ " else ""}$levelStars $levelTitle",
-                                    fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                    style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium,
                                     color = Primary(),
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                     maxLines = 1, overflow = TextOverflow.Ellipsis
@@ -136,7 +139,7 @@ fun MyLandingScreen(
                         if (achTotal > 0) {
                             // 纯展示徽章（不渲染假可点击目标，避免 TalkBack 误报按钮）
                             Surface(
-                                shape = RoundedCornerShape(12.dp),
+                                shape = AppShape.thumb,
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
@@ -145,7 +148,7 @@ fun MyLandingScreen(
                                     Spacer(Modifier.width(2.dp))
                                     Text(
                                         "$achCount/$achTotal",
-                                        fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                        style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium,
                                         color = Primary()
                                     )
                                 }
@@ -167,22 +170,22 @@ fun MyLandingScreen(
                     Surface(
                         onClick = { showExpDialog = true },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = AppShape.thumb,
                         color = Primary().copy(alpha = 0.05f)
                     ) {
                         Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Lv.${profile.level} $currentTitle", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                                Text("Lv.${profile.level} $currentTitle", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = Primary())
                                 if (profile.level < 10) {
-                                    Text("距下一级还需 ${nextExp - profile.exp} EXP", fontSize = 12.sp, color = TextAuxiliary())
+                                    Text("距下一级还需 ${nextExp - profile.exp} EXP", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                                 } else {
-                                    Text("已达最高", fontSize = 12.sp, color = Primary())
+                                    Text("已达最高", style = MaterialTheme.typography.labelSmall, color = Primary())
                                 }
                             }
                             Spacer(Modifier.height(5.dp))
                             LinearProgressIndicator(
                                 progress = { expProgress },
-                                modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                                modifier = Modifier.fillMaxWidth().height(4.dp).clip(AppShape.bar),
                                 color = Primary(),
                                 trackColor = Primary().copy(alpha = 0.10f)
                             )
@@ -197,14 +200,14 @@ fun MyLandingScreen(
         if (achievements.isNotEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = AppShape.card,
                 colors = CardDefaults.cardColors(containerColor = CardBg()),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text("成就徽章", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
-                        Text("${achievements.count { it.isUnlocked }}/${achievements.size}", fontSize = 13.sp, color = TextAuxiliary())
+                        Text("成就徽章", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
+                        Text("${achievements.count { it.isUnlocked }}/${achievements.size}", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                     }
                     Spacer(Modifier.height(10.dp))
                     LazyRow(
@@ -222,7 +225,7 @@ fun MyLandingScreen(
                                         .background(
                                             if (ach.isUnlocked) Primary().copy(alpha = 0.10f)
                                             else TextAuxiliary().copy(alpha = 0.06f),
-                                            RoundedCornerShape(12.dp)
+                                            AppShape.thumb
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -236,7 +239,7 @@ fun MyLandingScreen(
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     ach.title,
-                                    fontSize = 11.sp,
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = if (ach.isUnlocked) TextPrimary() else TextAuxiliary(),
                                     fontWeight = if (ach.isUnlocked) FontWeight.Medium else FontWeight.Normal,
                                     maxLines = 1,
@@ -253,28 +256,28 @@ fun MyLandingScreen(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Card(
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(20.dp),
+                shape = AppShape.card,
                 colors = CardDefaults.cardColors(containerColor = CardBg()),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Rounded.EmojiEvents, null, Modifier.size(28.dp), tint = Primary())
                     Spacer(Modifier.height(4.dp))
-                    Text("最贵物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
-                    Text(if (homeState.items.isNotEmpty()) "¥${NumberFormat.getNumberInstance().format(homeState.items.maxByOrNull { it.purchasePrice }?.purchasePrice ?: 0)}" else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
+                    Text("最贵物品", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
+                    Text(if (homeState.items.isNotEmpty()) "¥${NumberFormat.getNumberInstance().format(homeState.items.maxByOrNull { it.purchasePrice }?.purchasePrice ?: 0)}" else "暂无", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
                 }
             }
             Card(
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(20.dp),
+                shape = AppShape.card,
                 colors = CardDefaults.cardColors(containerColor = CardBg()),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Rounded.CalendarMonth, null, Modifier.size(28.dp), tint = TextAuxiliary())
                     Spacer(Modifier.height(4.dp))
-                    Text("最老物品", fontSize = 11.sp, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
-                    Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; if (oldest?.purchaseDate != null) java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest.purchaseDate)) + "年购入" else "暂无" } else "暂无", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
+                    Text("最老物品", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), modifier = Modifier.padding(top = 4.dp), textAlign = TextAlign.Center)
+                    Text(if (homeState.items.any { it.purchaseDate != null }) { val oldest = homeState.items.filter { it.purchaseDate != null }.minByOrNull { it.purchaseDate!! }; if (oldest?.purchaseDate != null) java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault()).format(java.util.Date(oldest.purchaseDate)) + "年购入" else "暂无" } else "暂无", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center)
                 }
             }
         }
@@ -282,7 +285,7 @@ fun MyLandingScreen(
         // ── v5.0 功能入口 ──
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
+            shape = AppShape.card,
             colors = CardDefaults.cardColors(containerColor = CardBg()),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
@@ -309,18 +312,18 @@ fun MyLandingScreen(
             title = { Text("收藏家等级", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
                 Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
-                    Text("当前进度", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Text("当前进度", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = Primary())
                     Spacer(Modifier.height(8.dp))
-                    Text("物品数量：${homeState.totalCount} 件", fontSize = 14.sp, color = TextPrimary())
-                    Text("资产总值：¥${java.text.NumberFormat.getNumberInstance().format(homeState.totalValue)}", fontSize = 14.sp, color = TextPrimary())
+                    Text("物品数量：${homeState.totalCount} 件", style = MaterialTheme.typography.bodyMedium, color = TextPrimary())
+                    Text("资产总值：¥${java.text.NumberFormat.getNumberInstance().format(homeState.totalValue)}", style = MaterialTheme.typography.bodyMedium, color = TextPrimary())
                     if (isValueBadge) {
                         Spacer(Modifier.height(4.dp))
-                        Surface(shape = RoundedCornerShape(8.dp), color = Primary().copy(alpha = 0.08f)) {
-                            Text("✨ 珍品收藏家 — 藏品价值卓越", fontSize = 12.sp, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), fontWeight = FontWeight.Medium)
+                        Surface(shape = AppShape.chip, color = Primary().copy(alpha = 0.08f)) {
+                            Text("✨ 珍品收藏家 — 藏品价值卓越", style = MaterialTheme.typography.labelSmall, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), fontWeight = FontWeight.Medium)
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                    Text("数量线（收藏广度）", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                    Text("数量线（收藏广度）", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary())
                     Spacer(Modifier.height(6.dp))
                     LevelRule("⭐", "入门收纳家", "2 件及以上", homeState.totalCount >= 2)
                     LevelRule("⭐⭐", "小小收藏家", "5 件及以上", homeState.totalCount >= 5)
@@ -328,7 +331,7 @@ fun MyLandingScreen(
                     LevelRule("⭐⭐⭐⭐", "藏品达人", "50 件及以上", homeState.totalCount >= 50)
                     LevelRule("⭐⭐⭐⭐⭐", "博物大家", "100 件及以上", homeState.totalCount >= 100)
                     Spacer(Modifier.height(12.dp))
-                    Text("价值线（藏品深度）", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary())
+                    Text("价值线（藏品深度）", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = Primary())
                     Spacer(Modifier.height(6.dp))
                     Spacer(Modifier.height(2.dp))
                     LevelRule("⭐⭐⭐", "资深鉴藏家", "总资产 1 万及以上", homeState.totalValue >= 10_000)
@@ -349,37 +352,37 @@ fun MyLandingScreen(
             text = {
                 Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
                     val expProgress = com.nanji.lootarchive.util.ExpCalculator.getLevelProgress(p.exp)
-                    Text("当前等级", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Primary(), fontFamily = FredokaFont)
+                    Text("当前等级", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = Primary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(6.dp))
-                    Text("Lv.${p.level} ${com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(p.level)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextPrimary())
+                    Text("Lv.${p.level} ${com.nanji.lootarchive.util.ExpCalculator.getLevelTitle(p.level)}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = TextPrimary())
                     Spacer(Modifier.height(4.dp))
                     LinearProgressIndicator(
                         progress = { expProgress },
-                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(AppShape.bar),
                         color = Primary(), trackColor = Primary().copy(alpha = 0.10f)
                     )
                     Spacer(Modifier.height(4.dp))
                     if (p.level < 10) {
                         val nextExp = com.nanji.lootarchive.util.ExpCalculator.getNextLevelExp(p.exp)
-                        Text("距下一级还需 ${nextExp - p.exp} EXP", fontSize = 12.sp, color = TextAuxiliary())
+                        Text("距下一级还需 ${nextExp - p.exp} EXP", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                     }
                     Spacer(Modifier.height(12.dp))
-                    Text("等级数据", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                    Text("等级数据", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
-                    Text("物品新增：${p.totalItemsAdded} 件", fontSize = 13.sp, color = TextSecondary())
-                    Text("照片拍摄：${p.totalPhotosAdded} 张", fontSize = 13.sp, color = TextSecondary())
-                    Text("描述完善：${p.totalDescriptionsFilled} 件", fontSize = 13.sp, color = TextSecondary())
-                    Text("连续活跃：${p.streakDays} 天", fontSize = 13.sp, color = TextSecondary())
+                    Text("物品新增：${p.totalItemsAdded} 件", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
+                    Text("照片拍摄：${p.totalPhotosAdded} 张", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
+                    Text("描述完善：${p.totalDescriptionsFilled} 件", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
+                    Text("连续活跃：${p.streakDays} 天", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
                     Spacer(Modifier.height(12.dp))
-                    Text("等级阶梯", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                    Text("等级阶梯", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
                     com.nanji.lootarchive.util.ExpCalculator.LEVELS.forEachIndexed { i, (exp, title) ->
                         val achieved = p.level >= i + 1
                         Row(Modifier.padding(vertical = 2.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("Lv.${i + 1}", fontSize = 11.sp, color = if (achieved) Primary() else TextAuxiliary(), fontFamily = FredokaFont, modifier = Modifier.width(40.dp))
-                            Text(title, fontSize = 12.sp, color = if (achieved) TextPrimary() else TextAuxiliary(), fontWeight = if (p.level == i + 1) FontWeight.Bold else FontWeight.Normal)
+                            Text("Lv.${i + 1}", style = MaterialTheme.typography.labelSmall, color = if (achieved) Primary() else TextAuxiliary(), fontFamily = FredokaFont, modifier = Modifier.width(40.dp))
+                            Text(title, style = MaterialTheme.typography.labelSmall, color = if (achieved) TextPrimary() else TextAuxiliary(), fontWeight = if (p.level == i + 1) FontWeight.Bold else FontWeight.Normal)
                             Spacer(Modifier.weight(1f))
-                            Text(if (exp == 0) "起始" else "${exp} EXP", fontSize = 11.sp, color = TextAuxiliary())
+                            Text(if (exp == 0) "起始" else "${exp} EXP", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                         }
                     }
                 }
@@ -403,18 +406,18 @@ fun MyLandingScreen(
                                     tint = if (isUnlocked) Primary() else TextAuxiliary()
                                 )
                     Spacer(Modifier.width(10.dp))
-                    Text(ach.title, fontWeight = FontWeight.Bold, color = TextPrimary(), fontSize = 20.sp, fontFamily = FredokaFont)
+                    Text(ach.title, fontWeight = FontWeight.Bold, color = TextPrimary(), style = MaterialTheme.typography.titleLarge, fontFamily = FredokaFont)
                 }
             },
             text = {
                 Column {
-                    Text(ach.description.ifEmpty { "完成目标即可解锁" }, fontSize = 14.sp, color = TextSecondary())
+                    Text(ach.description.ifEmpty { "完成目标即可解锁" }, style = MaterialTheme.typography.bodyMedium, color = TextSecondary())
                     Spacer(Modifier.height(14.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("进度", fontSize = 12.sp, color = TextAuxiliary())
+                        Text("进度", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                         Text(
                             "$progressVal / $targetVal",
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
                             color = if (isUnlocked) Primary() else TextAuxiliary()
                         )
@@ -423,13 +426,13 @@ fun MyLandingScreen(
                     val prog = (progressVal.toFloat() / targetVal.coerceAtLeast(1).toFloat()).coerceIn(0f, 1f)
                     LinearProgressIndicator(
                         progress = { prog },
-                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(AppShape.bar),
                         color = if (isUnlocked) Primary() else TextAuxiliary().copy(alpha = 0.5f),
                         trackColor = Primary().copy(alpha = 0.10f)
                     )
                     Spacer(Modifier.height(8.dp))
                     val statusLabel = if (isUnlocked) "已解锁" else "未解锁"
-                    Text(statusLabel, fontSize = 13.sp, color = if (isUnlocked) Color(0xFF10B981) else TextAuxiliary(), fontWeight = FontWeight.Medium)
+                    Text(statusLabel, style = MaterialTheme.typography.bodySmall, color = if (isUnlocked) Color(0xFF10B981) else TextAuxiliary(), fontWeight = FontWeight.Medium)
                 }
             },
             confirmButton = { TextButton(onClick = { showAchievementDetail = null }) { Text("知道了", color = Primary()) } }
@@ -445,8 +448,8 @@ fun MyLandingScreen(
         }
         LiquidAlertDialog(
             onDismissRequest = { profileVM.clearUnlockMessage() },
-            title = { Text("成就解锁！", fontWeight = FontWeight.Bold, color = Primary(), fontSize = 18.sp, fontFamily = FredokaFont) },
-            text = { Text(unlockMsg, fontSize = 15.sp, color = TextPrimary()) },
+            title = { Text("成就解锁！", fontWeight = FontWeight.Bold, color = Primary(), style = MaterialTheme.typography.headlineSmall, fontFamily = FredokaFont) },
+            text = { Text(unlockMsg, style = MaterialTheme.typography.labelLarge, color = TextPrimary()) },
             confirmButton = { TextButton(onClick = { profileVM.clearUnlockMessage() }) { Text("太棒了！", color = Primary()) } }
         )
     }
@@ -457,7 +460,7 @@ private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onCli
     Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
-                Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                Modifier.size(38.dp), AppShape.thumb,
                 color = Primary().copy(alpha = 0.10f)
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -466,8 +469,8 @@ private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onCli
             }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
-                Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                Text(subtitle, fontSize = 12.sp, color = TextAuxiliary())
+                Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
+                Text(subtitle, style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
             }
             Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
         }
@@ -477,8 +480,8 @@ private fun MyMenuItem(icon: ImageVector, title: String, subtitle: String, onCli
 @Composable
 private fun LevelRule(level: String, title: String, condition: String, achieved: Boolean) {
     Row(modifier = Modifier.padding(vertical = 3.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(level, fontSize = 14.sp)
+        Text(level, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
-        Text("$title｜$condition", fontSize = 12.sp, color = if (achieved) Primary() else TextAuxiliary(), fontWeight = if (achieved) FontWeight.SemiBold else FontWeight.Normal)
+        Text("$title｜$condition", style = MaterialTheme.typography.labelSmall, color = if (achieved) Primary() else TextAuxiliary(), fontWeight = if (achieved) FontWeight.SemiBold else FontWeight.Normal)
     }
 }

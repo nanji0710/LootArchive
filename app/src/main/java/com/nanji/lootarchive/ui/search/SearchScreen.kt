@@ -63,17 +63,17 @@ fun SearchScreen(
                 }
                 Surface(
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(22.dp),
+                    shape = AppShape.sheet,
                     color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.08f) else Color.White,
                     shadowElevation = 2.dp
                 ) {
                     OutlinedTextField(
                         value = uiState.query,
                         onValueChange = viewModel::updateQuery,
-                        placeholder = { Text("搜索物品名称 / 存放位置...", fontSize = 14.sp, color = TextAuxiliary()) },
+                        placeholder = { Text("搜索物品名称 / 存放位置...", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary()) },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                         singleLine = true,
-                        shape = RoundedCornerShape(22.dp),
+                        shape = AppShape.sheet,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Transparent,
                             unfocusedBorderColor = Color.Transparent,
@@ -110,7 +110,7 @@ fun SearchScreen(
                 FilterChip(
                     selected = uiState.activeFilter != null,
                     onClick = { showScopeRow = !showScopeRow },
-                    label = { Text(scopeLabel, fontSize = 12.sp) },
+                    label = { Text(scopeLabel, style = MaterialTheme.typography.labelSmall) },
                     leadingIcon = { Icon(Icons.Rounded.Tune, null, Modifier.size(14.dp)) },
                     trailingIcon = {
                         Icon(
@@ -118,7 +118,7 @@ fun SearchScreen(
                             null, Modifier.size(16.dp)
                         )
                     },
-                    shape = RoundedCornerShape(18.dp),
+                    shape = AppShape.card,
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Primary().copy(alpha = 0.2f),
                         selectedLabelColor = Primary()
@@ -130,14 +130,14 @@ fun SearchScreen(
                 FilterChip(
                     selected = uiState.statusFilter != null,
                     onClick = { showStatusRow = !showStatusRow },
-                    label = { Text(statusLabel, fontSize = 12.sp) },
+                    label = { Text(statusLabel, style = MaterialTheme.typography.labelSmall) },
                     trailingIcon = {
                         Icon(
                             if (showStatusRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                             null, Modifier.size(16.dp)
                         )
                     },
-                    shape = RoundedCornerShape(18.dp),
+                    shape = AppShape.card,
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Primary().copy(alpha = 0.2f),
                         selectedLabelColor = Primary()
@@ -150,14 +150,14 @@ fun SearchScreen(
                     FilterChip(
                         selected = uiState.tagFilter != null,
                         onClick = { showTagRow = !showTagRow },
-                        label = { Text(tagLabel, fontSize = 12.sp) },
+                        label = { Text(tagLabel, style = MaterialTheme.typography.labelSmall) },
                         trailingIcon = {
                             Icon(
                                 if (showTagRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                 null, Modifier.size(16.dp)
                             )
                         },
-                        shape = RoundedCornerShape(18.dp),
+                        shape = AppShape.card,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Primary().copy(alpha = 0.2f),
                             selectedLabelColor = Primary()
@@ -169,7 +169,7 @@ fun SearchScreen(
 
                 // 激活筛选计数
                 if (activeFilterCount > 0) {
-                    Text("$activeFilterCount 项筛选", fontSize = 11.sp, color = Primary())
+                    Text("$activeFilterCount 项筛选", style = MaterialTheme.typography.labelSmall, color = Primary())
                 }
             }
 
@@ -185,8 +185,8 @@ fun SearchScreen(
                         FilterChip(
                             selected = sel,
                             onClick = { viewModel.setActiveFilter(k) },
-                            label = { Text(v, fontSize = 11.sp) },
-                            shape = RoundedCornerShape(14.dp),
+                            label = { Text(v, style = MaterialTheme.typography.labelSmall) },
+                            shape = AppShape.panel,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = Primary().copy(alpha = 0.2f),
                                 selectedLabelColor = Primary()
@@ -208,8 +208,8 @@ fun SearchScreen(
                         FilterChip(
                             selected = sel,
                             onClick = { viewModel.setStatusFilter(k) },
-                            label = { Text(v, fontSize = 11.sp) },
-                            shape = RoundedCornerShape(14.dp),
+                            label = { Text(v, style = MaterialTheme.typography.labelSmall) },
+                            shape = AppShape.panel,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = Primary().copy(alpha = 0.2f),
                                 selectedLabelColor = Primary()
@@ -230,8 +230,8 @@ fun SearchScreen(
                     FilterChip(
                         selected = uiState.tagFilter == null,
                         onClick = { viewModel.setTagFilter(null) },
-                        label = { Text("全部", fontSize = 11.sp) },
-                        shape = RoundedCornerShape(14.dp),
+                        label = { Text("全部", style = MaterialTheme.typography.labelSmall) },
+                        shape = AppShape.panel,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Primary().copy(alpha = 0.15f),
                             selectedLabelColor = Primary()
@@ -242,8 +242,8 @@ fun SearchScreen(
                         FilterChip(
                             selected = sel,
                             onClick = { viewModel.setTagFilter(if (sel) null else tag) },
-                            label = { Text(tag, fontSize = 11.sp) },
-                            shape = RoundedCornerShape(14.dp),
+                            label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
+                            shape = AppShape.panel,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = Primary().copy(alpha = 0.2f),
                                 selectedLabelColor = Primary()
@@ -261,7 +261,7 @@ fun SearchScreen(
                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("找到 ${uiState.results.size} 件物品", fontSize = 13.sp, color = TextPrimary(), modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
+                    Text("找到 ${uiState.results.size} 件物品", style = MaterialTheme.typography.bodySmall, color = TextPrimary(), modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
                     Box {
                         TextButton(onClick = { showSortMenu = true }) {
                             Icon(Icons.Rounded.SwapVert, null, Modifier.size(14.dp), tint = Primary())
@@ -273,13 +273,13 @@ fun SearchScreen(
                                     "warranty" -> "保修"
                                     else -> "排序"
                                 },
-                                fontSize = 12.sp, color = Primary()
+                                style = MaterialTheme.typography.labelSmall, color = Primary()
                             )
                         }
                         DropdownMenu(
                             expanded = showSortMenu, onDismissRequest = { showSortMenu = false },
                             containerColor = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(16.dp)
+                            shape = AppShape.panel
                         ) {
                             listOf(
                                 "price_desc" to "价格从高到低",
@@ -301,9 +301,9 @@ fun SearchScreen(
                 if (uiState.recentSearches.isNotEmpty()) {
                     Column(Modifier.padding(vertical = 16.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("最近搜索", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
+                            Text("最近搜索", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
                             TextButton(onClick = { viewModel.clearHistory() }) {
-                                Text("清空", fontSize = 13.sp, color = Primary())
+                                Text("清空", style = MaterialTheme.typography.bodySmall, color = Primary())
                             }
                         }
                         Spacer(Modifier.height(10.dp))
@@ -311,7 +311,7 @@ fun SearchScreen(
                             uiState.recentSearches.take(8).forEach { query ->
                                 Surface(
                                     onClick = { viewModel.updateQuery(query); viewModel.submitSearch() },
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = AppShape.thumb,
                                     color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.03f)
                                 ) {
                                     Row(
@@ -320,7 +320,7 @@ fun SearchScreen(
                                     ) {
                                         Icon(Icons.Rounded.History, null, Modifier.size(14.dp), tint = TextAuxiliary())
                                         Spacer(Modifier.width(10.dp))
-                                        Text(query, fontSize = 14.sp, color = TextPrimary())
+                                        Text(query, style = MaterialTheme.typography.bodyMedium, color = TextPrimary())
                                     }
                                 }
                             }
@@ -369,9 +369,9 @@ fun SearchScreen(
 @Composable
 private fun SearchItemCard(item: ItemEntity, firstPhotoPath: String?, numberFormat: NumberFormat, onClick: () -> Unit) {
     ClayCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        Box(Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(14.dp))) {
+        Box(Modifier.fillMaxWidth().height(110.dp).clip(AppShape.panel)) {
             if (firstPhotoPath != null) {
-                AsyncImage(model = File(firstPhotoPath), contentDescription = null, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)), contentScale = ContentScale.Crop)
+                AsyncImage(model = File(firstPhotoPath), contentDescription = null, modifier = Modifier.fillMaxSize().clip(AppShape.panel), contentScale = ContentScale.Crop)
             } else {
                 Box(Modifier.fillMaxSize().background(Primary().copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.Image, null, Modifier.size(36.dp), tint = TextAuxiliary().copy(alpha = 0.35f))
@@ -379,8 +379,8 @@ private fun SearchItemCard(item: ItemEntity, firstPhotoPath: String?, numberForm
             }
         }
         Spacer(Modifier.height(8.dp))
-        Text(item.name, fontSize = 16.sp, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+        Text(item.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(4.dp))
-        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+        Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
     }
 }

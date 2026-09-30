@@ -121,7 +121,7 @@ fun AddItemScreen(
                     }
                     Text(
                         if (uiState.isEditMode) "编辑物品" else "新增物品",
-                        fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(),
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(),
                         modifier = Modifier.weight(1f), fontFamily = FredokaFont
                     )
                     Spacer(Modifier.width(90.dp))
@@ -134,7 +134,7 @@ fun AddItemScreen(
                     horizontalPadding = 14.dp,
                     modifier = Modifier.align(Alignment.CenterEnd)
                 ) {
-                    Text("保存", color = Primary(), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text("保存", color = Primary(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                 }
             }
         },
@@ -153,7 +153,7 @@ fun AddItemScreen(
                 for (i in 0..2) {
                     Surface(
                         Modifier.size(if (i == currentStep) 12.dp else 10.dp),
-                        RoundedCornerShape(6.dp),
+                        AppShape.chip,
                         color = when {
                             i < currentStep -> Color(0xFF10B981)
                             i == currentStep -> Primary()
@@ -164,7 +164,7 @@ fun AddItemScreen(
                         Spacer(Modifier.width(6.dp))
                         Surface(
                             Modifier.width(28.dp).height(2.dp),
-                            RoundedCornerShape(1.dp),
+                            AppShape.bar,
                             color = if (i < currentStep) Color(0xFF10B981) else TextAuxiliary().copy(alpha = 0.15f)
                         ) {}
                         Spacer(Modifier.width(6.dp))
@@ -175,7 +175,7 @@ fun AddItemScreen(
             if (uiState.errorMessage != null) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    shape = RoundedCornerShape(14.dp)
+                    shape = AppShape.panel
                 ) {
                     Text(uiState.errorMessage!!, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onErrorContainer)
                 }
@@ -187,7 +187,7 @@ fun AddItemScreen(
                         1 -> "📝 详情"
                         else -> "📍 位置与保修"
                     },
-                    fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium,
                     color = Primary()
                 )
             }
@@ -197,18 +197,18 @@ fun AddItemScreen(
             // ── Step 0: 照片 ──
             if (currentStep == 0) {
                 ClayCard {
-                    Text("物品照片", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                    Text("物品照片", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(12.dp))
 
                     if (uiState.photoPaths.isEmpty()) {
-                        Text("点击下方按钮添加照片", fontSize = 13.sp, color = TextAuxiliary(), modifier = Modifier.padding(vertical = 16.dp))
+                        Text("点击下方按钮添加照片", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(), modifier = Modifier.padding(vertical = 16.dp))
                     } else {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             uiState.photoPaths.take(4).forEach { path ->
                                 Box(modifier = Modifier.size(90.dp)) {
                                     AsyncImage(
                                         model = File(path), contentDescription = "物品照片",
-                                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)),
+                                        modifier = Modifier.fillMaxSize().clip(AppShape.panel),
                                         contentScale = ContentScale.Crop
                                     )
                                     // 48dp 触摸区包裹 24dp 视觉删除钮（满足最小触摸目标）
@@ -218,7 +218,7 @@ fun AddItemScreen(
                                     ) {
                                         Box(
                                             modifier = Modifier.size(24.dp)
-                                                .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(bottomStart = 10.dp))
+                                                .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(bottomStart = AppRadius.md))
                                                 .clickable { viewModel.removePhotoPath(path) },
                                             contentAlignment = Alignment.Center
                                         ) {
@@ -231,7 +231,7 @@ fun AddItemScreen(
                                 Text(
                                     "+${uiState.photoPaths.size - 4}",
                                     modifier = Modifier.align(Alignment.CenterVertically).padding(start = 4.dp),
-                                    fontSize = 14.sp, color = TextAuxiliary()
+                                    style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary()
                                 )
                             }
                         }
@@ -258,7 +258,7 @@ fun AddItemScreen(
                             ) {
                                 Icon(Icons.Rounded.CameraAlt, null, Modifier.size(16.dp), tint = Color.White)
                                 Spacer(Modifier.width(4.dp))
-                                Text("拍照", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                                Text("拍照", color = Color.White, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
                             }
                             LiquidGlassButton(
                                 onClick = { galleryLauncher.launch("image/*") }, modifier = Modifier.weight(1f),
@@ -268,7 +268,7 @@ fun AddItemScreen(
                             ) {
                                 Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(16.dp), tint = TextPrimary())
                                 Spacer(Modifier.width(4.dp))
-                                Text("从相册选择", color = TextPrimary(), fontSize = 13.sp)
+                                Text("从相册选择", color = TextPrimary(), style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -285,7 +285,7 @@ fun AddItemScreen(
                         horizontalPadding = 20.dp,
                         modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
-                        Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -303,16 +303,16 @@ fun AddItemScreen(
                         supportingText = uiState.nameError?.let { { Text(it) } },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
+                        shape = AppShape.panel
                     )
                 }
 
                 // 分类选择
                 ClayCard {
-                    Text("所属分类 *", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                    Text("所属分类 *", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(10.dp))
                     if (uiState.categories.isEmpty()) {
-                        Text("暂无分类", fontSize = 14.sp, color = TextAuxiliary())
+                        Text("暂无分类", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
                     } else {
                         Column {
                             uiState.categories.chunked(3).forEach { row ->
@@ -324,8 +324,8 @@ fun AddItemScreen(
                                         FilterChip(
                                             selected = uiState.categoryId == category.id,
                                             onClick = { viewModel.updateCategoryId(category.id) },
-                                            label = { Text(category.name, fontSize = 13.sp) },
-                                            shape = RoundedCornerShape(12.dp),
+                                            label = { Text(category.name, style = MaterialTheme.typography.bodySmall) },
+                                            shape = AppShape.thumb,
                                             colors = FilterChipDefaults.filterChipColors(
                                                 selectedContainerColor = Primary().copy(alpha = 0.15f),
                                                 selectedLabelColor = Primary()
@@ -341,7 +341,7 @@ fun AddItemScreen(
 
                 // v5.2 物品状态选择器
                 ClayCard {
-                    Text("物品状态", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                    Text("物品状态", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -351,8 +351,8 @@ fun AddItemScreen(
                             FilterChip(
                                 selected = uiState.status == status.code,
                                 onClick = { viewModel.updateStatus(status.code) },
-                                label = { Text(status.label, fontSize = 13.sp, maxLines = 1) },
-                                shape = RoundedCornerShape(12.dp),
+                                label = { Text(status.label, style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                shape = AppShape.thumb,
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = statusColor(status.code).copy(alpha = 0.15f),
                                     selectedLabelColor = statusColor(status.code)
@@ -365,16 +365,16 @@ fun AddItemScreen(
                 // v6.6 售出收益（仅已出状态显示）
                 AnimatedVisibility(visible = ItemStatus.fromCode(uiState.status) == ItemStatus.SOLD) {
                     ClayCard {
-                        Text("售出收益", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                        Text("售出收益", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
                         Spacer(Modifier.height(10.dp))
                         OutlinedTextField(
                             value = uiState.salePriceText,
                             onValueChange = viewModel::updateSalePrice,
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("卖出价格（选填）", fontSize = 14.sp, color = TextAuxiliary()) },
-                            prefix = { Text("¥", fontSize = 15.sp, color = TextPrimary(), fontWeight = FontWeight.Medium) },
+                            placeholder = { Text("卖出价格（选填）", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary()) },
+                            prefix = { Text("¥", style = MaterialTheme.typography.labelLarge, color = TextPrimary(), fontWeight = FontWeight.Medium) },
                             singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
+                            shape = AppShape.thumb,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Primary().copy(alpha = 0.5f),
                                 unfocusedBorderColor = TextAuxiliary().copy(alpha = 0.2f),
@@ -384,7 +384,7 @@ fun AddItemScreen(
                         )
                         Spacer(Modifier.height(10.dp))
                         Row(
-                            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                            Modifier.fillMaxWidth().clip(AppShape.thumb)
                                 .background(if (LocalDarkTheme.current) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.02f))
                                 .clickable { showSaleDatePicker = true }.padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -393,7 +393,7 @@ fun AddItemScreen(
                             Spacer(Modifier.width(10.dp))
                             Text(
                                 uiState.saleDate?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it)) } ?: "售出日期（选填）",
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = if (uiState.saleDate != null) TextPrimary() else TextAuxiliary(),
                                 modifier = Modifier.weight(1f)
                             )
@@ -403,7 +403,7 @@ fun AddItemScreen(
 
                 // v5.2 标签输入
                 ClayCard {
-                    Text("标签", fontSize = 14.sp, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                    Text("标签", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(10.dp))
                     val existingTags = uiState.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                     if (existingTags.isNotEmpty()) {
@@ -415,11 +415,11 @@ fun AddItemScreen(
                                 InputChip(
                                     selected = false,
                                     onClick = { viewModel.removeTag(tag) },
-                                    label = { Text(tag, fontSize = 12.sp) },
+                                    label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
                                     trailingIcon = {
                                         Icon(Icons.Rounded.Close, "移除$tag", Modifier.size(14.dp))
                                     },
-                                    shape = RoundedCornerShape(10.dp)
+                                    shape = AppShape.thumb
                                 )
                             }
                         }
@@ -435,7 +435,7 @@ fun AddItemScreen(
                             placeholder = { Text("输入标签，如 蓝牙、EDC") },
                             modifier = Modifier.weight(1f),
                             singleLine = true,
-                            shape = RoundedCornerShape(14.dp)
+                            shape = AppShape.panel
                         )
                         Spacer(Modifier.width(8.dp))
                         IconButton(
@@ -458,8 +458,8 @@ fun AddItemScreen(
                         supportingText = uiState.priceError?.let { { Text(it) } },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(14.dp),
-                        leadingIcon = { Text("¥", color = Primary(), fontWeight = FontWeight.Bold, fontSize = 18.sp) }
+                        shape = AppShape.panel,
+                        leadingIcon = { Text("¥", color = Primary(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineSmall) }
                     )
                 }
 
@@ -471,7 +471,7 @@ fun AddItemScreen(
                         label = { Text("物品描述") },
                         placeholder = { Text("如: 配置、成色、入手渠道等") },
                         modifier = Modifier.fillMaxWidth(), minLines = 3, maxLines = 6,
-                        shape = RoundedCornerShape(14.dp)
+                        shape = AppShape.panel
                     )
                 }
 
@@ -486,7 +486,7 @@ fun AddItemScreen(
                             height = 48.dp,
                             horizontalPadding = 20.dp
                         ) {
-                            Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                            Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
                         }
                         LiquidGlassButton(
                             onClick = { currentStep = 2 },
@@ -494,7 +494,7 @@ fun AddItemScreen(
                             height = 48.dp,
                             horizontalPadding = 20.dp
                         ) {
-                            Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
@@ -510,7 +510,7 @@ fun AddItemScreen(
                         placeholder = { Text("如: 卧室书桌抽屉") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(14.dp),
+                        shape = AppShape.panel,
                         leadingIcon = { Icon(Icons.Rounded.LocationOn, null, tint = Primary()) }
                     )
                 }
@@ -523,32 +523,32 @@ fun AddItemScreen(
                         Icon(Icons.Rounded.CalendarToday, null, tint = Primary(), modifier = Modifier.size(22.dp))
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
-                            Text("购入日期", fontSize = 13.sp, color = TextSecondary())
+                            Text("购入日期", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
                             Text(
                                 text = uiState.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "点击选择",
-                                fontSize = 16.sp, color = TextPrimary()
+                                style = MaterialTheme.typography.bodyLarge, color = TextPrimary()
                             )
                         }
                     }
                 }
 
                 ClayCard {
-                    Text("保修信息", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), fontFamily = FredokaFont)
+                    Text("保修信息", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("保修天数", fontSize = 13.sp, color = TextAuxiliary())
+                            Text("保修天数", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                             Spacer(Modifier.height(4.dp))
                             OutlinedTextField(
                                 value = uiState.warrantyPeriodDays,
                                 onValueChange = viewModel::updateWarrantyPeriodDays,
                                 placeholder = { Text("365") },
                                 modifier = Modifier.fillMaxWidth(), singleLine = true,
-                                shape = RoundedCornerShape(14.dp)
+                                shape = AppShape.panel
                             )
                         }
                         Column(Modifier.weight(1f)) {
-                            Text("到期日期", fontSize = 13.sp, color = TextAuxiliary())
+                            Text("到期日期", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                             Spacer(Modifier.height(4.dp))
                             OutlinedTextField(
                                 value = uiState.warrantyExpiryDate?.let { dateFormat.format(Date(it)) } ?: "",
@@ -556,7 +556,7 @@ fun AddItemScreen(
                                 readOnly = true,
                                 placeholder = { Text("自动计算") },
                                 modifier = Modifier.fillMaxWidth().clickable { showWarrantyDatePicker = true },
-                                shape = RoundedCornerShape(14.dp)
+                                shape = AppShape.panel
                             )
                         }
                     }
@@ -573,7 +573,7 @@ fun AddItemScreen(
                             height = 48.dp,
                             horizontalPadding = 20.dp
                         ) {
-                            Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                            Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
                         }
                         LiquidGlassButton(
                             onClick = { viewModel.saveItem() },
@@ -586,7 +586,7 @@ fun AddItemScreen(
                                 CircularProgressIndicator(Modifier.size(16.dp), color = Primary(), strokeWidth = 2.dp)
                                 Spacer(Modifier.width(8.dp))
                             }
-                            Text("完成保存 ✓", color = Primary(), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text("完成保存 ✓", color = Primary(), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }

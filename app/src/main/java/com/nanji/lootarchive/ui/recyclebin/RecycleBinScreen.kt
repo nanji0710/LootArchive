@@ -64,7 +64,7 @@ fun RecycleBinScreen(
                     IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(22.dp))
                     }
-                    Text("回收站", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
+                    Text("回收站", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
                     Spacer(Modifier.width(90.dp))
                 }
                 if (uiState.deletedItems.isNotEmpty()) {
@@ -75,19 +75,19 @@ fun RecycleBinScreen(
                         height = 34.dp,
                         horizontalPadding = 14.dp
                     ) {
-                        Text("清空", color = WarrantyExpired, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("清空", color = WarrantyExpired, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
 
             Surface(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-                RoundedCornerShape(14.dp),
+                AppShape.panel,
                 color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f)
             ) {
                 Text(
                     "删除的物品保留 14 天，到期自动清空",
-                    fontSize = 12.sp, color = TextAuxiliary(),
+                    style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(),
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                 )
             }
@@ -125,13 +125,13 @@ fun RecycleBinScreen(
             if (uiState.message != null) {
                 Surface(
                     Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    RoundedCornerShape(14.dp),
+                    AppShape.panel,
                     color = Primary().copy(alpha = 0.12f)
                 ) {
                     Text(
                         uiState.message!!,
                         modifier = Modifier.padding(14.dp),
-                        color = Primary(), fontSize = 14.sp, fontWeight = FontWeight.Medium
+                        color = Primary(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -168,7 +168,7 @@ private fun TrashItemCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = AppShape.panel,
         colors = CardDefaults.cardColors(containerColor = CardBg()),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -185,9 +185,9 @@ private fun TrashItemCard(
                 // 左：名称 + 金额（原 Column 原样）
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(item.name, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        Text(item.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                         Spacer(Modifier.width(8.dp))
-                        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.SemiBold)
+                        Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.height(2.dp))
                     val remainingDays = item.deletedAt?.let {
@@ -200,10 +200,10 @@ private fun TrashItemCard(
                         else -> TextAuxiliary()
                     }
                     item.deletedAt?.let {
-                        Text("删除于 ${dateFormat.format(Date(it))}", fontSize = 11.sp, color = TextAuxiliary())
+                        Text("删除于 ${dateFormat.format(Date(it))}", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                     }
                     if (remainingDays != null) {
-                        Text("${remainingDays}天后清空", fontSize = 11.sp, color = rdColor)
+                        Text("${remainingDays}天后清空", style = MaterialTheme.typography.labelSmall, color = rdColor)
                     }
                 }
                 Spacer(Modifier.width(96.dp))
@@ -216,12 +216,12 @@ private fun TrashItemCard(
                 LiquidGlassButton(onClick = onRestore, backdrop = cardBackdrop, height = 32.dp, horizontalPadding = 10.dp) {
                     Icon(Icons.Rounded.Restore, "还原", tint = Primary(), modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(3.dp))
-                    Text("还原", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Primary())
+                    Text("还原", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = Primary())
                 }
                 LiquidGlassButton(onClick = onDelete, backdrop = cardBackdrop, height = 32.dp, horizontalPadding = 12.dp) {
                     Icon(Icons.Rounded.DeleteForever, "删除", tint = WarrantyExpired, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("删除", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = WarrantyExpired)
+                    Text("删除", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = WarrantyExpired)
                 }
             }
         }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.additem.AddItemScreen
@@ -122,8 +123,16 @@ fun MainScreen() {
                     AnimatedContent(
                         targetState = if (isSubPage) currentRoute else "tabs",
                         transitionSpec = {
-                            (fadeIn(animationSpec = tween(220)) + slideInHorizontally { it / 10 }) togetherWith
-                            (fadeOut(animationSpec = tween(180)) + slideOutHorizontally { -it / 10 })
+                            // 页面转场统一走 Motion token：进场用 Medium、退场用 Quick
+                            // （退出更快收场，免得两个页面同时在场太久）。
+                            // 注意淡入要 FiniteAnimationSpec<Float>、滑动要
+                            // FiniteAnimationSpec<IntOffset>，两者不能共用一个实例。
+                            val fadeInSpec = tween<Float>(MotionDuration.Medium, easing = MotionCurve.EaseOut)
+                            val fadeOutSpec = tween<Float>(MotionDuration.Quick, easing = MotionCurve.EaseOut)
+                            val slideInSpec = tween<IntOffset>(MotionDuration.Medium, easing = MotionCurve.EaseOut)
+                            val slideOutSpec = tween<IntOffset>(MotionDuration.Quick, easing = MotionCurve.EaseOut)
+                            (fadeIn(animationSpec = fadeInSpec) + slideInHorizontally(animationSpec = slideInSpec) { it / 10 }) togetherWith
+                            (fadeOut(animationSpec = fadeOutSpec) + slideOutHorizontally(animationSpec = slideOutSpec) { -it / 10 })
                         },
                         label = "page"
                     ) { state ->
@@ -219,7 +228,7 @@ fun MainScreen() {
                             ) {
                                 Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
                                 Spacer(Modifier.width(8.dp))
-                                Text("搜索物品...", fontSize = 14.sp, color = TextAuxiliary())
+                                Text("搜索物品...", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
                             }
                         }
 
@@ -233,7 +242,7 @@ fun MainScreen() {
                             ) {
                                 Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Primary())
                                 Spacer(Modifier.width(4.dp))
-                                Text("新增物品", color = TextPrimary(), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text("新增物品", color = TextPrimary(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }

@@ -14,7 +14,9 @@
 package com.nanji.lootarchive.ui.liquidglass
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.MutatorMutex
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -45,18 +47,32 @@ internal class DampedDragAnimation(
     val onDrag: DampedDragAnimation.(size: IntSize, dragAmount: Offset) -> Unit,
     private val consumeDragChanges: Boolean = false,
     private val consumeInitialDown: Boolean = true,
+    /**
+     * 系统是否开启了「减弱动效」。
+     *
+     * 这套物理**必须**显式处理它：Compose 的动画时长缩放（MotionDurationScale）
+     * 只作用于带时长的 spec（tween 那一类），而弹簧是物理积分、没有时长可言，
+     * 所以系统关掉动画之后这些弹簧照旧满帧弹 —— 底栏拖拽镜头、按压形变、
+     * 图标缩放全都不会停。置 true 时改用 snap()，状态仍然是即时生效的，
+     * 只是不再有过渡过程。
+     */
+    private val reduceMotion: Boolean = false,
 ) {
 
+    // 减弱动效时一律瞬时到位。取值时再快进，避免把中间态画到屏幕上。
+    private fun <T> spec(normal: AnimationSpec<T>): AnimationSpec<T> =
+        if (reduceMotion) snap() else normal
+
     private val valueAnimationSpec =
-        spring(1f, 1000f, visibilityThreshold)
+        spec(spring(1f, 1000f, visibilityThreshold))
     private val velocityAnimationSpec =
-        spring(0.5f, 300f, visibilityThreshold * 10f)
+        spec(spring(0.5f, 300f, visibilityThreshold * 10f))
     private val pressProgressAnimationSpec =
-        spring(1f, 1000f, 0.001f)
+        spec(spring(1f, 1000f, 0.001f))
     private val scaleXAnimationSpec =
-        spring(0.6f, 250f, 0.001f)
+        spec(spring(0.6f, 250f, 0.001f))
     private val scaleYAnimationSpec =
-        spring(0.7f, 250f, 0.001f)
+        spec(spring(0.7f, 250f, 0.001f))
 
     private val valueAnimation =
         Animatable(initialValue, visibilityThreshold)

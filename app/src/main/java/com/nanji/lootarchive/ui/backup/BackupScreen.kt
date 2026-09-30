@@ -65,10 +65,10 @@ fun BackupScreen(
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary()) }
-                    Text("备份与恢复", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                    Text("备份与恢复", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
                 }
             }
-            item { Text("数据备份", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
+            item { Text("数据备份", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
             item {
                 val exportBrush = backgroundBrush()
                 val exportBackdrop = rememberLayerBackdrop {
@@ -90,7 +90,7 @@ fun BackupScreen(
                         horizontalPadding = 18.dp
                     ) {
                         Surface(
-                            Modifier.size(46.dp), RoundedCornerShape(14.dp),
+                            Modifier.size(46.dp), AppShape.panel,
                             color = Primary().copy(alpha = 0.10f)
                         ) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -99,15 +99,15 @@ fun BackupScreen(
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("一键导出", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
-                            Text("物品数据 + 照片 + 分类打包为 ZIP", fontSize = 12.sp, color = TextAuxiliary())
+                            Text("一键导出", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                            Text("物品数据 + 照片 + 分类打包为 ZIP", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                         }
                         Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
                 }
             }
 
-            item { Text("数据恢复", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
+            item { Text("数据恢复", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
             item {
                 val importBrush = backgroundBrush()
                 val importBackdrop = rememberLayerBackdrop {
@@ -129,7 +129,7 @@ fun BackupScreen(
                         horizontalPadding = 18.dp
                     ) {
                         Surface(
-                            Modifier.size(46.dp), RoundedCornerShape(14.dp),
+                            Modifier.size(46.dp), AppShape.panel,
                             color = Color(0xFF10B981).copy(alpha = 0.10f)
                         ) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -138,15 +138,15 @@ fun BackupScreen(
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("一键导入", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary())
-                            Text("选择备份 ZIP 恢复全部数据", fontSize = 12.sp, color = TextAuxiliary())
+                            Text("一键导入", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary())
+                            Text("选择备份 ZIP 恢复全部数据", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                         }
                         Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
                 }
             }
 
-            item { Text("备份记录", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
+            item { Text("备份记录", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
 
             if (uiState.backupRecords.isEmpty()) {
                 item {
@@ -160,7 +160,7 @@ fun BackupScreen(
                 items(uiState.backupRecords, key = { it.id }) { record ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = AppShape.panel,
                         colors = CardDefaults.cardColors(containerColor = CardBg()),
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
@@ -168,8 +168,8 @@ fun BackupScreen(
                             Icon(Icons.Rounded.Archive, null, tint = Primary(), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(record.fileName, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                                Text(dateFormat.format(Date(record.createdAt)), fontSize = 12.sp, color = TextAuxiliary())
+                                Text(record.fileName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = TextPrimary())
+                                Text(dateFormat.format(Date(record.createdAt)), style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                             }
                             IconButton(onClick = { viewModel.deleteRecord(record) }) {
                                 Icon(Icons.Rounded.Delete, "删除", tint = WarrantyExpired, modifier = Modifier.size(18.dp))
@@ -187,7 +187,7 @@ fun BackupScreen(
                 onDismissRequest = { viewModel.clearMessage() },
                 icon = { Icon(Icons.Rounded.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) },
                 title = { Text("操作失败", fontWeight = FontWeight.Bold, color = TextPrimary()) },
-                text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 13.sp) },
+                text = { Text(uiState.message!!, color = TextSecondary(), style = MaterialTheme.typography.bodySmall) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("确定", color = Primary()) } }
             )
         }
@@ -201,7 +201,7 @@ fun BackupScreen(
                 onDismissRequest = { viewModel.clearMessage() },
                 icon = { Icon(Icons.Rounded.CheckCircle, null, tint = Primary()) },
                 title = { Text("操作成功", fontWeight = FontWeight.Bold, color = TextPrimary()) },
-                text = { Text(uiState.message!!, color = TextSecondary(), fontSize = 14.sp) },
+                text = { Text(uiState.message!!, color = TextSecondary(), style = MaterialTheme.typography.bodyMedium) },
                 confirmButton = { TextButton(onClick = { viewModel.clearMessage() }) { Text("好的", color = Primary()) } }
             )
         }

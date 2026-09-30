@@ -60,25 +60,25 @@ fun DetailScreen(
         sheetContent = {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
                 Spacer(Modifier.height(8.dp))
-                Text(data.item.name, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                Text(data.item.name, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (data.category != null) { Surface(shape = RoundedCornerShape(10.dp), color = Primary().copy(alpha = 0.12f)) { Text(data.category!!.name, color = Primary(), fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) } }
-                    if (data.item.storageLocation.isNotEmpty()) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Rounded.LocationOn, null, Modifier.size(14.dp), tint = TextAuxiliary()); Spacer(Modifier.width(2.dp)); Text(data.item.storageLocation, fontSize = 13.sp, color = TextSecondary()) } }
+                    if (data.category != null) { Surface(shape = AppShape.thumb, color = Primary().copy(alpha = 0.12f)) { Text(data.category!!.name, color = Primary(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) } }
+                    if (data.item.storageLocation.isNotEmpty()) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Rounded.LocationOn, null, Modifier.size(14.dp), tint = TextAuxiliary()); Spacer(Modifier.width(2.dp)); Text(data.item.storageLocation, style = MaterialTheme.typography.bodySmall, color = TextSecondary()) } }
                 }
                 // v5.2 物品状态
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("物品状态", fontSize = 14.sp, color = TextSecondary(), modifier = Modifier.width(72.dp))
+                    Text("物品状态", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), modifier = Modifier.width(72.dp))
                     Surface(
                         onClick = { viewModel.showStatusSheet() },
-                        shape = RoundedCornerShape(10.dp),
+                        shape = AppShape.thumb,
                         color = statusColor(data.item.status).copy(alpha = 0.12f)
                     ) {
                         Row(Modifier.padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(8.dp).background(statusColor(data.item.status), CircleShape))
                             Spacer(Modifier.width(6.dp))
-                            Text(statusLabel(data.item.status), color = statusColor(data.item.status), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Text(statusLabel(data.item.status), color = statusColor(data.item.status), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
                             Spacer(Modifier.width(4.dp))
                             Icon(Icons.Rounded.UnfoldMore, null, Modifier.size(14.dp), tint = statusColor(data.item.status))
                         }
@@ -90,8 +90,8 @@ fun DetailScreen(
                     Spacer(Modifier.height(8.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         itemTags.forEach { tag ->
-                            Surface(shape = RoundedCornerShape(8.dp), color = Primary().copy(alpha = 0.08f)) {
-                                Text(tag, fontSize = 11.sp, color = Primary(), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                            Surface(shape = AppShape.chip, color = Primary().copy(alpha = 0.08f)) {
+                                Text(tag, style = MaterialTheme.typography.labelSmall, color = Primary(), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                             }
                         }
                     }
@@ -108,8 +108,8 @@ fun DetailScreen(
                 val warrantyText = when { data.isWarrantyExpired -> "已过期"; data.isWarrantyExpiring -> "即将到期"; data.item.warrantyExpiryDate != null -> "保修中 · ${dateFormat.format(Date(data.item.warrantyExpiryDate!!))}"; else -> "无保修" }
                 val warrantyColor = when { data.isWarrantyExpired -> WarrantyExpired; data.isWarrantyExpiring -> WarrantyExpiring; else -> WarrantyActive }
                 Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("保修状态", fontSize = 14.sp, color = TextSecondary(), modifier = Modifier.width(72.dp))
-                    Surface(color = warrantyColor.copy(alpha = 0.12f), shape = RoundedCornerShape(10.dp)) { Text(warrantyText, color = warrantyColor, fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) }
+                    Text("保修状态", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), modifier = Modifier.width(72.dp))
+                    Surface(color = warrantyColor.copy(alpha = 0.12f), shape = AppShape.thumb) { Text(warrantyText, color = warrantyColor, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) }
                 }
                 if (data.item.warrantyExpiryDate != null && !data.isWarrantyExpired && data.item.purchaseDate != null) {
                     val td = (data.item.warrantyExpiryDate - data.item.purchaseDate) / (24 * 60 * 60 * 1000)
@@ -119,7 +119,7 @@ fun DetailScreen(
                     Spacer(Modifier.height(8.dp))
                     Row(Modifier.fillMaxWidth().padding(start = 72.dp), verticalAlignment = Alignment.CenterVertically) {
                         LinearProgressIndicator(progress = { prog }, modifier = Modifier.weight(1f).height(6.dp), color = if (rd <= 7) WarrantyExpiring else WarrantyActive, trackColor = TextAuxiliary().copy(alpha = 0.12f))
-                        Spacer(Modifier.width(8.dp)); Text("${rd}天", fontSize = 11.sp, color = warrantyColor, fontWeight = FontWeight.Medium)
+                        Spacer(Modifier.width(8.dp)); Text("${rd}天", style = MaterialTheme.typography.labelSmall, color = warrantyColor, fontWeight = FontWeight.Medium)
                     }
                 }
                 DetailRow("存放位置", data.item.storageLocation.ifEmpty { "未设置" })
@@ -130,7 +130,7 @@ fun DetailScreen(
             }
         },
         sheetPeekHeight = 260.dp,
-        sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        sheetShape = RoundedCornerShape(topStart = AppRadius.xxl, topEnd = AppRadius.xxl),
         sheetContainerColor = if (LocalDarkTheme.current) Color(0xE61C1C24) else Color(0xF2FFFFFF),
         sheetTonalElevation = 4.dp,
         containerColor = Color.Transparent,
@@ -148,8 +148,8 @@ fun DetailScreen(
                     }
                 }
                 Box(Modifier.fillMaxWidth().height(100.dp).align(Alignment.BottomCenter).background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.30f)))))
-                if (data.photos.size > 1) { Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { data.photos.indices.forEach { i -> Surface(Modifier.size(if (i == cp) 8.dp else 6.dp), RoundedCornerShape(4.dp), color = if (i == cp) Color.White else Color.White.copy(alpha = 0.45f)) {} } } }
-            } else { Box(Modifier.fillMaxSize().background(Brush.linearGradient(if (LocalDarkTheme.current) listOf(Color(0xFF3D2A1A), Color(0xFF2D2010)) else listOf(Color(0xFFFFD4B8), Color(0xFFFFB890)))), contentAlignment = Alignment.Center) { Text(data.item.name.take(1), fontSize = 90.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.30f), fontFamily = FredokaFont) } }
+                if (data.photos.size > 1) { Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { data.photos.indices.forEach { i -> Surface(Modifier.size(if (i == cp) 8.dp else 6.dp), AppShape.bar, color = if (i == cp) Color.White else Color.White.copy(alpha = 0.45f)) {} } } }
+            } else { Box(Modifier.fillMaxSize().background(Brush.linearGradient(if (LocalDarkTheme.current) PhotoPlaceholderDark else PhotoPlaceholderLight)), contentAlignment = Alignment.Center) { Text(data.item.name.take(1), fontSize = DecorativeWatermarkSize, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.30f), fontFamily = FredokaFont) } }
             val topActionsBrush = backgroundBrush()
             val topActionsBackdrop = rememberLayerBackdrop {
                 drawRect(brush = topActionsBrush)
@@ -185,10 +185,10 @@ fun DetailScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.dismissStatusSheet() },
             containerColor = if (LocalDarkTheme.current) Color(0xE61C1C24) else Color(0xF2FFFFFF),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+            shape = RoundedCornerShape(topStart = AppRadius.xxl, topEnd = AppRadius.xxl)
         ) {
             Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-                Text("更改物品状态", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+                Text("更改物品状态", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
                 Spacer(Modifier.height(16.dp))
                 ItemStatus.entries.forEach { status ->
                     val key = status.code
@@ -196,7 +196,7 @@ fun DetailScreen(
                     Surface(
                         onClick = { viewModel.updateItemStatus(key) },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = AppShape.panel,
                         color = if (data.item.status == key) statusColor(key).copy(alpha = 0.12f) else Color.Transparent
                     ) {
                         Row(
@@ -205,7 +205,7 @@ fun DetailScreen(
                         ) {
                             Box(Modifier.size(10.dp).background(statusColor(key), CircleShape))
                             Spacer(Modifier.width(12.dp))
-                            Text(label, fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                            Text(label, style = MaterialTheme.typography.labelLarge, color = TextPrimary(), modifier = Modifier.weight(1f))
                             if (data.item.status == key) {
                                 Icon(Icons.Rounded.Check, null, Modifier.size(20.dp), tint = statusColor(key))
                             }
@@ -220,6 +220,6 @@ fun DetailScreen(
 
 @Composable
 private fun DetailRow(label: String, value: String, valueColor: Color = TextPrimary()) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, fontSize = 14.sp, color = TextSecondary(), modifier = Modifier.width(72.dp)); Text(value, fontSize = 14.sp, color = valueColor, modifier = Modifier.weight(1f)) }
+    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), modifier = Modifier.width(72.dp)); Text(value, style = MaterialTheme.typography.bodyMedium, color = valueColor, modifier = Modifier.weight(1f)) }
 }
 private fun getCurrencySymbol(code: String): String = when (code) { "USD" -> "$"; "EUR" -> "€"; "JPY" -> "¥"; "GBP" -> "£"; else -> "¥" }

@@ -82,7 +82,7 @@ fun AboutScreen(
                     Modifier.fillMaxWidth().statusBarsPadding().padding(top = 8.dp).padding(start = 52.dp, end = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("关于", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
+                    Text("关于", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(16.dp))
 
@@ -94,9 +94,9 @@ fun AboutScreen(
                         contentDescription = null
                     )
                     Spacer(Modifier.height(12.dp))
-                    Text("拾物集 ItemGlow", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                    Text("拾物集 ItemGlow", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
                     Spacer(Modifier.height(4.dp))
-                    Text("当前版本 v${BuildConfig.VERSION_NAME}", fontSize = 14.sp, color = TextAuxiliary())
+                    Text("当前版本 v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
                 }
                 Spacer(Modifier.height(16.dp))
 
@@ -108,15 +108,15 @@ fun AboutScreen(
                                 .padding(horizontal = 16.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Surface(Modifier.size(38.dp), RoundedCornerShape(12.dp), color = Primary().copy(alpha = 0.10f)) {
+                            Surface(Modifier.size(38.dp), AppShape.thumb, color = Primary().copy(alpha = 0.10f)) {
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     Icon(Icons.Rounded.Code, null, Modifier.size(20.dp), tint = Primary())
                                 }
                             }
                             Spacer(Modifier.width(14.dp))
                             Column(Modifier.weight(1f)) {
-                                Text("GitHub 仓库", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                                Text("开源代码、提交反馈", fontSize = 12.sp, color = TextAuxiliary())
+                                Text("GitHub 仓库", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
+                                Text("开源代码、提交反馈", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                             }
                             Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                         }
@@ -173,7 +173,7 @@ fun AboutScreen(
             ) {
                 Icon(Icons.Rounded.Refresh, null, Modifier.size(20.dp), tint = Primary())
                 Spacer(Modifier.width(8.dp))
-                Text(if (isChecking) "正在检查..." else "检查更新", color = Primary(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(if (isChecking) "正在检查..." else "检查更新", color = Primary(), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -185,12 +185,12 @@ fun AboutScreen(
             title = { Text("发现新版本", fontWeight = FontWeight.Bold, color = TextPrimary()) },
             text = {
                 Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState()).fillMaxWidth()) {
-                    Text("版本：${updateInfo!!.versionName}", fontSize = 16.sp, color = TextPrimary())
+                    Text("版本：${updateInfo!!.versionName}", style = MaterialTheme.typography.bodyLarge, color = TextPrimary())
                     Spacer(Modifier.height(4.dp))
-                    Text("更新日期：${updateInfo!!.updateDate}", fontSize = 14.sp, color = TextSecondary())
+                    Text("更新日期：${updateInfo!!.updateDate}", style = MaterialTheme.typography.bodyMedium, color = TextSecondary())
                     Spacer(Modifier.height(8.dp))
-                    Text("更新内容：", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                    Text(updateInfo!!.updateLog, fontSize = 13.sp, color = TextSecondary())
+                    Text("更新内容：", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = TextPrimary())
+                    Text(updateInfo!!.updateLog, style = MaterialTheme.typography.bodySmall, color = TextSecondary())
                 }
             },
             confirmButton = {
@@ -258,11 +258,11 @@ fun AboutScreen(
                     )
                     Spacer(Modifier.height(12.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(downloadProgress.percentText, fontSize = 14.sp, color = Primary(), fontWeight = FontWeight.Bold)
-                        Text(downloadProgress.speedText, fontSize = 12.sp, color = TextAuxiliary())
+                        Text(downloadProgress.percentText, style = MaterialTheme.typography.bodyMedium, color = Primary(), fontWeight = FontWeight.Bold)
+                        Text(downloadProgress.speedText, style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                     }
                     Spacer(Modifier.height(4.dp))
-                    Text(downloadProgress.sizeText, fontSize = 12.sp, color = TextAuxiliary())
+                    Text(downloadProgress.sizeText, style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                 }
             },
             confirmButton = { },
@@ -283,9 +283,9 @@ fun AboutScreen(
 @Composable
 private fun AboutTextItem(title: String, desc: String) {
     Column(Modifier.padding(vertical = 12.dp)) {
-        Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+        Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
         Spacer(Modifier.height(4.dp))
-        Text(desc, fontSize = 13.sp, color = TextSecondary())
+        Text(desc, style = MaterialTheme.typography.bodySmall, color = TextSecondary())
     }
 }
 
@@ -296,19 +296,21 @@ private fun AboutTextItem(title: String, desc: String) {
 private fun AnimatedOrbsBackground(modifier: Modifier = Modifier) {
     val dark = LocalDarkTheme.current
     val transition = rememberInfiniteTransition(label = "orbs")
+    // 环境动效：不是交互，时长自成一套（见 MotionDuration.Ambient），
+    // 所以不跟交互动效共用档位——它们要慢到"几乎看不出在动"才不打扰阅读。
     val driftX by transition.animateFloat(
         initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(9000, easing = LinearEasing), RepeatMode.Reverse),
+        animationSpec = infiniteRepeatable(tween(MotionDuration.Ambient.OrbMedium, easing = MotionCurve.Linear), RepeatMode.Reverse),
         label = "driftX"
     )
     val driftY by transition.animateFloat(
         initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(13000, easing = LinearEasing), RepeatMode.Reverse),
+        animationSpec = infiniteRepeatable(tween(MotionDuration.Ambient.OrbSlow, easing = MotionCurve.Linear), RepeatMode.Reverse),
         label = "driftY"
     )
     val pulse by transition.animateFloat(
         initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(7000, easing = EaseInOutCubic), RepeatMode.Reverse),
+        animationSpec = infiniteRepeatable(tween(MotionDuration.Ambient.OrbFast, easing = MotionCurve.EaseInOut), RepeatMode.Reverse),
         label = "pulse"
     )
     val amber = Color(0xFFE8782A)

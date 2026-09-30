@@ -19,6 +19,7 @@ import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.capsule.ContinuousCapsule
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalReduceMotion
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -49,11 +50,14 @@ fun LiquidGlassButton(
         if (dark) Color(0xFF121212).copy(alpha = 0.40f)
         else Color(0xFFFFFFFF).copy(alpha = 0.45f)
     val animationScope = rememberCoroutineScope()
-    val highlight = remember(animationScope) {
+    // 减弱动效时按压高光不再跟手（见 InteractiveHighlight.reduceMotion）
+    val reduceMotion = LocalReduceMotion.current
+    val highlight = remember(animationScope, reduceMotion) {
         InteractiveHighlight(
             animationScope,
             intensity = highlightIntensity,
-            radiusMultiplier = highlightRadiusMultiplier
+            radiusMultiplier = highlightRadiusMultiplier,
+            reduceMotion = reduceMotion
         )
     }
     Row(

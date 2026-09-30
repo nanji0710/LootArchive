@@ -19,6 +19,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.theme.AppTypography
 import com.nanji.lootarchive.ui.theme.FredokaFont
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
@@ -41,8 +42,19 @@ fun TrendLineChart(
     val textAux = TextAuxiliary()
     val primary = Primary()
     val measurer = rememberTextMeasurer()
-    val yStyle = remember(textAux) { TextStyle(fontFamily = FredokaFont, fontSize = 10.sp, color = textAux, fontWeight = FontWeight.Normal) }
-    val xStyle = remember(textAux) { TextStyle(fontFamily = FredokaFont, fontSize = 10.sp, color = textAux, fontWeight = FontWeight.Normal) }
+    val yStyle = remember(textAux) {
+        // 图表坐标标签：10sp 比正文梯子最小档(12sp)还小，因为它要挤在
+        // 折线图的点旁边与横轴下方。从 AppTypography.labelSmall 派生，
+        // 字族/行高与全站一致，只有字号是局部（图表专属）覆盖。
+        AppTypography.labelSmall.copy(
+            fontFamily = FredokaFont, fontSize = 10.sp, color = textAux, fontWeight = FontWeight.Normal
+        )
+    }
+    val xStyle = remember(textAux) {
+        AppTypography.labelSmall.copy(
+            fontFamily = FredokaFont, fontSize = 10.sp, color = textAux, fontWeight = FontWeight.Normal
+        )
+    }
 
     val scrollState = rememberScrollState()
     // 布局完成后滚动到最右：初始显示最新月份

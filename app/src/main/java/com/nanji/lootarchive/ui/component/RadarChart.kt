@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nanji.lootarchive.ui.theme.AppTypography
 import com.nanji.lootarchive.ui.theme.FredokaFont
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
 import com.nanji.lootarchive.ui.theme.Primary
@@ -40,7 +41,17 @@ fun RadarChart(
     val textAux = TextAuxiliary()
     val measurer = rememberTextMeasurer()
     val labelStyle = remember(textAux) {
-        TextStyle(fontFamily = FredokaFont, fontSize = 11.sp, color = textAux, fontWeight = FontWeight.Medium)
+        // 图表轴标签：11sp 比正文梯子的最小档(12sp)还小一档，因为要贴在
+        // 240dp 见方的雷达图边缘、且必须让位于图形本身。直接从 AppTypography
+        // 的 labelSmall 派生（而不是读 MaterialTheme.typography），
+        // 好处是字族/行高跟全站一致、只有字号是局部覆盖，同时不引入
+        // 组合局部读取，remember 的键仍然只需要 textAux。
+        AppTypography.labelSmall.copy(
+            fontFamily = FredokaFont,
+            fontSize = 11.sp,
+            color = textAux,
+            fontWeight = FontWeight.Medium
+        )
     }
 
     Canvas(modifier = modifier.size(sizeDp.dp)) {

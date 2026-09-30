@@ -78,7 +78,7 @@ fun CategoryScreen(
                 ) {
                     Icon(Icons.Rounded.Add, "新增", Modifier.size(20.dp), tint = Primary())
                     Spacer(Modifier.width(4.dp))
-                    Text("新增", color = Primary(), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text("新增", color = Primary(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -89,7 +89,7 @@ fun CategoryScreen(
                 IconButton(onClick = onNavigateBack) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary())
                 }
-                Text("分类管理", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
+                Text("分类管理", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
             }
             Spacer(Modifier.height(10.dp))
 
@@ -136,7 +136,7 @@ fun CategoryScreen(
                     onValueChange = viewModel::updateDialogName,
                     label = { Text("分类名称") },
                     singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
+                    shape = AppShape.panel,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = TextPrimary(),
                         unfocusedTextColor = TextPrimary(),
@@ -184,7 +184,7 @@ private fun CategoryGridCard(
     val icon = CategoryIcons[category.name] ?: Icons.Rounded.Folder
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit),
-        shape = RoundedCornerShape(20.dp),
+        shape = AppShape.card,
         colors = CardDefaults.cardColors(containerColor = CardBg()),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -199,7 +199,7 @@ private fun CategoryGridCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Surface(
-                    Modifier.size(48.dp), RoundedCornerShape(16.dp),
+                    Modifier.size(48.dp), AppShape.panel,
                     color = Primary().copy(alpha = 0.10f)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -207,9 +207,9 @@ private fun CategoryGridCard(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                Text(category.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center, maxLines = 1)
+                Text(category.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), textAlign = TextAlign.Center, maxLines = 1)
                 Spacer(Modifier.height(4.dp))
-                Text("$itemCount 件物品", fontSize = 12.sp, color = TextAuxiliary())
+                Text("$itemCount 件物品", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
             }
             Row(
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp),

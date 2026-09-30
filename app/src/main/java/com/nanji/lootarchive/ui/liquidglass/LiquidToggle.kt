@@ -53,6 +53,7 @@ import com.kyant.backdrop.shadow.InnerShadow
 import com.kyant.backdrop.shadow.Shadow
 import com.kyant.capsule.ContinuousCapsule
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalReduceMotion
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -74,7 +75,9 @@ fun LiquidToggle(
     val animationScope = rememberCoroutineScope()
     var didDrag by remember { mutableStateOf(false) }
     var fraction by remember { mutableFloatStateOf(if (checked) 1f else 0f) }
-    val dampedDragAnimation = remember(animationScope) {
+    // 减弱动效时弹簧退化为瞬时（见 DampedDragAnimation.reduceMotion）
+    val reduceMotion = LocalReduceMotion.current
+    val dampedDragAnimation = remember(animationScope, reduceMotion) {
         DampedDragAnimation(
             animationScope = animationScope,
             initialValue = fraction,
@@ -82,6 +85,7 @@ fun LiquidToggle(
             visibilityThreshold = 0.001f,
             initialScale = 1f,
             pressedScale = 1.5f,
+            reduceMotion = reduceMotion,
             onDragStarted = {},
             onDragStopped = {
                 if (didDrag) {

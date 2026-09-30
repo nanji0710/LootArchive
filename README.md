@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.9.6-orange)]()
+[![Version](https://img.shields.io/badge/Version-6.10.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -287,11 +287,19 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.9.6.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v6.10.0.apk`（约 7.5 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 ---
 
 ## 更新日志
+
+### v6.10.0 (2026-09-30) UI 统一与动效体系
+- **动效体系**：新增 `Motion`（时长/曲线/弹簧的唯一来源），曲线改为活泼取向——展开带末尾过冲、收起带起始预判；页面转场、弹层、数字滚动、底栏镜头回弹全部接入
+- **无障碍（减弱动效）**：修复系统开启「减弱动效」后液态玻璃的弹簧物理仍满帧播放的问题（底栏拖拽镜头、按压形变、按压高光、液态开关、弹层缩放）。弹簧不受 Compose 动画时长缩放影响，必须显式退化，原先全项目 0 处处理
+- **字号**：253 处硬编码字号收敛进 `MaterialTheme.typography` 的 14 档阶梯（原先这套阶梯定义了却 0 引用）
+- **圆角**：18 种半径收敛为 6 档（`AppRadius`/`AppShape`），裸 `RoundedCornerShape(N.dp)` 从 107 处降到 0
+- **页面骨架**：三个主页面新增顶部渐隐——内容从透明状态栏下滑过时"化掉"，而不是被视口硬切一刀；统一页面边缘、卡片间距与底栏避让高度
+- **清理**：删除零引用死代码（`GlassTier`、`glassEffect`、4 个空转访问器、3 个死别名、无用色 token）；Hero 卡与占位图的硬编码渐变收进 token
 
 ### v6.9.6 (2026-09-01) 沉浸式与图表优化
 - 修复: 首页/统计页顶部白色遮挡条——内容可滑入透明状态栏实时可见（与我的页一致的沉浸式滚动）

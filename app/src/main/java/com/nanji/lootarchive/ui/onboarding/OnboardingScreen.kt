@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -102,10 +103,10 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .widthIn(max = 350.dp).fillMaxWidth(0.82f)
-                            .clip(RoundedCornerShape(28.dp))
+                            .clip(AppShape.sheet)
                             .background(
                                 if (dark) _CardDark.copy(alpha = 0.82f) else Color(0xBDFFFFFF),
-                                RoundedCornerShape(28.dp)
+                                AppShape.sheet
                             )
                             .padding(36.dp),
                         contentAlignment = Alignment.Center
@@ -113,7 +114,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Box(
                                 Modifier.size(76.dp)
-                                    .clip(RoundedCornerShape(22.dp))
+                                    .clip(AppShape.sheet)
                                     .background(page.iconBgColor.copy(alpha = 0.10f)),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -125,19 +126,19 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                             }
                             Spacer(Modifier.height(22.dp))
                             Text(
-                                page.step, fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
+                                page.step, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
                                 color = Primary(), fontFamily = FredokaFont,
                                 letterSpacing = 0.6.sp
                             )
                             Spacer(Modifier.height(6.dp))
                             Text(
-                                page.title, fontSize = 23.sp, fontWeight = FontWeight.Bold,
+                                page.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
                                 color = TextPrimary(), fontFamily = FredokaFont,
                                 letterSpacing = (-0.2).sp
                             )
                             Spacer(Modifier.height(12.dp))
                             Text(
-                                page.description, fontSize = 14.sp, color = TextSecondary(),
+                                page.description, style = MaterialTheme.typography.bodyMedium, color = TextSecondary(),
                                 lineHeight = 23.sp, textAlign = TextAlign.Center
                             )
                             if (page.tags.isNotEmpty()) {
@@ -145,12 +146,12 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     page.tags.forEach { (label, bgColor) ->
                                         Box(
-                                            Modifier.clip(RoundedCornerShape(20.dp))
+                                            Modifier.clip(AppShape.card)
                                                 .background(bgColor.copy(alpha = 0.10f))
                                                 .padding(horizontal = 12.dp, vertical = 5.dp)
                                         ) {
                                             Text(
-                                                label, fontSize = 11.sp,
+                                                label, style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.SemiBold,
                                                 color = bgColor
                                             )
@@ -174,7 +175,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     Box(
                         Modifier
                             .size(if (isCurrent) 56.dp else 48.dp)
-                            .clip(RoundedCornerShape(15.dp))
+                            .clip(AppShape.panel)
                             .background(
                                 if (isCurrent) Primary().copy(alpha = 0.10f)
                                 else (if (dark) Color.White else Color.Black).copy(alpha = 0.03f)
@@ -200,7 +201,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                         Modifier
                             .width(if (i == pagerState.currentPage) 24.dp else 8.dp)
                             .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp))
+                            .clip(AppShape.bar)
                             .background(
                                 if (i == pagerState.currentPage) Primary()
                                 else Color(0xFFE0D8D0)
@@ -214,7 +215,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             val isLast = pagerState.currentPage == pages.lastIndex
             Box(
                 Modifier
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(AppShape.sheet)
                     .background(Primary())
                     .clickable {
                         if (isLast) onComplete()
@@ -226,7 +227,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         if (isLast) "开始使用" else "下一步",
-                        fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold,
                         color = Color.White
                     )
                     Spacer(Modifier.width(6.dp))
@@ -244,7 +245,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     .clickable { onComplete() },
                 contentAlignment = Alignment.Center
             ) {
-                Text("跳过引导", fontSize = 13.sp, color = TextAuxiliary())
+                Text("跳过引导", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
             }
         }
     }

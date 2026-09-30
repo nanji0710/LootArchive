@@ -75,7 +75,7 @@ fun SettingsScreen(
             SectionHeader(Icons.Rounded.Palette, "个性化")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = AppShape.card,
                 colors = CardDefaults.cardColors(containerColor = CardBg()),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
@@ -93,7 +93,7 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
-                                Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                                Modifier.size(38.dp), AppShape.thumb,
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -102,7 +102,7 @@ fun SettingsScreen(
                             }
                             Spacer(Modifier.width(14.dp))
                             Column(Modifier.weight(1f)) {
-                                Text("显示模式", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary(), modifier = Modifier.weight(1f).padding(end = 186.dp))
+                                Text("显示模式", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), modifier = Modifier.weight(1f).padding(end = 186.dp))
                                 Text(
                                     when (uiState.themeMode) {
                                         "system" -> "跟随系统"
@@ -110,7 +110,7 @@ fun SettingsScreen(
                                         "dark" -> "深色"
                                         else -> "跟随系统"
                                     },
-                                    fontSize = 12.sp, color = TextAuxiliary()
+                                    style = MaterialTheme.typography.labelSmall, color = TextAuxiliary()
                                 )
                             }
                         }
@@ -148,7 +148,7 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
-                                Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                                Modifier.size(38.dp), AppShape.thumb,
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -157,7 +157,7 @@ fun SettingsScreen(
                             }
                             Spacer(Modifier.width(14.dp))
                             Column(Modifier.weight(1f)) {
-                                Text("跟随壁纸动态色", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
+                                Text("跟随壁纸动态色", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
                             }
                         }
                         LiquidToggle(
@@ -174,7 +174,7 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(
-                            Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                            Modifier.size(38.dp), AppShape.thumb,
                             color = Primary().copy(alpha = 0.10f)
                         ) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -183,16 +183,16 @@ fun SettingsScreen(
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("自定义头像", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                            Text("从相册选择", fontSize = 12.sp, color = TextAuxiliary())
+                            Text("自定义头像", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
+                            Text("从相册选择", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                         }
                         if (uiState.avatarUri.isNotEmpty()) {
                             Surface(
                                 onClick = { viewModel.setAvatarUri("") },
-                                shape = RoundedCornerShape(8.dp),
+                                shape = AppShape.chip,
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
-                                Text("还原", fontSize = 12.sp, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                                Text("还原", style = MaterialTheme.typography.labelSmall, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                             }
                             Spacer(Modifier.width(8.dp))
                         }
@@ -209,7 +209,7 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(
-                            Modifier.size(38.dp), RoundedCornerShape(12.dp),
+                            Modifier.size(38.dp), AppShape.thumb,
                             color = Primary().copy(alpha = 0.10f)
                         ) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -218,8 +218,8 @@ fun SettingsScreen(
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("重新查看引导", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary())
-                            Text("下次启动重新展示", fontSize = 12.sp, color = TextAuxiliary())
+                            Text("重新查看引导", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
+                            Text("下次启动重新展示", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
                         }
                         Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
@@ -230,7 +230,7 @@ fun SettingsScreen(
             SectionHeader(Icons.Rounded.Notifications, "提醒")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = AppShape.card,
                 colors = CardDefaults.cardColors(containerColor = CardBg()),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
@@ -239,15 +239,15 @@ fun SettingsScreen(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("保修到期提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                        Text("保修到期提醒", style = MaterialTheme.typography.labelLarge, color = TextPrimary(), modifier = Modifier.weight(1f))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Surface(
-                                shape = RoundedCornerShape(10.dp),
+                                shape = AppShape.thumb,
                                 color = Primary().copy(alpha = 0.10f)
                             ) {
                                 Text(
                                     "提前 ${uiState.warrantyReminderDays} 天",
-                                    fontSize = 13.sp, color = Primary(), fontWeight = FontWeight.Medium,
+                                    style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.Medium,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
                             }
@@ -272,7 +272,7 @@ fun SettingsScreen(
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("备份提醒", fontSize = 15.sp, color = TextPrimary(), modifier = Modifier.weight(1f))
+                            Text("备份提醒", style = MaterialTheme.typography.labelLarge, color = TextPrimary(), modifier = Modifier.weight(1f))
                         }
                         LiquidToggle(
                             checked = uiState.backupReminderEnabled,
@@ -288,7 +288,7 @@ fun SettingsScreen(
             SectionHeader(Icons.Rounded.Storage, "存储")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = AppShape.card,
                 colors = CardDefaults.cardColors(containerColor = CardBg()),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
@@ -304,12 +304,12 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text("缓存大小", fontSize = 15.sp, color = TextPrimary())
+                            Text("缓存大小", style = MaterialTheme.typography.labelLarge, color = TextPrimary())
                             Spacer(Modifier.height(2.dp))
                             if (uiState.isCalculatingCache) {
-                                Text("计算中...", fontSize = 13.sp, color = TextAuxiliary())
+                                Text("计算中...", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                             } else {
-                                Text(uiState.cacheSizeFormatted, fontSize = 13.sp, color = TextAuxiliary())
+                                Text(uiState.cacheSizeFormatted, style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                             }
                         }
                     }
@@ -326,7 +326,7 @@ fun SettingsScreen(
                         } else {
                             Icon(Icons.Rounded.DeleteSweep, null, Modifier.size(16.dp), tint = Primary())
                             Spacer(Modifier.width(6.dp))
-                            Text("清除缓存", fontSize = 13.sp, color = Primary())
+                            Text("清除缓存", style = MaterialTheme.typography.bodySmall, color = Primary())
                         }
                     }
                 }
@@ -347,7 +347,7 @@ fun SettingsScreen(
                     onValueChange = { editReminderDays = it },
                     label = { Text("提前天数") },
                     singleLine = true,
-                    shape = RoundedCornerShape(14.dp)
+                    shape = AppShape.panel
                 )
             },
             confirmButton = {
@@ -378,7 +378,7 @@ private fun SectionHeader(icon: ImageVector, title: String) {
         modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
     ) {
         Surface(
-            Modifier.size(30.dp), RoundedCornerShape(9.dp),
+            Modifier.size(30.dp), AppShape.thumb,
             color = Primary().copy(alpha = 0.10f)
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -386,6 +386,6 @@ private fun SectionHeader(icon: ImageVector, title: String) {
             }
         }
         Spacer(Modifier.width(10.dp))
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
+        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
     }
 }

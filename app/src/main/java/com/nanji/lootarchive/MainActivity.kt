@@ -22,6 +22,7 @@ import com.nanji.lootarchive.ui.MainScreen
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.onboarding.OnboardingScreen
 import com.nanji.lootarchive.ui.theme.LootArchiveTheme
+import com.nanji.lootarchive.ui.theme.ProvideReduceMotion
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -56,23 +57,28 @@ class MainActivity : ComponentActivity() {
                 showOnboarding = !settingsRepository.onboardingCompleted.first()
             }
             LootArchiveTheme(themeMode = themeMode, primaryColor = primaryColor, dynamicColor = dynamicColor) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(backgroundBrush())
-                ) {
-                    if (showOnboarding) {
-                        val scope = rememberCoroutineScope()
-                        OnboardingScreen(
-                            onComplete = {
-                                scope.launch {
-                                    settingsRepository.setOnboardingCompleted(true)
-                                    showOnboarding = false
+                // 减弱动效状态挂在根部：系统开了"减弱动效"时，
+                // 各处弹簧物理（底栏拖拽镜头、按压形变、高光）会用
+                // LocalReduceMotion 退化成瞬时，见 theme/Motion.kt。
+                ProvideReduceMotion {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(backgroundBrush())
+                    ) {
+                        if (showOnboarding) {
+                            val scope = rememberCoroutineScope()
+                            OnboardingScreen(
+                                onComplete = {
+                                    scope.launch {
+                                        settingsRepository.setOnboardingCompleted(true)
+                                        showOnboarding = false
+                                    }
                                 }
-                            }
-                        )
-                    } else {
-                        key("main") { MainScreen() }
+                            )
+                        } else {
+                            key("main") { MainScreen() }
+                        }
                     }
                 }
             }
