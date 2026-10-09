@@ -1,7 +1,7 @@
 {
-  "versionName": "6.10.1",
-  "versionCode": 701,
-  "updateDate": "2026-09-30",
-  "updateLog": "v6.10.1 首页排序与保修提醒优化\n- 首页卡片排序: 按状态分组 在用→待修→闲置→已出→丢失，在用按剩余保修期从高到低，无保修排组内最后\n- 首页卡片布局: 固定两列——第一张卡片横向占满整行，其余每行两张（大屏不再变成三四列）\n- 保修待提醒: 剔除已出售物品，指标卡计数与点开明细由同一查询驱动，两者不再出现数量不一致",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.10.1/LootArchive-release-v6.10.1.apk"
+  "versionName": "6.11.0",
+  "versionCode": 711,
+  "updateDate": "2026-10-09",
+  "updateLog": "v6.11.0 备份恢复更好用了\n- 修复点击「确认导出」后 App 闪退的问题\n- 导出的备份文件默认保存到「下载/LootArchive」文件夹\n- 备份记录可直接点击恢复，确认后立即开始，无需手动选文件\n- 重复恢复同一份备份不再让物品翻倍，改为合并覆盖：同名物品被备份内容更新，不重复添加\n- 修复快速连点底部「首页/统计/我的」时页面与导航栏错位、卡住不动的问题",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V6.11.0/LootArchive-release-v6.11.0.apk"
 }

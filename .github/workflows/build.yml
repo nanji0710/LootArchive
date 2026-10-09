@@ -1,0 +1,192 @@
+name: 构建与发布
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'V*'
+      - 'v*'
+  workflow_dispatch:
+
+# 打 Tag 时需要创建/更新 Release，故需要写权限
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: 构建 APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+
+      - name: 缓存 Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # 本机为了下载速度用的是国内镜像（华为云 Gradle、阿里云 Maven）。
+      # GitHub runner 在国内镜像上反而慢且容易抖，这里就地换回官方源。
+      # 只影响 CI 这一次运行，不改仓库里的文件。
+      - name: 改用官方源
+        run: |
+          set -euo pipefail
+          sed -i 's|mirrors\.huaweicloud\.com/gradle/|services.gradle.org/distributions/|' \
+            gradle/wrapper/gradle-wrapper.properties
+          sed -i 's|^networkTimeout=.*|networkTimeout=60000|' \
+            gradle/wrapper/gradle-wrapper.properties
+          sed -i '/maven\.aliyun\.com/d' settings.gradle.kts
+          echo "--- gradle-wrapper.properties ---"
+          grep -E 'distributionUrl|networkTimeout' gradle/wrapper/gradle-wrapper.properties
+          echo "--- settings.gradle.kts 仓库列表 ---"
+          grep -nE 'maven|google|gradlePluginPortal' settings.gradle.kts
+
+      - name: 赋予 gradlew 执行权限
+        run: chmod +x gradlew
+
+      - name: 读取版本信息
+        id: ver
+        run: |
+          set -euo pipefail
+          NAME_JSON=$(jq -r '.versionName' version.json)
+          CODE_JSON=$(jq -r '.versionCode' version.json)
+          NAME_GRADLE=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts | head -n1)
+          URL_JSON=$(jq -r '.apkDownloadUrl' version.json)
+
+          echo "version.json    -> versionName=$NAME_JSON versionCode=$CODE_JSON"
+          echo "build.gradle.kts -> versionName=$NAME_GRADLE"
+
+          if [ "$NAME_JSON" != "$NAME_GRADLE" ]; then
+            echo "::error::版本号不一致：version.json 是 $NAME_JSON，app/build.gradle.kts 是 $NAME_GRADLE。两者必须一致，否则 APK 文件名、更新提示与下载地址会对不上。"
+            exit 1
+          fi
+
+          echo "name=$NAME_JSON" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE_JSON" >> "$GITHUB_OUTPUT"
+          echo "url=$URL_JSON" >> "$GITHUB_OUTPUT"
+
+      # 打 Tag 发布时，Tag 名、version.json 的版本号、下载地址必须三者自洽，
+      # 否则 App 内「检查更新」拿到的链接会 404
+      - name: 校验 Tag 与版本号一致
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          EXPECTED_TAG: V${{ steps.ver.outputs.name }}
+          EXPECTED_URL: ${{ steps.ver.outputs.url }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" != "$EXPECTED_TAG" ]; then
+            echo "::error::Tag 名 ${GITHUB_REF_NAME} 与版本号不符，应为 $EXPECTED_TAG。请改 app/build.gradle.kts 与 version.json 的版本号后再重新打 Tag。"
+            exit 1
+          fi
+          case "$EXPECTED_URL" in
+            *"/${GITHUB_REF_NAME}/"*) echo "下载地址自洽: $EXPECTED_URL" ;;
+            *) echo "::error::version.json 的 apkDownloadUrl 里不含 Tag 名 $GITHUB_REF_NAME：$EXPECTED_URL。App 内检查更新会下载失败。"
+               exit 1 ;;
+          esac
+
+      - name: 单元测试
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
+
+      # 签名密钥：必须是这个 App 一直在用的那把，否则老用户无法覆盖安装，
+      # 只能卸载重装（丢数据）。GitHub 自带的 debug keystore 每次都是随机生成的，不能用。
+      - name: 准备签名文件
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          KEYSTORE_BASE64: ${{ secrets.LOOTARCHIVE_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "::error::仓库缺少 Secret LOOTARCHIVE_KEYSTORE_BASE64。请在 Settings → Secrets and variables → Actions 里添加，值为本地 keystore 的 base64。缺少它将无法用正确的签名出包。"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/signing"
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/signing/release.keystore"
+          ls -l "$RUNNER_TEMP/signing/release.keystore"
+
+      # --no-daemon 是必需的：Gradle 守护进程的环境变量在首次启动时固定，
+      # 复用守护进程会让后面注入的签名环境变量读不到
+      - name: 构建 Release APK
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          LOOTARCHIVE_KEYSTORE_PATH: ${{ runner.temp }}/signing/release.keystore
+          LOOTARCHIVE_KEYSTORE_PASSWORD: ${{ secrets.LOOTARCHIVE_KEYSTORE_PASSWORD }}
+          LOOTARCHIVE_KEY_ALIAS: ${{ secrets.LOOTARCHIVE_KEY_ALIAS }}
+          LOOTARCHIVE_KEY_PASSWORD: ${{ secrets.LOOTARCHIVE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          ./gradlew :app:assembleRelease -x lintVitalRelease --no-daemon --stacktrace
+          ls -l app/build/outputs/apk/release/
+
+      # 指纹写死在这里：它对应 App 已发布版本一直在用的那把签名证书。
+      # 若这条报错，说明签名没接对，绝对不能发布。
+      - name: 校验签名指纹
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/release/LootArchive-release-v${{ steps.ver.outputs.name }}.apk"
+          [ -f "$APK" ] || { echo "::error::没找到产物 $APK"; ls -l app/build/outputs/apk/release/; exit 1; }
+
+          SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          APKSIGNER="$SDK/build-tools/36.0.0/apksigner"
+          [ -x "$APKSIGNER" ] || { echo "::error::没找到 apksigner：$APKSIGNER"; exit 1; }
+          ACTUAL=$("$APKSIGNER" verify --print-certs "$APK" | grep -m1 -i 'SHA-256 digest' | awk '{print $NF}')
+          EXPECTED="6803e69fd87adfa9d71b70a8be37429ff3425cb7061dca8c27663728b95bb093"
+
+          echo "实际签名指纹: $ACTUAL"
+          echo "期望签名指纹: $EXPECTED"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::签名指纹不匹配！用这个包发布，老用户升级会报 INSTALL_FAILED_UPDATE_INCOMPATIBLE，只能卸载重装并丢失数据。请检查 Secret 里的 keystore 是不是这个 App 原本那把。"
+            exit 1
+          fi
+          echo "APK 大小: $(stat -c%s "$APK") 字节"
+
+      - name: 发布 Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/release/LootArchive-release-v${{ steps.ver.outputs.name }}.apk"
+          TITLE="${GITHUB_REF_NAME}更新"
+
+          # 更新说明直接用 version.json 里的 updateLog，保证 App 内提示与 Release 页一致
+          jq -r '.updateLog' version.json > "$RUNNER_TEMP/notes.md"
+          echo "----- 更新说明 -----"; cat "$RUNNER_TEMP/notes.md"
+
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release 已存在，替换 APK 与说明"
+            gh release upload "$GITHUB_REF_NAME" "$APK" --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release create "$GITHUB_REF_NAME" "$APK" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md"
+          fi
+
+      - name: 构建 Debug APK（提交到 main 时）
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: 上传 Debug APK
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: LootArchive-debug-v${{ steps.ver.outputs.name }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: 上传测试报告
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: app/build/reports/tests/
+          if-no-files-found: ignore

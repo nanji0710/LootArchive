@@ -43,17 +43,29 @@ object BackupUtil {
 
     // ─── 一键导出 ───
 
-    fun fullExport(
-        context: Context,
+    /** ZIP 内 Excel 明细的 entry 名（改这里要同步改导入侧的判断）。 */
+    const val XLSX_ENTRY = "物品数据.xlsx"
+
+    /** 备份文件名。默认落在 Download（下载）目录，名字保持可辨识。 */
+    fun buildZipFileName(timestamp: String? = null): String {
+        val ts = timestamp
+            ?: SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        return "LootArchive_完整备份_$ts.zip"
+    }
+
+    /**
+     * 把完整备份写成 ZIP 写到任意输出流 —— 供 Download 目录（MediaStore）与
+     * 私有目录兜底两条路径复用，保证压缩包结构只有一份实现。
+     * 内部会 close 掉 [out]（ZipOutputStream 需要收到关闭才会写完中央目录）。
+     */
+    fun writeZip(
         items: List<ItemEntity>,
         allPhotos: List<ItemPhotoEntity>,
         categories: List<com.nanji.lootarchive.data.local.entity.CategoryEntity>,
-        exportDir: File
-    ): File {
+        tempDir: File,
+        out: OutputStream
+    ) {
         Log.d(TAG, "一键导出 ${items.size} 件物品...")
-
-        val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val file = File(exportDir, "LootArchive_完整备份_$ts.zip")
 
         // Group photos by itemId
         val photosByItem = allPhotos.groupBy { it.itemId }
@@ -62,20 +74,28 @@ object BackupUtil {
             ExportItem(item, photosByItem[item.id] ?: emptyList())
         }
 
-        ZipOutputStream(FileOutputStream(file)).use { zip ->
+        ZipOutputStream(out).use { zip ->
 
             // 1. Excel 文件（供电脑查看）
-            zip.putNextEntry(ZipEntry("物品数据.xlsx"))
-            val xlsxFile = File(context.cacheDir, "temp_export.xlsx")
-            try {
-                ExcelUtil.exportItemsToExcel(items, context.cacheDir).also {
-                    it.inputStream().use { input -> input.copyTo(zip) }
-                    it.delete()
-                }
+            // 这只是附加内容，恢复流程只依赖 manifest.json + photos/，
+            // 所以生成失败就跳过它（记日志），别毁掉整包备份。
+            // 注意以前这里吞掉异常后仍然 zip.closeEntry()，写出一个空的 xlsx，
+            // 结果是"导出成功"但包里其实没有明细，比直接跳过更难排查。
+            val xlsxFile = try {
+                ExcelUtil.exportItemsToExcel(items, tempDir)
             } catch (e: Exception) {
-                android.util.Log.e("BackupUtil", "Cleanup failed", e)
+                Log.w(TAG, "Excel 明细生成失败，跳过该 entry（不影响恢复）", e)
+                null
             }
-            zip.closeEntry()
+            if (xlsxFile != null) {
+                try {
+                    zip.putNextEntry(ZipEntry(XLSX_ENTRY))
+                    xlsxFile.inputStream().use { input -> input.copyTo(zip) }
+                    zip.closeEntry()
+                } finally {
+                    xlsxFile.delete()
+                }
+            }
 
             // 2. Photos
             var photoIndex = 0
@@ -101,6 +121,8 @@ object BackupUtil {
                 }
 
                 val itemJson = JSONObject().apply {
+                    // 带上主键：恢复时按 id 认出"同一条记录"，从而覆盖更新而不是再插一条
+                    put("id", ei.item.id)
                     put("name", ei.item.name)
                     put("categoryId", ei.item.categoryId)
                     put("purchasePrice", ei.item.purchasePrice)
@@ -132,7 +154,7 @@ object BackupUtil {
 
             // 4. manifest.json
             val manifest = JSONObject().apply {
-                put("version", 3)
+                put("version", 4)
                 put("exportDate", dateFormat.format(Date()))
                 put("appVersion", com.nanji.lootarchive.BuildConfig.VERSION_NAME)
                 put("itemCount", items.size)
@@ -143,42 +165,71 @@ object BackupUtil {
             zip.putNextEntry(ZipEntry("manifest.json"))
             zip.write(manifest.toString(2).toByteArray(Charsets.UTF_8))
             zip.closeEntry()
-
-            zip.finish()
         }
-
-        Log.d(TAG, "导出成功: ${file.absolutePath} (${file.length()} bytes)")
-        return file
     }
 
     // ─── 一键导入 ───
+
+    /** 备份记录里存的是 content:// URI 或绝对路径，这里统一解析。 */
+    fun backupFileUri(filePath: String): Uri =
+        if (filePath.startsWith("content://")) Uri.parse(filePath)
+        else Uri.fromFile(File(filePath))
+
+    /** 备份文件当前是否还能读到（记录可能是旧的，文件已被删除或用户清理过）。 */
+    fun backupFileExists(context: Context, filePath: String): Boolean {
+        if (filePath.startsWith("content://")) {
+            return try {
+                context.contentResolver.openInputStream(Uri.parse(filePath))?.use { true } ?: false
+            } catch (e: Exception) {
+                Log.w(TAG, "备份文件不可读: $filePath", e)
+                false
+            }
+        }
+        return File(filePath).let { it.exists() && it.length() > 0 }
+    }
 
     fun fullImport(
         context: Context,
         uri: Uri
     ): ImportResult {
         Log.d(TAG, "一键导入...")
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw Exception("无法读取备份文件")
+        return inputStream.use { parseZip(context, it) }
+    }
 
+    /** 备份记录点击恢复时走这里：不需要用户再手动选文件。 */
+    fun fullImportFromRecord(
+        context: Context,
+        filePath: String
+    ): ImportResult {
+        Log.d(TAG, "从备份记录恢复: $filePath")
+        if (!backupFileExists(context, filePath)) throw Exception("备份文件不存在或已被删除")
+        return fullImport(context, backupFileUri(filePath))
+    }
+
+    private fun parseZip(
+        context: Context,
+        inputStream: InputStream
+    ): ImportResult {
         // Step 1: Extract manifest.json and photos from the ZIP
         var manifestJson: JSONObject? = null
         val photoMap = mutableMapOf<String, ByteArray>()  // zipPath → bytes
 
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            ZipInputStream(inputStream).use { zip ->
-                var entry: ZipEntry?
-                while (zip.nextEntry.also { entry = it } != null) {
-                    when {
-                        entry!!.name == "manifest.json" -> {
-                            manifestJson = JSONObject(zip.reader().readText())
-                        }
-                        entry!!.name.startsWith("photos/") && !entry!!.isDirectory -> {
-                            photoMap[entry!!.name] = zip.readBytes()
-                        }
+        ZipInputStream(inputStream).use { zip ->
+            var entry: ZipEntry?
+            while (zip.nextEntry.also { entry = it } != null) {
+                when {
+                    entry!!.name == "manifest.json" -> {
+                        manifestJson = JSONObject(zip.reader().readText())
                     }
-                    zip.closeEntry()
+                    entry!!.name.startsWith("photos/") && !entry!!.isDirectory -> {
+                        photoMap[entry!!.name] = zip.readBytes()
+                    }
                 }
+                zip.closeEntry()
             }
-        } ?: throw Exception("无法读取备份文件")
+        }
 
         val manifest = manifestJson ?: throw Exception("备份文件中未找到 manifest.json")
         val itemsArray = manifest.getJSONArray("items")
@@ -207,6 +258,8 @@ object BackupUtil {
             val obj = itemsArray.getJSONObject(i)
 
             val item = ItemEntity(
+                // 旧版备份没有 id 字段，保持 0 → 走"按名称匹配"的兼容分支
+                id = obj.optLong("id", 0L),
                 name = obj.getString("name"),
                 categoryId = obj.optLong("categoryId", 0L),
                 purchasePrice = obj.optDouble("purchasePrice", 0.0),

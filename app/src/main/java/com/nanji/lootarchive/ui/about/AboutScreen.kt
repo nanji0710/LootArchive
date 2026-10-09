@@ -270,11 +270,15 @@ fun AboutScreen(
         )
     }
 
-    if (downloadError != null) {
+    // 捕获成局部非空值再用：LiquidAlertDialog 的内容由 LiquidDialogHost 在退场动画
+    // 期间继续持有并调用，那时 downloadError 已经是 null，直接读 downloadError!!
+    // 会抛 KotlinNullPointerException 闪退。
+    val errorText = downloadError
+    if (errorText != null) {
         LiquidAlertDialog(
             onDismissRequest = { downloadError = null },
             title = { Text("下载失败", color = TextPrimary()) },
-            text = { Text(downloadError!!, color = TextSecondary()) },
+            text = { Text(errorText, color = TextSecondary()) },
             confirmButton = { TextButton(onClick = { downloadError = null }) { Text("确定", color = Primary()) } }
         )
     }

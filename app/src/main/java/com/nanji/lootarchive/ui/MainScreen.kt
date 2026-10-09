@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -83,6 +84,11 @@ fun MainScreen() {
     val hostState = rememberLiquidDialogHostState()
     var backStack by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
+    // ── tab 请求序号：每次点击底部导航都自增 ──
+    // 它必须能重新触发下面的收敛协程，即使连点的是同一个 tab。
+    var tabRequest by remember { mutableIntStateOf(0) }
+    var tabRequestTarget by remember { mutableIntStateOf(currentTab) }
+
     fun navigate(route: String, id: Long? = null) {
         if (id != null) { if (route == Route.ADD) editItemId = id; if (route == Route.DETAIL) detailItemId = id }
         backStack = backStack + currentRoute; currentRoute = route
@@ -90,6 +96,8 @@ fun MainScreen() {
     fun goBack() { editItemId = null; if (backStack.isNotEmpty()) { currentRoute = backStack.last(); backStack = backStack.dropLast(1) } }
     fun switchTab(tab: Int) {
         currentTab = tab
+        tabRequestTarget = tab
+        tabRequest++
         backStack = emptyList()
         editItemId = null
         detailItemId = 0L
@@ -100,11 +108,44 @@ fun MainScreen() {
     val isSubPage = currentRoute !in listOf(Route.HOME, Route.STATS, Route.MY)
     val pagerState = rememberPagerState(initialPage = currentTab, pageCount = { 3 })
     val tabStateHolder = rememberSaveableStateHolder()
-    LaunchedEffect(currentTab) {
-        if (pagerState.currentPage != currentTab) pagerState.animateScrollToPage(currentTab)
+
+    // ── tab 与 pager 的同步 ──
+    // 设计：currentTab 是唯一事实来源，pager 只是它的视图。
+    //
+    // 旧实现有两个连锁缺陷，会导致「页面停在某一页、导航栏却高亮另一页」且再也回不来：
+    //  1) 收敛只在 currentTab 变化时触发。快速连点时前一次 animateScrollToPage 被取消，
+    //     pager 被留在两页之间；此时再点同一个 tab，currentTab 没变 →
+    //     LaunchedEffect 不重启 → 永远没有第二次对齐，卡死。
+    //  2) animateScrollToPage 内部有「已在该页就直接 return」的守卫，它对
+    //     currentPage / currentPageOffsetFraction 做精确浮点比较；而这两个值会被
+    //     snapToItem 提前写入、又被每次测量覆写，动画被取消后可能与真实渲染位置不一致，
+    //     于是该调用静默不滚 —— 即使触发了收敛也修不好。
+    //
+    // 修法：每次点击自增 tabRequest 强制重启收敛协程（含连点同一个 tab）；动画结束后
+    // 无条件再补一次 scrollToPage 兜底 —— 它走 snapToItem，会写回 currentPage 并
+    // forceRemeasure，保证渲染位置真的落在目标页。这里刻意不用 currentPage 做判断，
+    // 因为它正是那个会撒谎的值。
+    var pagerDraggedByUser by remember { mutableStateOf(false) }
+    val isPagerDragged by pagerState.interactionSource.collectIsDraggedAsState()
+    LaunchedEffect(isPagerDragged) { if (isPagerDragged) pagerDraggedByUser = true }
+
+    LaunchedEffect(tabRequest, isSubPage) {
+        if (isSubPage) return@LaunchedEffect
+        pagerDraggedByUser = false
+        val target = tabRequestTarget
+        if (pagerState.currentPage != target || pagerState.currentPageOffsetFraction != 0f) {
+            pagerState.animateScrollToPage(target)
+        }
+        pagerState.scrollToPage(target)
     }
+    // · 只有用户手势滑动才允许用 pager 落点回写 currentTab。程序化滚动期间的
+    //   settledPage 停留在「本次滚动开始时的那一页」，拿它回写会把用户刚点的 tab
+    //   覆盖掉。用 pager 自己的 interactionSource 区分手势与程序化滚动。
     LaunchedEffect(pagerState.settledPage) {
-        if (pagerState.settledPage != currentTab && !isSubPage) switchTab(pagerState.settledPage)
+        if (!isSubPage && pagerDraggedByUser) {
+            pagerDraggedByUser = false
+            if (pagerState.settledPage != currentTab) switchTab(pagerState.settledPage)
+        }
     }
     val isHome = !isSubPage && pagerState.currentPage == 0
 

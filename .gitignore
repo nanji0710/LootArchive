@@ -43,3 +43,6 @@ proguard/
 /test-results/
 /reports/
 app/build.bak/
+
+# 本地排查证据：含个人资产数据快照（物品名称、价格、完整数据库），只在本机留存，不提交
+docs/evidence/

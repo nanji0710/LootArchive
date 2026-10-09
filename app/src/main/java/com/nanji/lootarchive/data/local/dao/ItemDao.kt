@@ -15,6 +15,13 @@ interface ItemDao {
     @Query("SELECT * FROM items WHERE id = :id")
     suspend fun getItemById(id: Long): ItemEntity?
 
+    /**
+     * 恢复备份时用的匹配索引：必须包含回收站里的物品。
+     * 否则备份中的物品若正躺在回收站，会被当成"新物品"再插一条，又变成重复。
+     */
+    @Query("SELECT * FROM items")
+    suspend fun getAllItemsIncludingDeleted(): List<ItemEntity>
+
     @Query("SELECT * FROM items WHERE isDeleted = 0 AND id = :id")
     fun getItemByIdFlow(id: Long): Flow<ItemEntity?>
 

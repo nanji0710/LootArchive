@@ -30,6 +30,9 @@ class ItemRepository @Inject constructor(
 
     suspend fun getItemById(id: Long): ItemEntity? = itemDao.getItemById(id)
 
+    /** 含回收站物品，恢复备份做匹配时用（见 ItemDao.getAllItemsIncludingDeleted）。 */
+    suspend fun getAllItemsIncludingDeleted(): List<ItemEntity> = itemDao.getAllItemsIncludingDeleted()
+
     fun getItemByIdFlow(id: Long): Flow<ItemEntity?> = itemDao.getItemByIdFlow(id)
 
     fun getItemsByCategory(categoryId: Long): Flow<List<ItemEntity>> =
@@ -183,6 +186,15 @@ class ItemRepository @Inject constructor(
             )
         }
         addPhotos(photos)
+    }
+
+    /**
+     * 恢复导入用：用备份里的照片整体替换该物品的现有照片。
+     * 先删旧记录与旧文件（避免孤儿文件），再登记刚解出来的新文件。
+     */
+    suspend fun replacePhotosForItem(itemId: Long, photoFiles: List<java.io.File>) {
+        deletePhotosByItemId(itemId)
+        addPhotosForItem(itemId, photoFiles)
     }
 
     // 删除照片记录+文件（用于彻底删除物品）
