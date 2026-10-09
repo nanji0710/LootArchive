@@ -1,5 +1,12 @@
 name: 构建与发布
 
+# 一次 push 到 main 就自动完成整条链路：单元测试 → 构建 APK → 自动打 Tag → 自动发布 Release。
+#
+# Tag 名固定是「V + version.json 里的 versionName」，所以「改版本号再 push」就等于发新版本。
+# 只推提交、没改版本号时会这样处理：
+#   Tag 指向本次提交   -> 刷新已有 Release（幂等，重复跑不会出错）
+#   Tag 指向别的提交   -> 只构建 APK 并告警，绝不把旧版本重新发一遍
+# 也保留手动推 Tag 触发，用于补发/重发某个版本。
 on:
   push:
     branches: [ main ]
@@ -8,7 +15,7 @@ on:
       - 'v*'
   workflow_dispatch:
 
-# 打 Tag 时需要创建/更新 Release，故需要写权限
+# 打 Tag 与发 Release 都需要写权限
 permissions:
   contents: write
 
@@ -75,32 +82,8 @@ jobs:
           echo "code=$CODE_JSON" >> "$GITHUB_OUTPUT"
           echo "url=$URL_JSON" >> "$GITHUB_OUTPUT"
 
-      # 打 Tag 发布时，Tag 名、version.json 的版本号、下载地址必须三者自洽，
-      # 否则 App 内「检查更新」拿到的链接会 404
-      - name: 校验 Tag 与版本号一致
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          EXPECTED_TAG: V${{ steps.ver.outputs.name }}
-          EXPECTED_URL: ${{ steps.ver.outputs.url }}
-        run: |
-          set -euo pipefail
-          if [ "${GITHUB_REF_NAME}" != "$EXPECTED_TAG" ]; then
-            echo "::error::Tag 名 ${GITHUB_REF_NAME} 与版本号不符，应为 $EXPECTED_TAG。请改 app/build.gradle.kts 与 version.json 的版本号后再重新打 Tag。"
-            exit 1
-          fi
-          case "$EXPECTED_URL" in
-            *"/${GITHUB_REF_NAME}/"*) echo "下载地址自洽: $EXPECTED_URL" ;;
-            *) echo "::error::version.json 的 apkDownloadUrl 里不含 Tag 名 $GITHUB_REF_NAME：$EXPECTED_URL。App 内检查更新会下载失败。"
-               exit 1 ;;
-          esac
-
-      - name: 单元测试
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
-
       # 签名密钥：必须是这个 App 一直在用的那把，否则老用户无法覆盖安装，
       # 只能卸载重装（丢数据）。GitHub 自带的 debug keystore 每次都是随机生成的，不能用。
-      # 配好密钥后，提交到 main 也能直接产出正式签名的 Release APK，
-      # 可以覆盖安装到手机上试，不用等打 Tag。
       - name: 检查签名密钥
         id: sign
         env:
@@ -114,9 +97,79 @@ jobs:
             echo "未配置签名密钥，本次只构建 Debug APK（仅供验证能否编译通过）"
           fi
 
+      # 目标 Tag 固定是「V + versionName」，这里先看清它当前是什么状态：
+      #   missing   -> 远端还没有，稍后自动创建（正常发新版本的情况）
+      #   same      -> 已有且指向本次提交，直接刷新已有 Release
+      #   different -> 已有但指向旧提交，说明改了代码没改版本号，跳过发布
+      #   manual    -> 手动推 Tag 触发，按推上来的那个 Tag 走
+      - name: 确定要发布的 Tag
+        id: tag
+        env:
+          HAVE_KEY: ${{ steps.sign.outputs.have }}
+        run: |
+          set -euo pipefail
+          TAG="V${{ steps.ver.outputs.name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "手动推 Tag 触发，按 ${GITHUB_REF_NAME} 发布"
+            echo "state=manual" >> "$GITHUB_OUTPUT"
+            echo "publish=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          REMOTE_TAGS=$(git ls-remote --tags origin)
+          # 注解 Tag 要取 ^{} 解引用后的真实提交，轻量 Tag 直接就是提交
+          REMOTE_SHA=$(printf '%s\n' "$REMOTE_TAGS" | awk -v t="refs/tags/$TAG^{}" '$2==t {print $1}')
+          if [ -z "$REMOTE_SHA" ]; then
+            REMOTE_SHA=$(printf '%s\n' "$REMOTE_TAGS" | awk -v t="refs/tags/$TAG" '$2==t {print $1}')
+          fi
+          echo "远端 Tag ${TAG} -> ${REMOTE_SHA:-（不存在）}"
+          echo "本次提交        -> ${GITHUB_SHA}"
+
+          if [ -z "$REMOTE_SHA" ]; then
+            STATE=missing
+          elif [ "$REMOTE_SHA" = "${GITHUB_SHA}" ]; then
+            STATE=same
+          else
+            STATE=different
+          fi
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+
+          if [ "$STATE" = "different" ]; then
+            echo "::warning::版本号仍是 ${{ steps.ver.outputs.name }}，而 Tag $TAG 已指向别的提交，本次只构建 APK 不发布。要发新版本，请先改 app/build.gradle.kts 与 version.json 的版本号。"
+            echo "publish=0" >> "$GITHUB_OUTPUT"
+          elif [ "$HAVE_KEY" != "1" ]; then
+            echo "::warning::未配置签名密钥，只能产出 Debug APK，跳过自动打 Tag 与发布。"
+            echo "publish=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Tag 名、version.json 的版本号、下载地址必须三者自洽，
+      # 否则 App 内「检查更新」拿到的链接会 404
+      - name: 校验版本号与下载地址
+        env:
+          TARGET_TAG: ${{ steps.tag.outputs.tag }}
+          EXPECTED_URL: ${{ steps.ver.outputs.url }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/* && "${GITHUB_REF_NAME}" != "$TARGET_TAG" ]]; then
+            echo "::error::Tag 名 ${GITHUB_REF_NAME} 与版本号不符，应为 $TARGET_TAG。请改 app/build.gradle.kts 与 version.json 的版本号后再重新打 Tag。"
+            exit 1
+          fi
+          case "$EXPECTED_URL" in
+            *"/${TARGET_TAG}/"*) echo "下载地址自洽: $EXPECTED_URL" ;;
+            *) echo "::error::version.json 的 apkDownloadUrl 里不含 Tag 名 $TARGET_TAG：$EXPECTED_URL。App 内检查更新会下载失败。"
+               exit 1 ;;
+          esac
+
+      - name: 单元测试
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
+
       # 发布必须用正确的签名，缺密钥就直接失败，不能发错包
       - name: 校验发布用的签名密钥
-        if: startsWith(github.ref, 'refs/tags/') && steps.sign.outputs.have != '1'
+        if: steps.tag.outputs.publish == '1' && steps.sign.outputs.have != '1'
         run: |
           echo "::error::发布 Release 前必须先配置签名密钥。请在 Settings → Secrets and variables → Actions 里添加这 4 个 Secret：LOOTARCHIVE_KEYSTORE_BASE64、LOOTARCHIVE_KEYSTORE_PASSWORD、LOOTARCHIVE_KEY_ALIAS、LOOTARCHIVE_KEY_PASSWORD。"
           exit 1
@@ -134,7 +187,7 @@ jobs:
       # --no-daemon 是必需的：Gradle 守护进程的环境变量在首次启动时固定，
       # 复用守护进程会让后面注入的签名环境变量读不到
       - name: 构建 Release APK
-        if: startsWith(github.ref, 'refs/tags/') || steps.sign.outputs.have == '1'
+        if: steps.sign.outputs.have == '1'
         env:
           LOOTARCHIVE_KEYSTORE_PATH: ${{ runner.temp }}/signing/release.keystore
           LOOTARCHIVE_KEYSTORE_PASSWORD: ${{ secrets.LOOTARCHIVE_KEYSTORE_PASSWORD }}
@@ -148,7 +201,7 @@ jobs:
       # 指纹写死在这里：它对应 App 已发布版本一直在用的那把签名证书。
       # 若这条报错，说明签名没接对，绝对不能发布，也不能拿去覆盖安装。
       - name: 校验签名指纹
-        if: startsWith(github.ref, 'refs/tags/') || steps.sign.outputs.have == '1'
+        if: steps.sign.outputs.have == '1'
         run: |
           set -euo pipefail
           APK="app/build/outputs/apk/release/LootArchive-release-v${{ steps.ver.outputs.name }}.apk"
@@ -168,25 +221,41 @@ jobs:
           fi
           echo "APK 大小: $(stat -c%s "$APK") 字节"
 
+      # 自动打 Tag：打在本次提交上，用检出时留下的 GITHUB_TOKEN 推送。
+      # GITHUB_TOKEN 推出来的 Tag 不会再次触发工作流，所以不会自我循环。
+      # 位置放在签名校验之后：只有确认是可发布的包，才允许留下 Tag。
+      - name: 自动打 Tag
+        if: steps.tag.outputs.publish == '1' && steps.tag.outputs.state == 'missing'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.tag.outputs.tag }}"
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              tag -a "$TAG" -m "$TAG"
+          git push origin "refs/tags/$TAG"
+          echo "已创建并推送 Tag $TAG -> ${GITHUB_SHA}"
+
       - name: 发布 Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.tag.outputs.publish == '1' && steps.sign.outputs.have == '1'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          TAG="${{ steps.tag.outputs.tag }}"
           APK="app/build/outputs/apk/release/LootArchive-release-v${{ steps.ver.outputs.name }}.apk"
-          TITLE="${GITHUB_REF_NAME}更新"
+          TITLE="${TAG}更新"
 
           # 更新说明直接用 version.json 里的 updateLog，保证 App 内提示与 Release 页一致
           jq -r '.updateLog' version.json > "$RUNNER_TEMP/notes.md"
           echo "----- 更新说明 -----"; cat "$RUNNER_TEMP/notes.md"
 
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "Release 已存在，替换 APK 与说明"
-            gh release upload "$GITHUB_REF_NAME" "$APK" --clobber
-            gh release edit "$GITHUB_REF_NAME" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release 已存在（$TAG），替换 APK 与说明"
+            gh release upload "$TAG" "$APK" --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md"
           else
-            gh release create "$GITHUB_REF_NAME" "$APK" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md"
+            echo "新建 Release（$TAG）"
+            gh release create "$TAG" "$APK" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md"
           fi
 
       # 提交到 main 时：有签名密钥就传 Release，没有才退回 Debug（仅供验证能否编译）
@@ -202,8 +271,7 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
-      # 提交到 main 时也上传一份正式签名的 Release APK，可直接覆盖安装到手机上试，
-      # 不必等到打 Tag 发布
+      # 提交到 main 时也上传一份正式签名的 Release APK，方便随时取包覆盖安装
       - name: 上传 Release APK
         if: ${{ !startsWith(github.ref, 'refs/tags/') && steps.sign.outputs.have == '1' }}
         uses: actions/upload-artifact@v4

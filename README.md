@@ -285,11 +285,36 @@ app/src/main/java/com/nanji/lootarchive/
 
 ## 构建
 
+本地构建：
+
 ```bash
 ./gradlew assembleRelease
 ```
 
 APK 输出：`LootArchive-release-v6.11.0.apk`（约 7.9 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+
+### 自动构建与发布
+
+推送到 `main` 后 GitHub Actions 会自动跑单元测试、构建 APK；**改了版本号再推送，就会自动打 Tag 并发布 Release**，不用再手动打 Tag。
+
+版本号写在两个地方，改的时候必须同时改，否则 CI 会直接失败：
+
+| 文件 | 字段 |
+| --- | --- |
+| `app/build.gradle.kts` | `versionCode`、`versionName` |
+| `version.json` | `versionCode`、`versionName`、`updateLog`、`apkDownloadUrl` |
+
+发一个新版本的完整流程：
+
+1. 改上面两处版本号（例如 `6.12.0` / `712`），并把 `version.json` 的 `updateLog` 写成面向用户的更新说明
+2. 把 `apkDownloadUrl` 里的 Tag 目录改成新版本号：`.../releases/download/V6.12.0/LootArchive-release-v6.12.0.apk`
+3. 提交并推送 `main`
+
+CI 会构建出正式签名的 Release APK、校验签名指纹、自动打上 `V6.12.0` 标签、发布 Release，并把 APK 挂上去。`updateLog` 会原样作为 Release 说明，保证 App 内「检查更新」的提示和 Release 页一致。
+
+只推提交、没改版本号时，CI 会识别出「Tag 已指向别的提交」并跳过发布并告警，不会把旧版本重新发一遍；同一个版本重复推送则会刷新已有 Release，不会出错。
+
+发布用的签名密钥存在仓库的 Secrets 里（`LOOTARCHIVE_KEYSTORE_BASE64`、`LOOTARCHIVE_KEYSTORE_PASSWORD`、`LOOTARCHIVE_KEY_ALIAS`、`LOOTARCHIVE_KEY_PASSWORD`）。缺密钥时 CI 只构建 Debug APK 用于验证能否编译，不会发布 —— 因为用错签名的包无法覆盖安装，老用户升级只能卸载重装并丢数据。
 
 ---
 

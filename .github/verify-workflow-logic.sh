@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 本地演练 .github/workflows/build.yml 里的纯 shell 逻辑（不跑 Gradle 构建本身），
-# 目的是在推送之前就发现「镜像替换 / 版本号一致性 / Tag 校验 / 签名指纹解析」这些问题。
+# 目的是在推送之前就发现「镜像替换 / 版本号一致性 / Tag 决策 / 签名指纹解析」这些问题。
 #
 # CI 上用的是 jq 与 GNU sed/grep -P（ubuntu-latest 自带）。本机 Git Bash 通常没有 jq，
 # 故这里用 node 解析同一份 JSON，结果一致；grep -P 在 Git Bash 上可用。
@@ -14,6 +14,7 @@ cd "$REPO" || { echo "找不到仓库根目录"; exit 1; }
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 FAIL=0
+WF=.github/workflows/build.yml
 
 pass() { echo "  PASS  $1"; }
 fail() { echo "  FAIL  $1"; FAIL=$((FAIL+1)); }
@@ -21,6 +22,39 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL+1)); }
 # node 在 Git Bash 下仍是 Windows 程序，认不了 /d/... 形式的 POSIX 路径，需要转成盘符形式
 if command -v cygpath >/dev/null 2>&1; then REPO_NATIVE="$(cygpath -m "$REPO")"; else REPO_NATIVE="$REPO"; fi
 jget() { node -e "console.log(require('${REPO_NATIVE}/version.json')['$1'])"; }
+
+# 把工作流里某个 step 的 run: 块原样取出来（去掉缩进），用于真跑一遍它的 shell
+extract_run() {
+  awk -v want="$1" '
+    {
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+    }
+    line == "- name: " want { hit = 1; next }
+    hit && line ~ /^- name: / { exit }
+    hit && line == "run: |" { inrun = 1; next }
+    inrun {
+      if ($0 ~ /^[[:space:]]*$/) { print ""; next }
+      if (substr($0, 1, 10) == "          ") { print substr($0, 11); next }
+      exit
+    }
+  ' "$WF"
+}
+
+# 以「宽松解析」把工作流的所有 step 列成 JSON，供后面断言触发条件
+steps_json() {
+  node -e "
+    const fs=require('fs');
+    const lines=fs.readFileSync('$WF','utf8').split(/\r?\n/);
+    const out=[]; let cur=null;
+    for(const l of lines){
+      let m;
+      if((m=l.match(/^      - name: (.+)\$/))){ cur={name:m[1].trim()}; out.push(cur); continue; }
+      if(cur && (m=l.match(/^        (if|uses|id): (.+)\$/))){ cur[m[1]]=m[2].trim(); continue; }
+    }
+    console.log(JSON.stringify(out));
+  "
+}
 
 echo "仓库根：$REPO"
 
@@ -78,28 +112,36 @@ esac
 # App 内置的输出名规则见 app/build.gradle.kts 的 applicationVariants.all
 grep -q 'LootArchive-\${buildType.name}-v\${defaultConfig.versionName}.apk' app/build.gradle.kts \
   && pass "构建产物命名规则与预期一致" || fail "app/build.gradle.kts 的产物命名规则变了，需同步本脚本"
+# 自动打 Tag 用的是 version.json 的版本号拼 Tag 名，下载地址必须正好指向它
+TARGET_TAG="V${NAME_JSON}"
+case "$URL_JSON" in
+  *"/${TARGET_TAG}/"*) pass "下载地址指向自动生成的 Tag 目录 $TARGET_TAG" ;;
+  *) fail "下载地址里没有 /$TARGET_TAG/ 目录，自动发布的包会 404" ;;
+esac
 
 echo
-echo "=== 4. Tag 校验逻辑（Tag 名 / 版本号 / 下载地址三者自洽）==="
+echo "=== 4. 版本自洽校验逻辑（Tag 名 / 版本号 / 下载地址）==="
+# 对应工作流里的「校验版本号与下载地址」步骤
 check_tag() {
   local ref="$1" expect_fail="$2"
-  local expected_tag="V${NAME_JSON}"
+  local target="V${NAME_JSON}"
   local rc=0
-  [ "$ref" != "$expected_tag" ] && rc=1
+  if [[ "$ref" == refs/tags/* && "${ref#refs/tags/}" != "$target" ]]; then rc=1; fi
   case "$URL_JSON" in
-    *"/$ref/"*) : ;;
+    *"/${target}/"*) : ;;
     *) rc=1 ;;
   esac
   if [ "$expect_fail" = "yes" ]; then
-    [ "$rc" -ne 0 ] && pass "Tag $ref 被正确拒绝（应拒绝）" || fail "Tag $ref 本应被拒绝却放行了"
+    [ "$rc" -ne 0 ] && pass "$ref 被正确拒绝（应拒绝）" || fail "$ref 本应被拒绝却放行了"
   else
-    [ "$rc" -eq 0 ] && pass "Tag $ref 被正确接受" || fail "Tag $ref 本应通过却被拒"
+    [ "$rc" -eq 0 ] && pass "$ref 被正确接受" || fail "$ref 本应通过却被拒"
   fi
 }
-check_tag "V6.11.0" no
-check_tag "v6.11.0" yes   # 小写 v：App 内下载地址用的是大写 V，Tag 必须一致
-check_tag "V6.10.1" yes   # 旧版本号：与当前版本号不符
-check_tag "V6.12.0" yes   # 版本号超前，但 version.json 的地址里还没这个 Tag
+check_tag "refs/heads/main" no   # 提交到 main：不检查 Tag 名，只检查下载地址
+check_tag "refs/tags/V6.11.0" no
+check_tag "refs/tags/v6.11.0" yes   # 小写 v：App 内下载地址用的是大写 V，Tag 必须一致
+check_tag "refs/tags/V6.10.1" yes   # 旧版本号：与当前版本号不符
+check_tag "refs/tags/V6.12.0" yes   # 版本号超前，但 version.json 的地址里还没这个 Tag
 
 echo
 echo "=== 5. 签名指纹解析（拿真实 APK 实测 apksigner 输出格式）==="
@@ -116,22 +158,32 @@ else
 fi
 
 echo
-echo "=== 6. gradlew 在 Linux runner 上可直接执行 ==="
+echo "=== 6. 工作流里写死的签名指纹与实际产物一致 ==="
+WF_FP=$(grep -oP 'EXPECTED="\K[0-9a-f]{64}' "$WF" | head -n1)
+if [ -n "$WF_FP" ]; then
+  [ "$WF_FP" = "6803e69fd87adfa9d71b70a8be37429ff3425cb7061dca8c27663728b95bb093" ] \
+    && pass "工作流里的期望指纹正确（6803e69f…）" || fail "工作流里的期望指纹不对：$WF_FP"
+else
+  fail "工作流里找不到写死的签名指纹"
+fi
+
+echo
+echo "=== 7. gradlew 在 Linux runner 上可直接执行 ==="
 head -c 2 gradlew | od -An -tx1 | tr -d ' \n' | grep -q '^23' && pass "gradlew 以 #! 开头（无 BOM）" || fail "gradlew 不是以 #! 开头，可能有 BOM"
 if grep -q $'\r' gradlew; then fail "gradlew 含 CR 换行，Linux 会报 bad interpreter"; else pass "gradlew 是 LF 换行"; fi
 MODE=$(git ls-files -s gradlew | awk '{print $1}')
 [ "$MODE" = "100755" ] && pass "gradlew 在 git 索引里带可执行位（100755）" || fail "gradlew 缺少可执行位（当前 $MODE）"
 
 echo
-echo "=== 7. Release 说明来自 version.json 的 updateLog ==="
+echo "=== 8. Release 说明来自 version.json 的 updateLog ==="
 LINES=$(node -e "console.log(require('${REPO_NATIVE}/version.json').updateLog)" | wc -l)
 node -e "console.log(require('${REPO_NATIVE}/version.json').updateLog)" | head -2 | sed 's/^/    /'
 [ "$LINES" -ge 3 ] && pass "updateLog 可转为多行 Release 说明（$LINES 行）" || fail "updateLog 行数异常"
 
 echo
-echo "=== 8. 工作流引用的 Secret 名字 ==="
+echo "=== 9. 工作流引用的 Secret 名字 ==="
 for s in LOOTARCHIVE_KEYSTORE_BASE64 LOOTARCHIVE_KEYSTORE_PASSWORD LOOTARCHIVE_KEY_ALIAS LOOTARCHIVE_KEY_PASSWORD; do
-  grep -q "$s" .github/workflows/build.yml && pass "引用了 $s" || fail "缺少 $s"
+  grep -q "$s" "$WF" && pass "引用了 $s" || fail "缺少 $s"
 done
 # 这 4 个名字必须与 app/build.gradle.kts 里 prop() 读取的名字完全一致，否则签名静默回退到 debug keystore
 for s in LOOTARCHIVE_KEYSTORE_PATH LOOTARCHIVE_KEYSTORE_PASSWORD LOOTARCHIVE_KEY_ALIAS LOOTARCHIVE_KEY_PASSWORD; do
@@ -139,37 +191,146 @@ for s in LOOTARCHIVE_KEYSTORE_PATH LOOTARCHIVE_KEYSTORE_PASSWORD LOOTARCHIVE_KEY
 done
 
 echo
-echo "=== 9. 工作流本身可被 YAML 解析 ==="
+echo "=== 10. 工作流本身可被 YAML 解析 ==="
 node -e "
-const fs=require('fs');const t=fs.readFileSync('.github/workflows/build.yml','utf8');
+const fs=require('fs');const t=fs.readFileSync('$WF','utf8');
 // 只做基础结构检查：CI 上的 YAML 由 GitHub 解析，这里确保没有明显的制表符缩进
 if(/\t/.test(t)){console.error('含制表符缩进');process.exit(1);}
 if(!/^on:/m.test(t)){console.error('缺少 on:');process.exit(1);}
 if(!/^jobs:/m.test(t)){console.error('缺少 jobs:');process.exit(1);}
+if(!/^permissions:/m.test(t)){console.error('缺少 permissions:');process.exit(1);}
+if(!/contents: write/.test(t)){console.error('缺少 contents: write（打 Tag/发 Release 需要）');process.exit(1);}
 console.log('  基本结构 OK，行数='+t.split('\n').length);
-" && pass "YAML 基本结构正常（无制表符、含 on: 与 jobs:）" || fail "YAML 基本结构异常"
+" && pass "YAML 基本结构正常（无制表符、含 on:/jobs:/permissions:）" || fail "YAML 基本结构异常"
 
 echo
-echo "=== 10. 有/无签名密钥两条路径的产物分支 ==="
-# 有密钥 ⇒ 提交 main 也构建并上传 Release APK，不传 Debug；
-# 无密钥 ⇒ 退回 Debug APK（只验证能否编译）；
-# 打 Tag ⇒ 必须有密钥，否则直接失败，绝不发布错签名的包。
-WF=.github/workflows/build.yml
-have_release_build=$(grep -c "startsWith(github.ref, 'refs/tags/') || steps.sign.outputs.have == '1'" "$WF")
-[ "$have_release_build" -ge 2 ] && pass "Release 构建与指纹校验都由「打 Tag 或已有密钥」触发（$have_release_build 处）" || fail "Release 构建/指纹校验的触发条件不完整"
+echo "=== 11. Tag 决策矩阵（真跑工作流里那段 shell）==="
+# 把「确定要发布的 Tag」步骤原样抽出来执行，git ls-remote 用桩替换，
+# 覆盖四种情形：远端无此 Tag / Tag 指向本次提交 / Tag 指向别的提交 / 手动推 Tag。
+REAL_GIT=$(command -v git)
+run_tag_step() {
+  local remote="$1" ref="$2" sha="$3" havekey="$4"
+  printf '%s\n' "$remote" > "$WORK/remote.txt"
+  mkdir -p "$WORK/bin"
+  cat > "$WORK/bin/git" <<SHIM
+#!/usr/bin/env bash
+if [ "\$1" = "ls-remote" ]; then cat "$WORK/remote.txt"; exit 0; fi
+exec "$REAL_GIT" "\$@"
+SHIM
+  chmod +x "$WORK/bin/git"
+  : > "$WORK/out.txt"
+  local script
+  script=$(extract_run "确定要发布的 Tag" | sed "s|\${{ steps.ver.outputs.name }}|$NAME_JSON|g")
+  PATH="$WORK/bin:$PATH" \
+    GITHUB_REF="$ref" GITHUB_REF_NAME="${ref#refs/tags/}" GITHUB_SHA="$sha" \
+    HAVE_KEY="$havekey" GITHUB_OUTPUT="$WORK/out.txt" \
+    bash -c "$script" > "$WORK/step.log" 2>&1
+  RC=$?
+  STATE=$(grep -m1 '^state=' "$WORK/out.txt" | cut -d= -f2)
+  PUB=$(grep -m1 '^publish=' "$WORK/out.txt" | cut -d= -f2)
+}
+expect_tag() {
+  local desc="$1" want_state="$2" want_pub="$3"
+  [ "$RC" -eq 0 ] || { fail "$desc：步骤自身报错"; sed 's/^/      /' "$WORK/step.log" | head -5; return; }
+  if [ "$STATE" = "$want_state" ] && [ "$PUB" = "$want_pub" ]; then
+    pass "$desc → state=$STATE publish=$PUB"
+  else
+    fail "$desc → 期望 state=$want_state publish=$want_pub，实际 state=$STATE publish=$PUB"
+  fi
+}
+[ -n "$(extract_run "确定要发布的 Tag")" ] && pass "成功抽出「确定要发布的 Tag」步骤的 shell（$(extract_run "确定要发布的 Tag" | wc -l) 行）" \
+  || fail "抽不出该步骤的 shell，锚点可能已变"
 
-grep -q "steps.sign.outputs.have == '1'" "$WF" && pass "准备签名文件仅在已配置密钥时执行" || fail "准备签名文件缺少密钥判断"
+SHA_NOW="1111111111111111111111111111111111111111"
+SHA_OLD="2222222222222222222222222222222222222222"
+T="V${NAME_JSON}"
 
-grep -q "steps.sign.outputs.have != '1'" "$WF" && pass "无密钥时走 Debug 兜底路径" || fail "无密钥兜底路径缺失"
+run_tag_step "" refs/heads/main "$SHA_NOW" 1
+expect_tag "提交 main、远端无 $T" missing 1
 
-grep -q "构建 Release APK" "$WF" && grep -q "上传 Release APK" "$WF" && pass "提交到 main 也有 Release APK 的上传步骤" || fail "提交到 main 缺少 Release APK 上传步骤"
+run_tag_step "$SHA_NOW	refs/tags/$T" refs/heads/main "$SHA_NOW" 1
+expect_tag "提交 main、$T 已指向本次提交（幂等重跑）" same 1
 
-# 打 Tag 但没密钥：必须有一条硬失败，否则会发布用 debug keystore 签的包
+run_tag_step "$SHA_OLD	refs/tags/$T" refs/heads/main "$SHA_NOW" 1
+expect_tag "提交 main、但没改版本号（$T 指向旧提交）" different 0
+
+# 注解 Tag：ls-remote 会同时列出 Tag 对象与 ^{} 解引用后的提交，必须取后者
+run_tag_step "$SHA_OLD	refs/tags/$T
+$SHA_NOW	refs/tags/$T^{}" refs/heads/main "$SHA_NOW" 1
+expect_tag "注解 Tag 取 ^{} 解引用后的提交" same 1
+
+run_tag_step "" refs/heads/main "$SHA_NOW" 0
+expect_tag "提交 main、未配签名密钥" missing 0
+
+run_tag_step "" "refs/tags/$T" "$SHA_NOW" 1
+expect_tag "手动推 Tag $T 发布" manual 1
+
+run_tag_step "" "refs/tags/$T" "$SHA_NOW" 0
+expect_tag "手动推 Tag 但没配密钥（后续步骤会硬失败）" manual 1
+
+echo
+echo "=== 12. 各步骤的触发条件 ==="
+SJ=$(steps_json)
+cond() { node -e "
+  const s=JSON.parse(process.argv[1]).find(x=>x.name==='$1');
+  if(!s){console.error('找不到步骤：$1');process.exit(2);}
+  process.stdout.write(s.if||'');
+" "$SJ"; }
+
+# 自动打 Tag：只在「本次要发布」且「远端还没有这个 Tag」时执行，绝不覆盖已有 Tag
+AT=$(cond "自动打 Tag")
+case "$AT" in
+  *"steps.tag.outputs.publish == '1'"*"steps.tag.outputs.state == 'missing'"*)
+    pass "自动打 Tag 仅在 publish=1 且 state=missing 时执行（不覆盖已有 Tag）" ;;
+  *) fail "自动打 Tag 的触发条件不对：$AT" ;;
+esac
+
+# Tag 必须打在签名校验之后，否则可能留下指向坏包的 Tag
+LINE_SIGN=$(grep -n '校验签名指纹' "$WF" | head -n1 | cut -d: -f1)
+LINE_TAG=$(grep -n 'name: 自动打 Tag' "$WF" | head -n1 | cut -d: -f1)
+[ -n "$LINE_SIGN" ] && [ -n "$LINE_TAG" ] && [ "$LINE_TAG" -gt "$LINE_SIGN" ] \
+  && pass "自动打 Tag 排在签名校验之后（第 $LINE_TAG 行 > 第 $LINE_SIGN 行）" \
+  || fail "自动打 Tag 早于签名校验，坏包也会留下 Tag"
+
+# 发布 Release：要 publish=1 且确实有签名（绝不用 debug keystore 发版）
+REL=$(cond "发布 Release")
+case "$REL" in
+  *"steps.tag.outputs.publish == '1'"*"steps.sign.outputs.have == '1'"*)
+    pass "发布 Release 需要 publish=1 且有签名密钥" ;;
+  *) fail "发布 Release 的触发条件不对：$REL" ;;
+esac
+
+# 缺密钥时推 Tag 必须硬失败
 node -e "
-const fs=require('fs');const t=fs.readFileSync('.github/workflows/build.yml','utf8');
-const m=t.match(/- name: 校验发布用的签名密钥[\s\S]*?exit 1/);
-process.exit(m?0:1);
-" && pass "打 Tag 但缺密钥会硬失败，不会发布错签名的包" || fail "打 Tag 缺密钥没有硬失败保护"
+  const s=JSON.parse(process.argv[1]).find(x=>x.name==='校验发布用的签名密钥');
+  process.exit(s && /have != '1'/.test(s.if||'') ? 0 : 1);
+" "$SJ" && pass "推 Tag 但缺密钥会硬失败，不会发布错签名的包" || fail "推 Tag 缺密钥没有硬失败保护"
+
+# 有密钥 ⇒ 提交 main 也构建正式签名的 Release；无密钥 ⇒ 退回 Debug（仅验证能否编译）
+node -e "
+  const s=JSON.parse(process.argv[1]);
+  const rb=s.find(x=>x.name==='构建 Release APK');
+  const db=s.find(x=>x.name==='构建 Debug APK（提交到 main 且未配置签名密钥时）');
+  const ur=s.find(x=>x.name==='上传 Release APK');
+  const ud=s.find(x=>x.name==='上传 Debug APK');
+  const ok = rb && /have == '1'/.test(rb.if||'')
+          && db && /have != '1'/.test(db.if||'')
+          && ur && /have == '1'/.test(ur.if||'')
+          && ud && /have != '1'/.test(ud.if||'');
+  process.exit(ok?0:1);
+" "$SJ" && pass "有密钥出 Release / 无密钥出 Debug 两条路径都闭环" || fail "Release/Debug 分支条件不完整"
+
+echo
+echo "=== 13. 触发条件包含 push 到 main ==="
+node -e "
+  const fs=require('fs');const t=fs.readFileSync('$WF','utf8');
+  const m=t.match(/^on:[\s\S]*?^jobs:/m);
+  if(!m){console.error('找不到 on: 段');process.exit(1);}
+  const on=m[0];
+  if(!/branches:\s*\[?\s*main/.test(on)){console.error('on: 段里没有 main 分支');process.exit(1);}
+  if(!/- 'V\*'/.test(on)){console.error('on: 段里没有 V* Tag');process.exit(1);}
+  console.log('  on: 段同时监听 main 分支与 V* Tag');
+" && pass "push 到 main 与手动推 Tag 都会触发" || fail "触发条件不完整"
 
 echo
 if [ "$FAIL" -eq 0 ]; then echo "==> 全部通过"; else echo "==> 有 $FAIL 项失败"; fi
