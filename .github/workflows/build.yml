@@ -19,6 +19,13 @@ on:
 permissions:
   contents: write
 
+# 同一个分支上的构建串行执行。连推两次时若并行，两个运行会同时认为「Tag 还不存在」
+# 而各自去打同一个 Tag，后一个就会因为 Tag 已存在而被拒绝，报出无意义的红灯。
+# cancel-in-progress 保持 false：已开始的构建跑完，只让排在后面的等。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: 构建 APK
@@ -185,7 +192,10 @@ jobs:
           ls -l "$RUNNER_TEMP/signing/release.keystore"
 
       # --no-daemon 是必需的：Gradle 守护进程的环境变量在首次启动时固定，
-      # 复用守护进程会让后面注入的签名环境变量读不到
+      # 复用守护进程会让后面注入的签名环境变量读不到。
+      # -x lintVitalRelease：lint 的 NullSafeMutableLiveData 检测器在本项目上会抛
+      # IncompatibleClassChangeError（lint 自身缺陷，与代码无关），故跳过；发布前的
+      # 静态把关靠上面的单元测试与下面的签名指纹校验。
       - name: 构建 Release APK
         if: steps.sign.outputs.have == '1'
         env:

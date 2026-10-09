@@ -333,5 +333,29 @@ node -e "
 " && pass "push 到 main 与手动推 Tag 都会触发" || fail "触发条件不完整"
 
 echo
+echo "=== 14. 并发与 lint 绕过 ==="
+# 连推两次时若两个运行并行，会各自认为「Tag 还不存在」而抢同一个 Tag，
+# 后一个必然失败并报出无意义的红灯，所以必须有 concurrency。
+node -e "
+  const fs=require('fs');const t=fs.readFileSync('$WF','utf8');
+  if(!/^concurrency:/m.test(t)){console.error('缺少 concurrency:（连推两次会抢 Tag）');process.exit(1);}
+  if(!/group:\s*\S/.test(t)){console.error('concurrency 缺少 group');process.exit(1);}
+  console.log('  已串行化同一分支的构建');
+" && pass "有 concurrency，连推两次不会抢同一个 Tag" || fail "缺少 concurrency 保护"
+
+# lint 的 NullSafeMutableLiveData 检测器在本项目上抛 IncompatibleClassChangeError
+# （lint 自身缺陷），Release 构建必须显式跳过，否则 CI 会在 lint 阶段崩溃。
+extract_run "构建 Release APK" | grep -q -- '-x lintVitalRelease' \
+  && pass "Release 构建跳过了会崩溃的 lintVitalRelease" \
+  || fail "Release 构建没有 -x lintVitalRelease，CI 会在 lint 阶段崩溃"
+
+# Debug 打包不能顺手把 lint 也绕过，否则本地/CI 都失去静态检查
+if extract_run "构建 Release APK" | grep -q -- 'assembleRelease'; then
+  pass "Release 构建用的是 assembleRelease"
+else
+  fail "Release 构建命令不是 assembleRelease"
+fi
+
+echo
 if [ "$FAIL" -eq 0 ]; then echo "==> 全部通过"; else echo "==> 有 $FAIL 项失败"; fi
 exit "$FAIL"

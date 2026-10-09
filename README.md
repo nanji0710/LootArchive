@@ -302,19 +302,24 @@ APK 输出：`LootArchive-release-v6.11.0.apk`（约 7.9 MB，arm64-v8a + armeab
 | 文件 | 字段 |
 | --- | --- |
 | `app/build.gradle.kts` | `versionCode`、`versionName` |
-| `version.json` | `versionCode`、`versionName`、`updateLog`、`apkDownloadUrl` |
+| `version.json` | `versionCode`、`versionName`、`updateDate`、`updateLog`、`apkDownloadUrl` |
+
+`versionCode` 的算法是 `主版本×100 + 次版本×10 + 修订号`（`6.12.0` → `712`），它决定 App 能否识别出新版本，写小了就不会提示更新。
 
 发一个新版本的完整流程：
 
-1. 改上面两处版本号（例如 `6.12.0` / `712`），并把 `version.json` 的 `updateLog` 写成面向用户的更新说明
-2. 把 `apkDownloadUrl` 里的 Tag 目录改成新版本号：`.../releases/download/V6.12.0/LootArchive-release-v6.12.0.apk`
-3. 提交并推送 `main`
+1. 改上面两处版本号（例如 `6.12.0` / `712`），并把 `version.json` 的 `updateDate` 改成当天日期
+2. 把 `version.json` 的 `updateLog` 写成面向用户的更新说明（会原样成为 Release 说明）
+3. 把 `apkDownloadUrl` 里的 Tag 目录改成新版本号：`.../releases/download/V6.12.0/LootArchive-release-v6.12.0.apk`
+4. 提交并推送 `main`
 
-CI 会构建出正式签名的 Release APK、校验签名指纹、自动打上 `V6.12.0` 标签、发布 Release，并把 APK 挂上去。`updateLog` 会原样作为 Release 说明，保证 App 内「检查更新」的提示和 Release 页一致。
+CI 会构建出正式签名的 Release APK、校验签名指纹、自动打上 `V6.12.0` 标签、发布 Release，并把 APK 挂上去。Tag 名和 APK 文件名都由版本号推导（`V<versionName>` / `LootArchive-release-v<versionName>.apk`），所以不用手写。`updateLog` 会原样作为 Release 说明，保证 App 内「检查更新」的提示和 Release 页一致。
 
-只推提交、没改版本号时，CI 会识别出「Tag 已指向别的提交」并跳过发布并告警，不会把旧版本重新发一遍；同一个版本重复推送则会刷新已有 Release，不会出错。
+只推提交、没改版本号时，CI 会识别出「Tag 已指向别的提交」并跳过发布并告警，不会把旧版本重新发一遍；同一个版本重复推送则会刷新已有 Release，不会出错。同一分支的构建是串行的，连续推两次不会互相抢 Tag。
 
 发布用的签名密钥存在仓库的 Secrets 里（`LOOTARCHIVE_KEYSTORE_BASE64`、`LOOTARCHIVE_KEYSTORE_PASSWORD`、`LOOTARCHIVE_KEY_ALIAS`、`LOOTARCHIVE_KEY_PASSWORD`）。缺密钥时 CI 只构建 Debug APK 用于验证能否编译，不会发布 —— 因为用错签名的包无法覆盖安装，老用户升级只能卸载重装并丢数据。
+
+CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自身的一个缺陷（`NullSafeMutableLiveData` 检测器抛 `IncompatibleClassChangeError`），这个与代码无关，所以跳过；本地跑 `./gradlew assembleRelease` 若碰上同样的崩溃，加这个参数即可。
 
 ---
 
