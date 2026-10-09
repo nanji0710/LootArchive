@@ -333,7 +333,156 @@ node -e "
 " && pass "push 到 main 与手动推 Tag 都会触发" || fail "触发条件不完整"
 
 echo
-echo "=== 14. 并发与 lint 绕过 ==="
+echo "=== 14. versionCode 递进校验（防止静默不发更新）==="
+# App 只比 versionCode 的大小来决定要不要提示更新（UpdateChecker.check(currentVersionCode)）。
+# 只改版本名、忘了调大 versionCode 时，Release 照样发布成功，但所有用户都收不到更新提示。
+#
+# 注意：这里**不能**用「主版本×100 + 次版本×10 + 修订号」这种公式硬卡。
+# 6.1.7->617、6.10.0->700、6.10.1->701、6.9.6->696 确实符合，但 6.11.0 用的是 711 而不是 710
+# （历史上有手工 +1 的余量）。卡公式会把当前这棵干净的树直接判失败，而且 711 已经装到
+# 用户手机上了，把它改小会造成 INSTALL_FAILED_VERSION_DOWNGRADE。
+# 所以只校验真正要命的不变式：单调递增。
+CUR=$(git show HEAD:version.json | tr -d '\r')
+PREV=$(git show HEAD^:version.json 2>/dev/null | tr -d '\r' || true)
+if [ -z "$PREV" ]; then
+  pass "取不到上一个提交，跳过递进校验"
+else
+  PREV_NAME=$(printf '%s' "$PREV" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).versionName))")
+  PREV_CODE=$(printf '%s' "$PREV" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).versionCode))")
+  CUR_NAME="$NAME_JSON"
+  [ "$CODE_JSON" -ge "$PREV_CODE" ] \
+    && pass "versionCode 未回退（$PREV_CODE -> $CODE_JSON）" \
+    || fail "versionCode 回退：$PREV_CODE -> $CODE_JSON（用户会收不到更新）"
+  if [ "$CUR_NAME" != "$PREV_NAME" ]; then
+    [ "$CODE_JSON" -gt "$PREV_CODE" ] \
+      && pass "版本名 $PREV_NAME -> $CUR_NAME 时 versionCode 已调大（$PREV_CODE -> $CODE_JSON）" \
+      || fail "版本名从 $PREV_NAME 改到 $CUR_NAME，但 versionCode 没变（$CODE_JSON），用户收不到更新"
+  else
+    pass "版本名未变（$CUR_NAME），versionCode 保持不变是允许的"
+  fi
+fi
+
+# 工作流里确实做了递进校验（不是只在本脚本里核对）
+extract_run "读取版本信息" | grep -q 'HEAD\^:version.json' \
+  && pass "工作流内已按递进方式校验 versionCode" \
+  || fail "工作流没有做 versionCode 递进校验，改漏版本号会静默不发更新提示"
+
+# 真跑一遍该步骤的 shell：本机没有 jq，用 node 顶替（CI 上用的是真 jq，语义一致）。
+cat > "$WORK/bin/jq" <<'SHIM'
+#!/usr/bin/env bash
+# 只支持本工作流用到的两种形态：jq -r '.field' file  与  管道 jq -r '.field'
+field=""; file=""
+for a in "$@"; do
+  case "$a" in
+    -r) ;;
+    .*) field="${a#.}" ;;
+    *) [ -f "$a" ] && file="$a" ;;
+  esac
+done
+if [ -n "$file" ]; then
+  # node 是 Windows 程序：必须给绝对路径，否则 require 会把它当成模块名去 node_modules 里找
+  case "$file" in
+    /*) native="$(cygpath -m "$file")" ;;
+    *)  native="$(cygpath -m "$(pwd)/$file")" ;;
+  esac
+  node -e "console.log(require(process.argv[1])[process.argv[2]])" "$native" "$field"
+else
+  node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s)[process.argv[1]]))" "$field"
+fi
+SHIM
+chmod +x "$WORK/bin/jq"
+
+# 在一个临时仓库里造「上一个提交 / 本次提交」两个版本，真跑该步骤
+VER_STEP=$(extract_run "读取版本信息")
+run_ver_step() {
+  local prev_name="$1" prev_code="$2" cur_name="$3" cur_code="$4"
+  local d="$WORK/vercase"
+  rm -rf "$d"; mkdir -p "$d/app"
+  (
+    cd "$d" || exit 1
+    git init -q .
+    cat > app/build.gradle.kts <<EOF
+android {
+    defaultConfig {
+        versionCode = $prev_code
+        versionName = "$prev_name"
+    }
+}
+EOF
+    cat > version.json <<EOF
+{
+  "versionName": "$prev_name",
+  "versionCode": $prev_code,
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V$prev_name/LootArchive-release-v$prev_name.apk"
+}
+EOF
+    git add -A >/dev/null 2>&1
+    git -c user.email=a@b -c user.name=a commit -qm prev >/dev/null 2>&1
+    cat > app/build.gradle.kts <<EOF
+android {
+    defaultConfig {
+        versionCode = $cur_code
+        versionName = "$cur_name"
+    }
+}
+EOF
+    cat > version.json <<EOF
+{
+  "versionName": "$cur_name",
+  "versionCode": $cur_code,
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V$cur_name/LootArchive-release-v$cur_name.apk"
+}
+EOF
+    git add -A >/dev/null 2>&1
+    git -c user.email=a@b -c user.name=a commit -qm cur >/dev/null 2>&1
+  )
+  : > "$WORK/verout.txt"
+  ( cd "$d" && PATH="$WORK/bin:$PATH" GITHUB_OUTPUT="$WORK/verout.txt" bash -c "$VER_STEP" ) > "$WORK/ver.log" 2>&1
+  VER_RC=$?
+}
+expect_ver() {
+  local desc="$1" want_rc="$2"
+  if [ "$want_rc" = "0" ]; then
+    [ "$VER_RC" -eq 0 ] && pass "$desc" \
+      || { fail "$desc（预期通过却退出 $VER_RC）"; sed 's/^/      /' "$WORK/ver.log" | tail -4; }
+  else
+    [ "$VER_RC" -ne 0 ] && pass "$desc" \
+      || fail "$desc（预期被拦下却通过了）"
+    grep -q '::error::' "$WORK/ver.log" \
+      && pass "$desc：给出了 ::error:: 说明" \
+      || fail "$desc：被拦下但没给出 ::error:: 说明"
+  fi
+}
+run_ver_step 6.11.0 711 6.12.0 712
+expect_ver "版本名与版本号一起改大 → 放行" 0
+[ "$(grep -m1 '^name=' "$WORK/verout.txt" | cut -d= -f2)" = "6.12.0" ] \
+  && pass "输出 name=6.12.0" || fail "输出的 name 不对"
+[ "$(grep -m1 '^code=' "$WORK/verout.txt" | cut -d= -f2)" = "712" ] \
+  && pass "输出 code=712" || fail "输出的 code 不对"
+
+run_ver_step 6.11.0 711 6.12.0 711
+expect_ver "只改版本名、忘了调大 versionCode → 拦下（否则用户收不到更新）" 1
+
+run_ver_step 6.11.0 711 6.11.0 711
+expect_ver "版本号完全没改（重复推送）→ 放行，交给 Tag 状态判定" 0
+
+run_ver_step 6.11.0 711 6.10.1 701
+expect_ver "versionCode 回退 → 拦下（会造成降级，用户收不到更新）" 1
+
+run_ver_step 6.11.0 711 6.11.0 712
+expect_ver "版本名不变但只调大 versionCode → 放行" 0
+
+# 递进校验依赖上一个提交，checkout 必须取够历史，否则那道校验会静默失效
+awk '/- name: 检出代码/{f=1} f&&/fetch-depth:/{print;exit} f&&/- name: 安装/{exit}' "$WF" | grep -q 'fetch-depth: *2' \
+  && pass "checkout 取了 2 个提交，递进校验能读到上一个 version.json" \
+  || fail "checkout 没取够历史，versionCode 递进校验会静默失效"
+
+# 历史里的真实版本号必须仍被放行（防止这道校验误伤正常发版）
+run_ver_step 6.10.0 700 6.10.1 701
+expect_ver "历史版本 6.10.0→6.10.1 仍被放行（校验没误伤）" 0
+
+echo
+echo "=== 15. 并发与 lint 绕过 ==="
 # 连推两次时若两个运行并行，会各自认为「Tag 还不存在」而抢同一个 Tag，
 # 后一个必然失败并报出无意义的红灯，所以必须有 concurrency。
 node -e "

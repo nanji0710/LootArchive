@@ -304,7 +304,7 @@ APK 输出：`LootArchive-release-v6.11.0.apk`（约 7.9 MB，arm64-v8a + armeab
 | `app/build.gradle.kts` | `versionCode`、`versionName` |
 | `version.json` | `versionCode`、`versionName`、`updateDate`、`updateLog`、`apkDownloadUrl` |
 
-`versionCode` 的算法是 `主版本×100 + 次版本×10 + 修订号`（`6.12.0` → `712`），它决定 App 能否识别出新版本，写小了就不会提示更新。
+`versionCode` 才是 App 判断「有没有新版本」的依据（App 只比较它的大小），`versionName` 只是给人看的。**它必须比上一版大**，写小了或忘了改都不会提示更新 —— CI 会在发布前拦住这两种情况（回退、或改了版本名却忘了调大 `versionCode`）。
 
 发一个新版本的完整流程：
 

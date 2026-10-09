@@ -34,6 +34,10 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          # 取两个提交：下面的 versionCode 递进校验要读上一个提交的 version.json。
+          # 只取 1 个（checkout 的默认行为）会让那道校验静默失效。
+          fetch-depth: 2
 
       - name: 安装 JDK 17
         uses: actions/setup-java@v4
@@ -83,6 +87,38 @@ jobs:
           if [ "$NAME_JSON" != "$NAME_GRADLE" ]; then
             echo "::error::版本号不一致：version.json 是 $NAME_JSON，app/build.gradle.kts 是 $NAME_GRADLE。两者必须一致，否则 APK 文件名、更新提示与下载地址会对不上。"
             exit 1
+          fi
+
+          # versionCode 才是 App 判断「有没有新版本」的依据（它只比 versionCode 的大小），
+          # versionName 只是给人看的。只改版本名、忘记调大 versionCode 时，Release 照样能发
+          # 出去，但所有用户都不会收到更新提示 —— 这种静默失败最难发现，所以在发布前拦住。
+          #
+          # 这里刻意不卡「主版本×100+次版本×10+修订号」这类公式：历史版本大多符合，但 6.11.0
+          # 用的是 711 而不是 710（留过余量），卡公式会把当前的树判失败；而且 711 已经装在
+          # 用户手机上了，改小会造成 INSTALL_FAILED_VERSION_DOWNGRADE。只校验单调递增。
+          PREV_JSON=$(git show HEAD^:version.json 2>/dev/null || true)
+          if [ -z "$PREV_JSON" ]; then
+            echo "取不到上一个提交的 version.json（浅克隆或首次提交），跳过 versionCode 递进校验"
+          else
+            PREV_NAME=$(printf '%s' "$PREV_JSON" | jq -r '.versionName' 2>/dev/null || echo "")
+            PREV_CODE=$(printf '%s' "$PREV_JSON" | jq -r '.versionCode' 2>/dev/null || echo "")
+            case "$CODE_JSON" in
+              ''|*[!0-9]*) echo "::error::version.json 的 versionCode 不是整数：$CODE_JSON"; exit 1 ;;
+            esac
+            case "$PREV_CODE" in
+              ''|*[!0-9]*) echo "上一个提交的 versionCode 读不出来（$PREV_CODE），跳过递进校验" ;;
+              *)
+                if [ "$CODE_JSON" -lt "$PREV_CODE" ]; then
+                  echo "::error::versionCode 回退了：上一个提交是 $PREV_CODE，这次是 $CODE_JSON。App 只认更大的 versionCode，回退后用户永远收不到更新。"
+                  exit 1
+                fi
+                if [ "$NAME_JSON" != "$PREV_NAME" ] && [ "$CODE_JSON" -eq "$PREV_CODE" ]; then
+                  echo "::error::版本号从 $PREV_NAME 改成了 $NAME_JSON，但 versionCode 还是 $PREV_CODE 没变。App 靠 versionCode 判断有没有新版本，不调大就不会提示更新。"
+                  exit 1
+                fi
+                echo "versionCode 递进校验通过（$PREV_NAME/$PREV_CODE -> $NAME_JSON/$CODE_JSON）"
+                ;;
+            esac
           fi
 
           echo "name=$NAME_JSON" >> "$GITHUB_OUTPUT"
