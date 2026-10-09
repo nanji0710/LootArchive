@@ -150,5 +150,27 @@ console.log('  基本结构 OK，行数='+t.split('\n').length);
 " && pass "YAML 基本结构正常（无制表符、含 on: 与 jobs:）" || fail "YAML 基本结构异常"
 
 echo
+echo "=== 10. 有/无签名密钥两条路径的产物分支 ==="
+# 有密钥 ⇒ 提交 main 也构建并上传 Release APK，不传 Debug；
+# 无密钥 ⇒ 退回 Debug APK（只验证能否编译）；
+# 打 Tag ⇒ 必须有密钥，否则直接失败，绝不发布错签名的包。
+WF=.github/workflows/build.yml
+have_release_build=$(grep -c "startsWith(github.ref, 'refs/tags/') || steps.sign.outputs.have == '1'" "$WF")
+[ "$have_release_build" -ge 2 ] && pass "Release 构建与指纹校验都由「打 Tag 或已有密钥」触发（$have_release_build 处）" || fail "Release 构建/指纹校验的触发条件不完整"
+
+grep -q "steps.sign.outputs.have == '1'" "$WF" && pass "准备签名文件仅在已配置密钥时执行" || fail "准备签名文件缺少密钥判断"
+
+grep -q "steps.sign.outputs.have != '1'" "$WF" && pass "无密钥时走 Debug 兜底路径" || fail "无密钥兜底路径缺失"
+
+grep -q "构建 Release APK" "$WF" && grep -q "上传 Release APK" "$WF" && pass "提交到 main 也有 Release APK 的上传步骤" || fail "提交到 main 缺少 Release APK 上传步骤"
+
+# 打 Tag 但没密钥：必须有一条硬失败，否则会发布用 debug keystore 签的包
+node -e "
+const fs=require('fs');const t=fs.readFileSync('.github/workflows/build.yml','utf8');
+const m=t.match(/- name: 校验发布用的签名密钥[\s\S]*?exit 1/);
+process.exit(m?0:1);
+" && pass "打 Tag 但缺密钥会硬失败，不会发布错签名的包" || fail "打 Tag 缺密钥没有硬失败保护"
+
+echo
 if [ "$FAIL" -eq 0 ]; then echo "==> 全部通过"; else echo "==> 有 $FAIL 项失败"; fi
 exit "$FAIL"

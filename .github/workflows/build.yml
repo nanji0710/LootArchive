@@ -99,16 +99,34 @@ jobs:
 
       # 签名密钥：必须是这个 App 一直在用的那把，否则老用户无法覆盖安装，
       # 只能卸载重装（丢数据）。GitHub 自带的 debug keystore 每次都是随机生成的，不能用。
+      # 配好密钥后，提交到 main 也能直接产出正式签名的 Release APK，
+      # 可以覆盖安装到手机上试，不用等打 Tag。
+      - name: 检查签名密钥
+        id: sign
+        env:
+          KEYSTORE_BASE64: ${{ secrets.LOOTARCHIVE_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "${KEYSTORE_BASE64:-}" ]; then
+            echo "have=1" >> "$GITHUB_OUTPUT"
+            echo "已配置签名密钥，本次构建正式签名的 Release APK"
+          else
+            echo "have=0" >> "$GITHUB_OUTPUT"
+            echo "未配置签名密钥，本次只构建 Debug APK（仅供验证能否编译通过）"
+          fi
+
+      # 发布必须用正确的签名，缺密钥就直接失败，不能发错包
+      - name: 校验发布用的签名密钥
+        if: startsWith(github.ref, 'refs/tags/') && steps.sign.outputs.have != '1'
+        run: |
+          echo "::error::发布 Release 前必须先配置签名密钥。请在 Settings → Secrets and variables → Actions 里添加这 4 个 Secret：LOOTARCHIVE_KEYSTORE_BASE64、LOOTARCHIVE_KEYSTORE_PASSWORD、LOOTARCHIVE_KEY_ALIAS、LOOTARCHIVE_KEY_PASSWORD。"
+          exit 1
+
       - name: 准备签名文件
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.sign.outputs.have == '1'
         env:
           KEYSTORE_BASE64: ${{ secrets.LOOTARCHIVE_KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
-          if [ -z "${KEYSTORE_BASE64:-}" ]; then
-            echo "::error::仓库缺少 Secret LOOTARCHIVE_KEYSTORE_BASE64。请在 Settings → Secrets and variables → Actions 里添加，值为本地 keystore 的 base64。缺少它将无法用正确的签名出包。"
-            exit 1
-          fi
           mkdir -p "$RUNNER_TEMP/signing"
           printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/signing/release.keystore"
           ls -l "$RUNNER_TEMP/signing/release.keystore"
@@ -116,7 +134,7 @@ jobs:
       # --no-daemon 是必需的：Gradle 守护进程的环境变量在首次启动时固定，
       # 复用守护进程会让后面注入的签名环境变量读不到
       - name: 构建 Release APK
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || steps.sign.outputs.have == '1'
         env:
           LOOTARCHIVE_KEYSTORE_PATH: ${{ runner.temp }}/signing/release.keystore
           LOOTARCHIVE_KEYSTORE_PASSWORD: ${{ secrets.LOOTARCHIVE_KEYSTORE_PASSWORD }}
@@ -128,9 +146,9 @@ jobs:
           ls -l app/build/outputs/apk/release/
 
       # 指纹写死在这里：它对应 App 已发布版本一直在用的那把签名证书。
-      # 若这条报错，说明签名没接对，绝对不能发布。
+      # 若这条报错，说明签名没接对，绝对不能发布，也不能拿去覆盖安装。
       - name: 校验签名指纹
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || steps.sign.outputs.have == '1'
         run: |
           set -euo pipefail
           APK="app/build/outputs/apk/release/LootArchive-release-v${{ steps.ver.outputs.name }}.apk"
@@ -171,16 +189,27 @@ jobs:
             gh release create "$GITHUB_REF_NAME" "$APK" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md"
           fi
 
-      - name: 构建 Debug APK（提交到 main 时）
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      # 提交到 main 时：有签名密钥就传 Release，没有才退回 Debug（仅供验证能否编译）
+      - name: 构建 Debug APK（提交到 main 且未配置签名密钥时）
+        if: ${{ !startsWith(github.ref, 'refs/tags/') && steps.sign.outputs.have != '1' }}
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
       - name: 上传 Debug APK
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ !startsWith(github.ref, 'refs/tags/') && steps.sign.outputs.have != '1' }}
         uses: actions/upload-artifact@v4
         with:
           name: LootArchive-debug-v${{ steps.ver.outputs.name }}
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      # 提交到 main 时也上传一份正式签名的 Release APK，可直接覆盖安装到手机上试，
+      # 不必等到打 Tag 发布
+      - name: 上传 Release APK
+        if: ${{ !startsWith(github.ref, 'refs/tags/') && steps.sign.outputs.have == '1' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: LootArchive-release-v${{ steps.ver.outputs.name }}
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
       - name: 上传测试报告
