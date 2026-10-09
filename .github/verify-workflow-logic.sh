@@ -182,8 +182,15 @@ node -e "console.log(require('${REPO_NATIVE}/version.json').updateLog)" | head -
 
 echo
 echo "=== 9. 工作流引用的 Secret 名字 ==="
-for s in LOOTARCHIVE_KEYSTORE_BASE64 LOOTARCHIVE_KEYSTORE_PASSWORD LOOTARCHIVE_KEY_ALIAS LOOTARCHIVE_KEY_PASSWORD; do
-  grep -q "$s" "$WF" && pass "引用了 $s" || fail "缺少 $s"
+# 只有 keystore 本体是必配的 Secret，其余三项用 Android debug keystore 的公开默认值兜底
+grep -q 'secrets\.LOOTARCHIVE_KEYSTORE_BASE64' "$WF" \
+  && pass "引用了 LOOTARCHIVE_KEYSTORE_BASE64（唯一必配的 Secret）" \
+  || fail "没有引用 LOOTARCHIVE_KEYSTORE_BASE64"
+for kv in "LOOTARCHIVE_KEYSTORE_PASSWORD:android" "LOOTARCHIVE_KEY_ALIAS:androiddebugkey" "LOOTARCHIVE_KEY_PASSWORD:android"; do
+  s="${kv%%:*}"; d="${kv#*:}"
+  grep -q "secrets\.$s || '$d'" "$WF" \
+    && pass "$s 缺省回退到 $d" \
+    || fail "$s 没有缺省值，没配 Secret 时签名会静默失败"
 done
 # 这 4 个名字必须与 app/build.gradle.kts 里 prop() 读取的名字完全一致，否则签名静默回退到 debug keystore
 for s in LOOTARCHIVE_KEYSTORE_PATH LOOTARCHIVE_KEYSTORE_PASSWORD LOOTARCHIVE_KEY_ALIAS LOOTARCHIVE_KEY_PASSWORD; do

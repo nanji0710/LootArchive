@@ -16,9 +16,10 @@ android {
             val envPath = prop("LOOTARCHIVE_KEYSTORE_PATH")
             if (envPath != null && envPath.isNotBlank()) {
                 storeFile = file(envPath)
-                storePassword = prop("LOOTARCHIVE_KEYSTORE_PASSWORD") ?: ""
-                keyAlias = prop("LOOTARCHIVE_KEY_ALIAS") ?: "lootarchive"
-                keyPassword = prop("LOOTARCHIVE_KEY_PASSWORD") ?: ""
+                // 这三项对 debug keystore 是固定公开默认值；换正式密钥时用环境变量/Secret 覆盖
+                storePassword = prop("LOOTARCHIVE_KEYSTORE_PASSWORD") ?: "android"
+                keyAlias = prop("LOOTARCHIVE_KEY_ALIAS") ?: "androiddebugkey"
+                keyPassword = prop("LOOTARCHIVE_KEY_PASSWORD") ?: "android"
             } else {
                 // 开发兜底：本机 debug keystore（禁止用于正式发布）
                 storeFile = file(System.getProperty("user.home") + "/.android/debug.keystore")

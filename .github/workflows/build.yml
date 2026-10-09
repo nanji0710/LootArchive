@@ -127,6 +127,11 @@ jobs:
 
       # 签名密钥：必须是这个 App 一直在用的那把，否则老用户无法覆盖安装，
       # 只能卸载重装（丢数据）。GitHub 自带的 debug keystore 每次都是随机生成的，不能用。
+      #
+      # 只需要配一个 Secret：LOOTARCHIVE_KEYSTORE_BASE64（keystore 文件的 base64）。
+      # 密码/别名/密钥密码这三项是 Android debug keystore 的固定公开默认值，
+      # 写在这里不算泄露 —— 保密性全靠上面那个文件本身。将来若换成应用商店的正式
+      # 密钥，把那三个 Secret 配上即可覆盖这里的默认值，不用改工作流。
       - name: 检查签名密钥
         id: sign
         env:
@@ -214,7 +219,7 @@ jobs:
       - name: 校验发布用的签名密钥
         if: steps.tag.outputs.publish == '1' && steps.sign.outputs.have != '1'
         run: |
-          echo "::error::发布 Release 前必须先配置签名密钥。请在 Settings → Secrets and variables → Actions 里添加这 4 个 Secret：LOOTARCHIVE_KEYSTORE_BASE64、LOOTARCHIVE_KEYSTORE_PASSWORD、LOOTARCHIVE_KEY_ALIAS、LOOTARCHIVE_KEY_PASSWORD。"
+          echo "::error::发布 Release 前必须先配置签名密钥。请在 Settings → Secrets and variables → Actions 里添加 Secret：LOOTARCHIVE_KEYSTORE_BASE64（内容是 keystore 文件的 base64，可用「base64 -w0 你的.keystore」生成）。"
           exit 1
 
       - name: 准备签名文件
@@ -236,9 +241,10 @@ jobs:
         if: steps.sign.outputs.have == '1'
         env:
           LOOTARCHIVE_KEYSTORE_PATH: ${{ runner.temp }}/signing/release.keystore
-          LOOTARCHIVE_KEYSTORE_PASSWORD: ${{ secrets.LOOTARCHIVE_KEYSTORE_PASSWORD }}
-          LOOTARCHIVE_KEY_ALIAS: ${{ secrets.LOOTARCHIVE_KEY_ALIAS }}
-          LOOTARCHIVE_KEY_PASSWORD: ${{ secrets.LOOTARCHIVE_KEY_PASSWORD }}
+          # 这三项是 Android debug keystore 的固定默认值；配了同名 Secret 就用 Secret
+          LOOTARCHIVE_KEYSTORE_PASSWORD: ${{ secrets.LOOTARCHIVE_KEYSTORE_PASSWORD || 'android' }}
+          LOOTARCHIVE_KEY_ALIAS: ${{ secrets.LOOTARCHIVE_KEY_ALIAS || 'androiddebugkey' }}
+          LOOTARCHIVE_KEY_PASSWORD: ${{ secrets.LOOTARCHIVE_KEY_PASSWORD || 'android' }}
         run: |
           set -euo pipefail
           ./gradlew :app:assembleRelease -x lintVitalRelease --no-daemon --stacktrace

@@ -317,7 +317,9 @@ CI 会构建出正式签名的 Release APK、校验签名指纹、自动打上 `
 
 只推提交、没改版本号时，CI 会识别出「Tag 已指向别的提交」并跳过发布并告警，不会把旧版本重新发一遍；同一个版本重复推送则会刷新已有 Release，不会出错。同一分支的构建是串行的，连续推两次不会互相抢 Tag。
 
-发布用的签名密钥存在仓库的 Secrets 里（`LOOTARCHIVE_KEYSTORE_BASE64`、`LOOTARCHIVE_KEYSTORE_PASSWORD`、`LOOTARCHIVE_KEY_ALIAS`、`LOOTARCHIVE_KEY_PASSWORD`）。缺密钥时 CI 只构建 Debug APK 用于验证能否编译，不会发布 —— 因为用错签名的包无法覆盖安装，老用户升级只能卸载重装并丢数据。
+发布用的签名密钥存在仓库的 Secret 里，**只需要配一个**：`LOOTARCHIVE_KEYSTORE_BASE64`，内容是 keystore 文件的 base64（`base64 -w0 你的.keystore`）。密码、别名、密钥密码用的是 Android debug keystore 的固定默认值（`android` / `androiddebugkey` / `android`），已经写在 `app/build.gradle.kts` 的签名配置与工作流里；将来换成应用商店的正式密钥时，再补上 `LOOTARCHIVE_KEYSTORE_PASSWORD`、`LOOTARCHIVE_KEY_ALIAS`、`LOOTARCHIVE_KEY_PASSWORD` 三个 Secret 即可覆盖默认值，不用改代码。
+
+缺 `LOOTARCHIVE_KEYSTORE_BASE64` 时 CI 只构建 Debug APK 用于验证能否编译，不会发布 —— 因为用错签名的包无法覆盖安装，老用户升级只能卸载重装并丢数据。**不要把 keystore 提交进仓库**：这是公开仓库，文件一旦进库，任何人都能签出同签名的包冒充你的更新。
 
 CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自身的一个缺陷（`NullSafeMutableLiveData` 检测器抛 `IncompatibleClassChangeError`），这个与代码无关，所以跳过；本地跑 `./gradlew assembleRelease` 若碰上同样的崩溃，加这个参数即可。
 
