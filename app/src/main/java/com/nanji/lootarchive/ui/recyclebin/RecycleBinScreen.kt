@@ -177,27 +177,25 @@ private fun TrashItemCard(
             drawRect(brush = cardBrush)
             drawContent()
         }
-        Box(Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().layerBackdrop(cardBackdrop).padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 左：名称 + 金额（原 Column 原样）
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(item.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                        Spacer(Modifier.width(8.dp))
-                        Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.SemiBold)
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    item.deletedAt?.let {
-                        Text("删除于 ${dateFormat.format(Date(it))}", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
-                    }
+        // v7.0.0 修复：还原/删除按钮改为与信息区同一行内排布（此前按钮浮在 Box 上层 + 只预留 96dp，
+        // 两个按钮实际宽约 145dp，会压到「删除于 …」文字上）
+        Row(
+            modifier = Modifier.fillMaxWidth().layerBackdrop(cardBackdrop).padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(item.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    Spacer(Modifier.width(8.dp))
+                    Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.SemiBold)
                 }
-                Spacer(Modifier.width(96.dp))
+                Spacer(Modifier.height(2.dp))
+                item.deletedAt?.let {
+                    Text("删除于 ${dateFormat.format(Date(it))}", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
+            Spacer(Modifier.width(10.dp))
             Row(
-                modifier = Modifier.align(Alignment.CenterEnd).padding(horizontal = 14.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
