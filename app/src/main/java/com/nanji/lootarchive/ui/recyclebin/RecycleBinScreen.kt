@@ -11,6 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -177,25 +179,33 @@ private fun TrashItemCard(
             drawRect(brush = cardBrush)
             drawContent()
         }
-        // v7.0.0 修复：还原/删除按钮改为与信息区同一行内排布（此前按钮浮在 Box 上层 + 只预留 96dp，
-        // 两个按钮实际宽约 145dp，会压到「删除于 …」文字上）
-        Row(
-            modifier = Modifier.fillMaxWidth().layerBackdrop(cardBackdrop).padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(item.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                    Spacer(Modifier.width(8.dp))
-                    Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.SemiBold)
-                }
-                Spacer(Modifier.height(2.dp))
-                item.deletedAt?.let {
-                    Text("删除于 ${dateFormat.format(Date(it))}", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
-            Spacer(Modifier.width(10.dp))
+        // v7.1.1 修复两点：
+        // ①「还原 / 删除」的实测宽度作为文字区右侧预留宽度（此前硬编码 96dp，按钮实际约 145dp，会压到「删除于 …」）；
+        // ②两个按钮必须留在 layerBackdrop 那一层之外 —— 放进同一层会让玻璃按钮引用“包含自身的图层”，
+        //   渲染线程计算图层变换时无限递归，点进回收站直接闪退（SIGSEGV / computeTransformImpl 栈溢出）。
+        Box(Modifier.fillMaxWidth()) {
+            var actionsWidthPx by remember { mutableIntStateOf(0) }
+            val actionsWidth = with(LocalDensity.current) { actionsWidthPx.toDp() }
             Row(
+                modifier = Modifier.fillMaxWidth().layerBackdrop(cardBackdrop).padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(item.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        Spacer(Modifier.width(8.dp))
+                        Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.SemiBold)
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    item.deletedAt?.let {
+                        Text("删除于 ${dateFormat.format(Date(it))}", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+                // 按按钮实测宽度预留，文字区不再与按钮重叠
+                Spacer(Modifier.width(actionsWidth + 10.dp))
+            }
+            Row(
+                modifier = Modifier.align(Alignment.CenterEnd).padding(horizontal = 14.dp).onSizeChanged { actionsWidthPx = it.width },
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

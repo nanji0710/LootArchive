@@ -1,7 +1,7 @@
 {
-  "versionName": "7.1.0",
-  "versionCode": 7100,
+  "versionName": "7.1.1",
+  "versionCode": 7101,
   "updateDate": "2026-10-12",
-  "updateLog": "v7.1.0 统计页焕新：更好看，也更好懂\n- 统计页整体换了一版样式：每块内容都有图标和标题，圆环图更精致，趋势线终点直接标出当前总资产\n- 资产总览新增「本月新增」和与上月的对比，一眼看清这个月花了多少、比上月多了还是少了\n- 分类分布图右侧列出每个分类的金额与占比，颜色和圆环一一对应\n- 分类排名去掉奖牌，改成序号 + 占比进度条，名次与占比一目了然\n- 数字显示更聪明：上万自动写成「万」，小额保留两位小数\n- 修复月度趋势里最后一根柱子被截断、月份标签显示不全的问题\n- 本次只换外观与读法，金额口径和已有数据完全不变",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.1.0/LootArchive-release-v7.1.0.apk"
+  "updateLog": "v7.1.1 修复：打开回收站会闪退\n- 修复「点回收站直接闪退」的问题（玻璃按钮与卡片图层互相引用，渲染线程计算图层时递归溢出）\n- 修复回收站条目里「还原 / 删除」按钮压住「删除于 …」文字，现在按按钮实际宽度自动留位\n- 本版同样包含 v7.1.0 的统计页焕新：图标标题、本月新增与环比、圆环占比、趋势终点金额、排名进度条\n- 数据与口径不变，直接覆盖安装即可",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.1.1/LootArchive-release-v7.1.1.apk"
 }
