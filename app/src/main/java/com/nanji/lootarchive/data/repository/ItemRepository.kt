@@ -229,12 +229,6 @@ class ItemRepository @Inject constructor(
 
     fun getItemsByStatus(status: String): Flow<List<ItemEntity>> = itemDao.getItemsByStatus(status)
 
-    fun getItemsByTag(tag: String): Flow<List<ItemEntity>> = itemDao.getItemsByTag(tag)
-
-    fun getAllTags(): Flow<List<String>> = itemDao.getAllTagsRaw().map { rawList ->
-        rawList.flatMap { it.split(",") }.map { it.trim() }.filter { it.isNotEmpty() }.distinct().sorted()
-    }
-
     suspend fun updateItemStatus(itemId: Long, status: String) = itemDao.updateItemStatus(itemId, status)
 
     fun searchItemsWithTags(keyword: String): Flow<List<ItemEntity>> = itemDao.searchItemsWithTags(keyword)

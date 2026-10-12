@@ -1,8 +1,5 @@
 package com.nanji.lootarchive.ui.settings
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -50,22 +47,6 @@ fun SettingsScreen(
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
     var showClearCacheDialog by remember { mutableStateOf(false) }
     var editReminderDays by remember { mutableStateOf("") }
-    val context = LocalContext.current
-
-    val bgImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        if (uri != null) {
-            context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            viewModel.setBackgroundUri(uri.toString())
-        }
-    }
-
-    val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        if (uri != null) {
-            context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            viewModel.setAvatarUri(uri.toString())
-        }
-    }
-
     Scaffold(containerColor = Color.Transparent) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(scrollState).padding(18.dp),
@@ -134,69 +115,6 @@ fun SettingsScreen(
                             labelFontSize = 12.sp,
                             showSelectionShadow = false
                         )
-                    }
-                    // v6.7 跟随壁纸动态色（Android 12+）
-                    val dynamicRowBackdropColor = LocalGlassColors.current.cardBg
-                    val dynamicRowBackdrop = rememberLayerBackdrop {
-                        drawRect(dynamicRowBackdropColor)
-                        drawContent()
-                    }
-                    Box(Modifier.fillMaxWidth()) {
-                        Row(
-                            Modifier.fillMaxWidth().layerBackdrop(dynamicRowBackdrop)
-                                .padding(horizontal = 16.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                Modifier.size(38.dp), AppShape.thumb,
-                                color = Primary().copy(alpha = 0.10f)
-                            ) {
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Rounded.AutoAwesome, null, Modifier.size(20.dp), tint = Primary())
-                                }
-                            }
-                            Spacer(Modifier.width(14.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text("跟随壁纸动态色", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
-                            }
-                        }
-                        LiquidToggle(
-                            checked = uiState.dynamicColor,
-                            onCheckedChange = viewModel::setDynamicColor,
-                            backdrop = dynamicRowBackdrop,
-                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 14.dp)
-                        )
-                    }
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                    // 自定义头像
-                    Row(
-                        Modifier.fillMaxWidth().clickable { avatarPicker.launch("image/*") }.padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            Modifier.size(38.dp), AppShape.thumb,
-                            color = Primary().copy(alpha = 0.10f)
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Rounded.AccountCircle, null, Modifier.size(20.dp), tint = Primary())
-                            }
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("自定义头像", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = TextPrimary())
-                            Text("从相册选择", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
-                        }
-                        if (uiState.avatarUri.isNotEmpty()) {
-                            Surface(
-                                onClick = { viewModel.setAvatarUri("") },
-                                shape = AppShape.chip,
-                                color = Primary().copy(alpha = 0.10f)
-                            ) {
-                                Text("还原", style = MaterialTheme.typography.labelSmall, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
-                            }
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Icon(Icons.Rounded.ChevronRight, null, tint = TextAuxiliary(), modifier = Modifier.size(18.dp))
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
                     // v6.3 新手引导

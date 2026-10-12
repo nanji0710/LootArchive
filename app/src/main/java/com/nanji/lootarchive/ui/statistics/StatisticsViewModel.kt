@@ -84,11 +84,6 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
-    fun refresh() {
-        _uiState.update { it.copy(isLoading = true) }
-        _refreshCounter.value++
-    }
-
     fun setTimeFilter(filter: String) {
         _uiState.update { it.copy(isLoading = true) }
         _timeFilter.value = filter

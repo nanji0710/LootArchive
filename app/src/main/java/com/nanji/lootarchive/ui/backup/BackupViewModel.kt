@@ -32,8 +32,7 @@ class BackupViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val backupRepository: BackupRepository,
     private val itemRepository: ItemRepository,
-    private val categoryRepository: CategoryRepository,
-    private val expService: com.nanji.lootarchive.data.ExpService
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BackupUiState())
@@ -166,8 +165,6 @@ class BackupViewModel @Inject constructor(
                     }
                     itemCount++
                 }
-                // 导入完成后一次性重算
-                expService.recalculateProfile()
                 val summary = buildString {
                     append("恢复成功\n")
                     append("分类: $catCount 个\n")

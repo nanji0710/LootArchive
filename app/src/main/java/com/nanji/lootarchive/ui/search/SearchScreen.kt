@@ -45,13 +45,6 @@ fun SearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
     val focusRequester = remember { FocusRequester() }
-    var showScopeRow by remember { mutableStateOf(false) }
-    var showStatusRow by remember { mutableStateOf(false) }
-    var showSortMenu by remember { mutableStateOf(false) }
-    var showTagRow by remember { mutableStateOf(false) }
-    val scopeLabels = remember { mapOf(null to "全部范围", "name" to "名称", "location" to "位置", "desc" to "备注", "warranty" to "保修") }
-    val statusLabels = remember { mapOf(null to "全部状态") + ItemStatus.entries.associate { it.code to it.label } }
-
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     Scaffold(containerColor = Color.Transparent) { padding ->
@@ -94,210 +87,18 @@ fun SearchScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // v6.0 折叠式筛选行
-            val activeFilterCount = listOfNotNull(
-                uiState.activeFilter,
-                uiState.statusFilter,
-                uiState.tagFilter
-            ).size
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 搜索范围（行内展开，与标签一致）
-                val scopeLabel = scopeLabels[uiState.activeFilter] ?: "范围"
-                FilterChip(
-                    selected = uiState.activeFilter != null,
-                    onClick = { showScopeRow = !showScopeRow },
-                    label = { Text(scopeLabel, style = MaterialTheme.typography.labelSmall) },
-                    leadingIcon = { Icon(Icons.Rounded.Tune, null, Modifier.size(14.dp)) },
-                    trailingIcon = {
-                        Icon(
-                            if (showScopeRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                            null, Modifier.size(16.dp)
-                        )
-                    },
-                    shape = AppShape.card,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Primary().copy(alpha = 0.2f),
-                        selectedLabelColor = Primary()
-                    )
-                )
-
-                // 状态（行内展开，与标签一致）
-                val statusLabel = statusLabels[uiState.statusFilter] ?: "状态"
-                FilterChip(
-                    selected = uiState.statusFilter != null,
-                    onClick = { showStatusRow = !showStatusRow },
-                    label = { Text(statusLabel, style = MaterialTheme.typography.labelSmall) },
-                    trailingIcon = {
-                        Icon(
-                            if (showStatusRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                            null, Modifier.size(16.dp)
-                        )
-                    },
-                    shape = AppShape.card,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Primary().copy(alpha = 0.2f),
-                        selectedLabelColor = Primary()
-                    )
-                )
-
-                // 标签切换（有标签时才显示）
-                if (uiState.allTags.isNotEmpty()) {
-                    val tagLabel = uiState.tagFilter ?: "标签"
-                    FilterChip(
-                        selected = uiState.tagFilter != null,
-                        onClick = { showTagRow = !showTagRow },
-                        label = { Text(tagLabel, style = MaterialTheme.typography.labelSmall) },
-                        trailingIcon = {
-                            Icon(
-                                if (showTagRow) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                                null, Modifier.size(16.dp)
-                            )
-                        },
-                        shape = AppShape.card,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Primary().copy(alpha = 0.2f),
-                            selectedLabelColor = Primary()
-                        )
-                    )
-                }
-
-                Spacer(Modifier.weight(1f))
-
-                // 激活筛选计数
-                if (activeFilterCount > 0) {
-                    Text("$activeFilterCount 项筛选", style = MaterialTheme.typography.labelSmall, color = Primary())
-                }
-            }
-
-            // 范围快捷选择行
-            if (showScopeRow) {
-                Spacer(Modifier.height(6.dp))
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    scopeLabels.forEach { (k, v) ->
-                        val sel = uiState.activeFilter == k
-                        FilterChip(
-                            selected = sel,
-                            onClick = { viewModel.setActiveFilter(k) },
-                            label = { Text(v, style = MaterialTheme.typography.labelSmall) },
-                            shape = AppShape.panel,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Primary().copy(alpha = 0.2f),
-                                selectedLabelColor = Primary()
-                            )
-                        )
-                    }
-                }
-            }
-
-            // 状态快捷选择行
-            if (showStatusRow) {
-                Spacer(Modifier.height(6.dp))
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    statusLabels.forEach { (k, v) ->
-                        val sel = uiState.statusFilter == k
-                        FilterChip(
-                            selected = sel,
-                            onClick = { viewModel.setStatusFilter(k) },
-                            label = { Text(v, style = MaterialTheme.typography.labelSmall) },
-                            shape = AppShape.panel,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Primary().copy(alpha = 0.2f),
-                                selectedLabelColor = Primary()
-                            )
-                        )
-                    }
-                }
-            }
-
-            // 标签快捷选择（点击标签Chip展开/折叠）
-            if (showTagRow && uiState.allTags.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                Spacer(Modifier.height(6.dp))
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    FilterChip(
-                        selected = uiState.tagFilter == null,
-                        onClick = { viewModel.setTagFilter(null) },
-                        label = { Text("全部", style = MaterialTheme.typography.labelSmall) },
-                        shape = AppShape.panel,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Primary().copy(alpha = 0.15f),
-                            selectedLabelColor = Primary()
-                        )
-                    )
-                    uiState.allTags.take(6).forEach { tag ->
-                        val sel = uiState.tagFilter == tag
-                        FilterChip(
-                            selected = sel,
-                            onClick = { viewModel.setTagFilter(if (sel) null else tag) },
-                            label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
-                            shape = AppShape.panel,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Primary().copy(alpha = 0.2f),
-                                selectedLabelColor = Primary()
-                            )
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            // 结果统计 + 排序
-            if (uiState.query.isNotEmpty() || uiState.activeFilter != null || uiState.statusFilter != null || uiState.tagFilter != null) {
+            // 结果统计
+            if (uiState.query.isNotEmpty()) {
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("找到 ${uiState.results.size} 件物品", style = MaterialTheme.typography.bodySmall, color = TextPrimary(), modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
-                    Box {
-                        TextButton(onClick = { showSortMenu = true }) {
-                            Icon(Icons.Rounded.SwapVert, null, Modifier.size(14.dp), tint = Primary())
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                when (uiState.sort) {
-                                    "price_desc" -> "价格↓"
-                                    "date_new" -> "最新"
-                                    "warranty" -> "保修"
-                                    else -> "排序"
-                                },
-                                style = MaterialTheme.typography.labelSmall, color = Primary()
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showSortMenu, onDismissRequest = { showSortMenu = false },
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            shape = AppShape.panel
-                        ) {
-                            listOf(
-                                "price_desc" to "价格从高到低",
-                                "date_new" to "购入时间最新",
-                                "warranty" to "保修到期优先"
-                            ).forEach { (key, label) ->
-                                DropdownMenuItem(
-                                    text = { Text(label, fontWeight = if (uiState.sort == key) FontWeight.Bold else FontWeight.Normal) },
-                                    onClick = { viewModel.setSort(key); showSortMenu = false }
-                                )
-                            }
-                        }
-                    }
                 }
             }
 
             // 搜索结果 / 搜索历史 / 空状态
-            if (uiState.results.isEmpty() && uiState.query.isEmpty() && uiState.activeFilter == null && uiState.statusFilter == null && uiState.tagFilter == null) {
+            if (uiState.results.isEmpty() && uiState.query.isEmpty()) {
                 if (uiState.recentSearches.isNotEmpty()) {
                     Column(Modifier.padding(vertical = 16.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

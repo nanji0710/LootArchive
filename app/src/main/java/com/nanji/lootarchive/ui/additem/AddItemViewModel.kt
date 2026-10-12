@@ -30,7 +30,6 @@ data class AddItemUiState(
     val photoPaths: List<String> = emptyList(),
     val status: String = "active",
     val tags: String = "",
-    val tagInput: String = "",
     val salePriceText: String = "",
     val saleDate: Long? = null,
     // 表单校验
@@ -42,8 +41,7 @@ data class AddItemUiState(
 @HiltViewModel
 class AddItemViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
-    private val categoryRepository: CategoryRepository,
-    private val expService: com.nanji.lootarchive.data.ExpService
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddItemUiState())
@@ -161,27 +159,6 @@ class AddItemViewModel @Inject constructor(
         _uiState.update { it.copy(saleDate = date) }
     }
 
-    fun updateTagInput(input: String) {
-        _uiState.update { it.copy(tagInput = input) }
-    }
-
-    fun addTag(tag: String) {
-        val trimmed = tag.trim()
-        if (trimmed.isEmpty()) return
-        val current = _uiState.value.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toMutableList()
-        if (trimmed !in current) {
-            current.add(trimmed)
-            _uiState.update { it.copy(tags = current.joinToString(","), tagInput = "") }
-        } else {
-            _uiState.update { it.copy(tagInput = "") }
-        }
-    }
-
-    fun removeTag(tag: String) {
-        val current = _uiState.value.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() && it != tag }
-        _uiState.update { it.copy(tags = current.joinToString(",")) }
-    }
-
     fun addPhotoPath(path: String) {
         _uiState.update { it.copy(photoPaths = it.photoPaths + path) }
     }
@@ -247,7 +224,6 @@ class AddItemViewModel @Inject constructor(
                 itemRepository.saveItemWithPhotos(item, state.photoPaths)
 
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
-                expService.recalculateProfile()
                 formInitialized = false  // 允许下次新增物品时重新初始化表单
             } catch (e: Exception) {
                 _uiState.update {

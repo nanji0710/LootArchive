@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +51,6 @@ import com.nanji.lootarchive.util.FormatUtil
 import com.nanji.lootarchive.util.sortedForHome
 import java.io.File
 import java.text.NumberFormat
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,9 +70,6 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
     var showWarrantyDialog by remember { mutableStateOf(false) }
-    var isRefreshing by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-
     val catViewModel: CategoryDrawerViewModel = hiltViewModel()
     val catState by catViewModel.uiState.collectAsState()
     var chipFilter by remember { mutableStateOf<Pair<Long, String>?>(null) }
@@ -102,7 +97,7 @@ fun HomeScreen(
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     // 网格状态提到外面：顶栏渐隐要读它的滚动量（见 ui/component/ScrollFade.kt）。
     val gridState = rememberLazyGridState()
-    PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = { isRefreshing = true; scope.launch { viewModel.refresh(); delay(600); isRefreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
         LazyVerticalGrid(
             // 固定 2 列：第一张卡片跨满整行（见 span 逻辑），其余每行两张。
             // 之前用 Adaptive(minSize=160)，宽屏上列数会变成 3~4 —— 就不是"一行两个"了。

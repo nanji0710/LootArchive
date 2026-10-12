@@ -3,7 +3,6 @@ package com.nanji.lootarchive.di
 import android.content.Context
 import androidx.room.Room
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.nanji.lootarchive.data.AchievementSeeds
 import com.nanji.lootarchive.data.DefaultCategories
 import com.nanji.lootarchive.data.local.database.AppDatabase
 import com.nanji.lootarchive.data.local.dao.*
@@ -30,7 +29,6 @@ object DatabaseModule {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
                     seedDefaultCategories(db)
-                    seedAchievementsAndProfile(db)
                 }
             })
             .addMigrations(
@@ -53,17 +51,6 @@ object DatabaseModule {
         }
     }
 
-    private fun seedAchievementsAndProfile(db: SupportSQLiteDatabase) {
-        try {
-            db.execSQL("INSERT OR IGNORE INTO user_profile (id,exp,level) VALUES (1,0,1)")
-            AchievementSeeds.all.forEach { s ->
-                db.execSQL("INSERT OR REPLACE INTO achievements (\"key\",title,description,category,target,icon) VALUES ('${s.key}','${s.title}','${s.description}','${s.category}',${s.target},'')")
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("DatabaseModule", "Seed achievements failed", e)
-        }
-    }
-
     @Provides
     fun provideCategoryDao(db: AppDatabase): CategoryDao = db.categoryDao()
 
@@ -75,13 +62,4 @@ object DatabaseModule {
 
     @Provides
     fun provideBackupRecordDao(db: AppDatabase): BackupRecordDao = db.backupRecordDao()
-
-    @Provides
-    fun provideUserProfileDao(db: AppDatabase): UserProfileDao = db.userProfileDao()
-
-    @Provides
-    fun provideAchievementDao(db: AppDatabase): AchievementDao = db.achievementDao()
-
-    @Provides
-    fun provideExperienceLogDao(db: AppDatabase): ExperienceLogDao = db.experienceLogDao()
 }

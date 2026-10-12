@@ -7,7 +7,6 @@ import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
-import com.nanji.lootarchive.util.Quintet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,21 +23,19 @@ data class HomeUiState(
     val warrantyExpiringItems: List<ItemEntity> = emptyList(),
     val warrantyReminderDays: Int = 7,
     val currency: String = "CNY",
-    val saleRevenue: Double = 0.0,
-    val appName: String = "拾物集"
+    val saleRevenue: Double = 0.0
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
-    private val settingsRepository: SettingsRepository,
-    private val expService: com.nanji.lootarchive.data.ExpService
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    init { loadData(); viewModelScope.launch { expService.recalculateProfile() } }
+    init { loadData() }
 
     private fun loadData() {
         viewModelScope.launch {
@@ -46,29 +43,23 @@ class HomeViewModel @Inject constructor(
             settingsRepository.warrantyReminderDays.collectLatest { reminderDays ->
                 val threshold = System.currentTimeMillis() + reminderDays * 24L * 60 * 60 * 1000
                 combine(
-                    combine(
-                        itemRepository.getAllItems(),
-                        itemRepository.getOwnedCount(),
-                        itemRepository.getOwnedValue(),
-                        // 直接取明细列表：计数 = 列表尺寸，指标卡与点开明细
-                        // 由同一个查询驱动，不会再出现"卡片说 3 个、明细里 5 个"的分裂。
-                        itemRepository.getWarrantyExpiringItems(threshold),
-                        settingsRepository.currency
-                    ) { items, count, value, expiringItems, currency ->
-                        Quintet(items, count, value, expiringItems, currency)
-                    },
-                    settingsRepository.appName
-                ) { quintet, appName ->
+                    itemRepository.getAllItems(),
+                    itemRepository.getOwnedCount(),
+                    itemRepository.getOwnedValue(),
+                    // 直接取明细列表：计数 = 列表尺寸，指标卡与点开明细
+                    // 由同一个查询驱动，不会再出现"卡片说 3 个、明细里 5 个"的分裂。
+                    itemRepository.getWarrantyExpiringItems(threshold),
+                    settingsRepository.currency
+                ) { items, count, value, expiringItems, currency ->
                     // 批量取首图，避免逐物品 N+1 查询
                     val paths = try { itemRepository.getAllFirstPhotos() } catch (e: Exception) { android.util.Log.e("HomeVM", "Load photos failed", e); emptyMap() }
-                    val saleRev = quintet.first.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
-                    val expiringItems = quintet.fourth
+                    val saleRev = items.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
                     HomeUiState(
-                        isLoading = false, items = quintet.first, photoPaths = paths,
-                        totalCount = quintet.second, totalValue = quintet.third,
+                        isLoading = false, items = items, photoPaths = paths,
+                        totalCount = count, totalValue = value,
                         warrantyExpiringCount = expiringItems.size, warrantyExpiringItems = expiringItems,
                         warrantyReminderDays = reminderDays.toInt(),
-                        currency = quintet.fifth, saleRevenue = saleRev, appName = appName
+                        currency = currency, saleRevenue = saleRev
                     )
                 }.catch { e ->
                     android.util.Log.e("HomeVM", "loadData failed", e)
@@ -79,8 +70,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteItem(itemId: Long) { viewModelScope.launch { itemRepository.softDeleteItem(itemId); expService.recalculateProfile() } }
+    fun deleteItem(itemId: Long) { viewModelScope.launch { itemRepository.softDeleteItem(itemId) } }
 
-    /** 下拉刷新：重新计算 EXP/成就（数据本身由 Room Flow 响应式驱动，无需重复查询） */
-    fun refresh() { viewModelScope.launch { expService.recalculateProfile() } }
+    /** 下拉刷新：本轮起为空实现（原先只重算 EXP/成就），待 A-5 S2 摘除刷新控件后删除本方法 */
+    fun refresh() { }
 }

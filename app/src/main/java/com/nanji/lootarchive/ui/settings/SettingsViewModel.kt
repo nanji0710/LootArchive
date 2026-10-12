@@ -20,9 +20,6 @@ data class SettingsUiState(
     val backupReminderDay: Int = 1,
     val themeMode: String = "system",
     val primaryColor: Int = 0xFFFFA500.toInt(),
-    val dynamicColor: Boolean = false,
-    val avatarUri: String = "",
-    val appName: String = "拾物集",
     val trashItemCount: Int = 0,
     val cacheSize: Long = 0L,
     val cacheSizeFormatted: String = "计算中...",
@@ -70,23 +67,8 @@ class SettingsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            settingsRepository.appName.collect { name ->
-                _uiState.update { it.copy(appName = name) }
-            }
-        }
-        viewModelScope.launch {
             settingsRepository.primaryColor.collect { color ->
                 _uiState.update { it.copy(primaryColor = color) }
-            }
-        }
-        viewModelScope.launch {
-            settingsRepository.dynamicColor.collect { enabled ->
-                _uiState.update { it.copy(dynamicColor = enabled) }
-            }
-        }
-        viewModelScope.launch {
-            settingsRepository.avatarUri.collect { uri ->
-                _uiState.update { it.copy(avatarUri = uri) }
             }
         }
         viewModelScope.launch {
@@ -119,28 +101,6 @@ class SettingsViewModel @Inject constructor(
     fun setPrimaryColor(color: Int) {
         _uiState.update { it.copy(primaryColor = color) }
         viewModelScope.launch { settingsRepository.setPrimaryColor(color) }
-    }
-
-    fun setDynamicColor(enabled: Boolean) {
-        _uiState.update { it.copy(dynamicColor = enabled) }
-        viewModelScope.launch { settingsRepository.setDynamicColor(enabled) }
-    }
-
-    fun setAvatarUri(uri: String) {
-        _uiState.update { it.copy(avatarUri = uri) }
-        viewModelScope.launch { settingsRepository.setAvatarUri(uri) }
-    }
-
-    fun setBackgroundUri(uri: String) {
-        viewModelScope.launch { settingsRepository.setCustomBackgroundUri(uri) }
-    }
-
-    fun clearBackground() {
-        viewModelScope.launch { settingsRepository.setCustomBackgroundUri("") }
-    }
-
-    fun setAppName(name: String) {
-        viewModelScope.launch { settingsRepository.setAppName(name) }
     }
 
     fun emptyTrash() {

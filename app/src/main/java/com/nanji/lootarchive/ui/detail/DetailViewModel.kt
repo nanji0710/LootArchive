@@ -23,8 +23,7 @@ data class DetailUiState(
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
-    private val settingsRepository: SettingsRepository,
-    private val expService: com.nanji.lootarchive.data.ExpService
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailUiState())
@@ -65,7 +64,6 @@ class DetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 itemRepository.softDeleteItem(currentItemId)
-                expService.recalculateProfile()
                 _uiState.update { it.copy(showDeleteDialog = false, isDeleted = true) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = "删除失败: ${e.message}") }
@@ -85,7 +83,6 @@ class DetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 itemRepository.updateItemStatus(currentItemId, status)
-                expService.recalculateProfile()
                 loadItem(currentItemId)
                 dismissStatusSheet()
             } catch (e: Exception) {

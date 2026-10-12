@@ -12,7 +12,6 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import android.content.Intent
 import androidx.compose.ui.Alignment
@@ -46,7 +45,6 @@ import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.util.FormatUtil
 import com.nanji.lootarchive.util.csvEscape
 import java.text.NumberFormat
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val CardPadding = 16.dp
@@ -60,11 +58,9 @@ fun StatisticsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val numberFormat = remember { NumberFormat.getNumberInstance() }
     var timeFilter by remember { mutableStateOf("all") }
-    DisposableEffect(Unit) { viewModel.refresh(); onDispose { } }
 
     Scaffold(topBar = { if (!isTabMode) TopAppBar(title = { Text("资产汇总", fontFamily = FredokaFont, fontWeight = FontWeight.SemiBold) }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回") } }) }, containerColor = Color.Transparent, contentWindowInsets = WindowInsets(0, 0, 0, 0)) { _ ->
-        var refreshing by remember { mutableStateOf(false) }; val scope = rememberCoroutineScope()
-        PullToRefreshBox(isRefreshing = refreshing, onRefresh = { refreshing = true; scope.launch { viewModel.refresh(); delay(600); refreshing = false } }, modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
             if (uiState.isLoading) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Primary()) }
             else if (uiState.categorySummaries.isEmpty()) EmptyState(icon = { Icon(Icons.Rounded.BarChart, null, Modifier.size(80.dp), tint = TextAuxiliary().copy(alpha = 0.4f)) }, title = "暂无统计数据", subtitle = "添加物品后即可查看统计图表")
             else {
@@ -302,7 +298,7 @@ fun StatisticsScreen(
                         val rk = uiState.categorySummaries.sortedByDescending { it.totalValue }
                         rk.forEachIndexed { i, s ->
                             Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Surface(Modifier.size(24.dp), AppShape.chip, color = when (i) { 0 -> Color(0xFFF59E0B); 1 -> Color(0xFFA8A29E); 2 -> Color(0xFFCDA87B); else -> Color.Transparent }) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("${i + 1}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = if (i < 3) Color.White else TextAuxiliary(), fontFamily = FredokaFont) } }
+                                Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) { Text("${i + 1}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = TextAuxiliary(), fontFamily = FredokaFont) }
                                 Spacer(Modifier.width(12.dp)); Text(s.category.name, style = MaterialTheme.typography.bodyMedium, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
                                 Text("¥${numberFormat.format(s.totalValue)}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = Primary(), fontFamily = FredokaFont)
                                 Text("  ${s.itemCount}件", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont)
@@ -311,33 +307,6 @@ fun StatisticsScreen(
                         }
                     }
                 }
-                // ── v5.4 标签资产分布 ──
-                val tagData = uiState.items
-                    .flatMap { item -> item.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }.map { it to item.purchasePrice } }
-                    .groupBy { it.first }
-                    .mapValues { e -> e.value.sumOf { it.second } }
-                    .entries.sortedByDescending { it.value }.take(8)
-                if (tagData.isNotEmpty()) {
-                    GlassSurface {
-                        Column(Modifier.padding(CardPadding)) {
-                            Text("标签资产分布", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
-                            Spacer(Modifier.height(12.dp))
-                            val maxTagVal = tagData.maxOf { it.value }.coerceAtLeast(1.0)
-                            tagData.forEachIndexed { i, (tag, value) ->
-                                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(tag, style = MaterialTheme.typography.labelSmall, color = TextPrimary(), modifier = Modifier.width(56.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Spacer(Modifier.width(8.dp))
-                                    Box(Modifier.weight(1f).height(18.dp).clip(AppShape.chip).background(TextAuxiliary().copy(alpha = 0.08f))) {
-                                        Box(Modifier.fillMaxHeight().width(((value / maxTagVal) * 200).dp.coerceAtLeast(4.dp)).clip(AppShape.chip).background(ChartColors[i % ChartColors.size]))
-                                    }
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("¥${numberFormat.format(value)}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont)
-                                }
-                            }
-                        }
-                    }
-                }
-
                 // ── v5.4 导出CSV ──
                 val context = LocalContext.current
                 GlassSurface {

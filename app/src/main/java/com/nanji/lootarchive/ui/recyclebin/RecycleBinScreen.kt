@@ -190,20 +190,8 @@ private fun TrashItemCard(
                         Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.height(2.dp))
-                    val remainingDays = item.deletedAt?.let {
-                        val expiry = it + 14L * 24 * 60 * 60 * 1000
-                        ((expiry - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).toInt()
-                    }
-                    val rdColor = when {
-                        remainingDays != null && remainingDays <= 1 -> WarrantyExpired
-                        remainingDays != null && remainingDays <= 3 -> WarrantyExpiring
-                        else -> TextAuxiliary()
-                    }
                     item.deletedAt?.let {
                         Text("删除于 ${dateFormat.format(Date(it))}", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary())
-                    }
-                    if (remainingDays != null) {
-                        Text("${remainingDays}天后清空", style = MaterialTheme.typography.labelSmall, color = rdColor)
                     }
                 }
                 Spacer(Modifier.width(96.dp))

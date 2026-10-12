@@ -17,11 +17,7 @@ class SettingsRepository @Inject constructor(
         val KEY_BACKUP_REMINDER_ENABLED = booleanPreferencesKey("backup_reminder_enabled")
         val KEY_BACKUP_REMINDER_DAY = intPreferencesKey("backup_reminder_day")
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode") // "system" | "light" | "dark"
-        val KEY_CUSTOM_BACKGROUND_URI = stringPreferencesKey("custom_background_uri")
-        val KEY_AVATAR_URI = stringPreferencesKey("avatar_uri")
-        val KEY_APP_NAME = stringPreferencesKey("app_name")
         val KEY_PRIMARY_COLOR = intPreferencesKey("primary_color") // ARGB int
-        val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color") // Android 12+ 跟随壁纸
         val KEY_SEARCH_HISTORY = stringPreferencesKey("search_history")
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
@@ -77,33 +73,9 @@ class SettingsRepository @Inject constructor(
         dataStore.edit { it[KEY_THEME_MODE] = mode }
     }
 
-    // ========== 背景图 ==========
-    val customBackgroundUri: Flow<String> = dataStore.data.map { it[KEY_CUSTOM_BACKGROUND_URI] ?: "" }
-    suspend fun setCustomBackgroundUri(uri: String) {
-        dataStore.edit { it[KEY_CUSTOM_BACKGROUND_URI] = uri }
-    }
-
-    // ========== 头像 ==========
-    val avatarUri: Flow<String> = dataStore.data.map { it[KEY_AVATAR_URI] ?: "" }
-    suspend fun setAvatarUri(uri: String) {
-        dataStore.edit { it[KEY_AVATAR_URI] = uri }
-    }
-
     // ========== 主色调 ==========
     val primaryColor: Flow<Int> = dataStore.data.map { it[KEY_PRIMARY_COLOR] ?: 0xFFFFA500.toInt() }
     suspend fun setPrimaryColor(color: Int) {
         dataStore.edit { it[KEY_PRIMARY_COLOR] = color }
-    }
-
-    // Android 12+ 跟随壁纸动态取色
-    val dynamicColor: Flow<Boolean> = dataStore.data.map { it[KEY_DYNAMIC_COLOR] ?: false }
-    suspend fun setDynamicColor(enabled: Boolean) {
-        dataStore.edit { it[KEY_DYNAMIC_COLOR] = enabled }
-    }
-
-    // ========== APP名称 ==========
-    val appName: Flow<String> = dataStore.data.map { it[KEY_APP_NAME] ?: "拾物集" }
-    suspend fun setAppName(name: String) {
-        dataStore.edit { it[KEY_APP_NAME] = name }
     }
 }

@@ -127,12 +127,6 @@ interface ItemDao {
     @Query("SELECT * FROM items WHERE isDeleted = 0 AND status = :status ORDER BY updatedAt DESC")
     fun getItemsByStatus(status: String): Flow<List<ItemEntity>>
 
-    @Query("SELECT * FROM items WHERE isDeleted = 0 AND tags LIKE '%' || :tag || '%' ORDER BY updatedAt DESC")
-    fun getItemsByTag(tag: String): Flow<List<ItemEntity>>
-
-    @Query("SELECT DISTINCT tags FROM items WHERE isDeleted = 0 AND tags != ''")
-    fun getAllTagsRaw(): Flow<List<String>>
-
     @Query("UPDATE items SET status = :status, lastStatusChangedAt = :changedAt WHERE id = :itemId")
     suspend fun updateItemStatus(itemId: Long, status: String, changedAt: Long = System.currentTimeMillis())
 
