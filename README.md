@@ -3,9 +3,9 @@
 > 纯本地私人物品资产管理工具 — 每件宝贝都值得被记录
 
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-6.11.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-7.2.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -39,13 +39,17 @@
 
 ### 资产统计
 
-- 分类资产环形图 (Canvas Donut)
-- 分类多维雷达图 (Canvas + TextMeasurer 字体渲染)
-- 累计购入额趋势线 (Canvas)
-- 月度购入柱状图，≤6 列居中，>6 列横向滚动
-- 分类排名（按金额降序）
-- 时间筛选：全部 / 近三月 / 近半年 / 近一年
-- 仅统计拥有物品（在用+闲置+待修），金额口径 = Σ购入价
+统计页整页以图表呈现，全部用 Canvas + TextMeasurer 自绘，共 7 张卡片 = 1 个资产总览 + 6 张图表（v7.2.0 重做）：
+
+- **资产总览** — 资产总值大数字 + 本月新增 + 环比涨跌徽章 + 纯文字事实行（在持件数 / 分类数 / 平均单价）
+- **资产结构** — 分类环形图（中心显示总资产）配降序明细行，每行含色点、件数、金额、占比与份额条；颜色与圆环严格一一对应
+- **资产净值趋势** — 累计购入额的面积渐变折线，带纵轴金额刻度（万 / 千自动换档），末尾用两行徽标标出当前总资产与近 12 个月增量；横轴按月份等距补空月，不会跳过没买入的月份
+- **月度购入** — 近 12 个自然月柱状图，当月柱高亮、峰值月与当月带金额气泡，并画一条月均虚线做基准
+- **客单价分布** — 五档直方图（<¥500 / ¥500-1K / ¥1-3K / ¥3-10K / ≥¥10K），件数最集中的档位高亮
+- **单品价值 TOP 5** — 上榜物品按金额排序，前三名带金 / 银 / 铜奖牌，进度条取所属分类的身份色，表头显示 TOP5 占资产比例
+- **存放位置分布** — 按金额降序的横向条，标注每个位置的件数与金额
+- 时间筛选：全部 / 近三月 / 近半年 / 近一年，切换后**所有图表同步重算**
+- 仅统计拥有物品（在用+闲置+待修），金额口径 = Σ购入价；不摆小指标卡，能画的数字都画进图里
 
 ### 数据备份
 
@@ -56,11 +60,11 @@
 
 ### 个性化与设置
 
-- 深色 / 浅色 / 跟随系统
+- 显示模式（浅色 / 深色 / 跟随系统）
 - 保修到期提醒（阈值可调）+ 备份提醒开关
-- 缓存清理 + 数据看板
+- 缓存大小显示 + 一键清除缓存
 - 单页新手引导（首次启动，可重置）
-- GitHub Releases 版本更新检测
+- GitHub Releases 版本更新检测（关于页）
 
 ---
 
@@ -81,15 +85,20 @@
 | **首页** | 当前拥有金额 | Σ拥有购价 | ✅ 同步过滤 | — |
 | | 物品总数 | Σ全部未删除物品 | ✅ 同步过滤 | — |
 | | 保修待提醒 | Σ未删除且非已出且保修到期≤阈值 | ❌ 全量 | — |
-| **统计页** | 资产总值 | Σ拥有购价 | ❌ | 购价部分受影响 |
-| | 物品总数 | Σ拥有物品 | ❌ | ✅ |
-| | 分类饼图 | Σ拥有购价按分类 | ❌ | 购价部分受影响 |
-| | 雷达图 | Top 5 分类购价对比 | ❌ | ✅ |
-| | 累计趋势线 | Σ拥有购价按月累计 | ❌ | ✅ |
-| | 月度柱状图 | Σ拥有购价按月份 | ❌ | 购价部分受影响 |
-| | 分类排名 | Σ拥有购价按分类降序 | ❌ | ✅ |
+| **统计页** | 资产总值 | Σ拥有购价 | ❌ | ✅ |
+| | 在持件数 | Σ拥有物品 | ❌ | ✅ |
+| | 平均单价 | 资产总值 ÷ 在持件数 | ❌ | ✅ |
+| | 本月新增 / 环比 | Σ拥有购价且购入日期落在本月 / 上月 | ❌ | ❌ 恒为当月，不受筛选 |
+| | 分类环形图 | Σ拥有购价按分类降序（只列金额 > 0 的分类） | ❌ | ✅ |
+| | 资产净值趋势 | Σ拥有购价按月累计，补空月至本月 | ❌ | ✅ |
+| | 月度购入 | Σ拥有购价按自然月，固定近 12 个月 | ❌ | ✅ |
+| | 客单价分布 | 按单件购价分 5 档计数 | ❌ | ✅ |
+| | 单品价值 TOP 5 | 按单件购价降序取前 5 | ❌ | ✅ |
+| | 存放位置分布 | Σ拥有购价按存放位置降序 | ❌ | ✅ |
 
-> **关键设计决策**：金额口径只有一条 —— 拥有物品（在用 / 闲置 / 待修）的购入价之和。已出 / 丢失的物品一律不计入任何金额，也不再提供售出金额与售出日期的录入（v6.12 移除了该机制）。保修提醒排除已出物品。
+> **关键设计决策**：金额口径只有一条 —— 拥有物品（在用 / 闲置 / 待修）的购入价之和。已出 / 丢失的物品一律不计入任何金额，也不再提供售出金额与售出日期的录入（v7.0.0 移除了该机制）。保修提醒排除已出物品。
+
+> **时间筛选的作用面**：近三月 / 近半年 / 近一年分别按 90 / 180 / 365 天往回取「购入日期」在窗口内的拥有物品，统计页除「本月新增 / 环比」外的所有数字都由这个子集重新算出 —— 切一次筛选，六张图一起变。**没填购入日期的物品只在「全部」下出现**（窗口筛选按 `购入日期 ≥ 截止时间` 判断，空日期自然被排除）。
 
 ---
 
@@ -97,8 +106,9 @@
 
 | 领域 | 方案 | 版本 |
 |:--|:--|:--|
-| 语言 | Kotlin | 2.0 |
-| UI | Jetpack Compose + Material 3 | BOM 2025.06 |
+| 语言 | Kotlin | 2.1.0 |
+| 构建 | AGP / KSP | 8.7.3 / 2.1.0-1.0.29 |
+| UI | Jetpack Compose + Material 3 | BOM 2025.06.00 |
 | 数据库 | Room | 2.6.1 |
 | DI | Hilt | 2.53.1 |
 | 图片 | Coil | 2.7.0 |
@@ -107,7 +117,9 @@
 | 相机 | CameraX | 1.3.4 |
 | 存储 | DataStore Preferences | 1.1.1 |
 | 后台 | WorkManager | 2.10.0 |
-| 图表 | Canvas 自绘 | — |
+| 导航 / 生命周期 | Navigation Compose / Lifecycle | 2.8.5 / 2.8.7 |
+| 图表 | Canvas + TextMeasurer 自绘（无第三方图表库） | — |
+| 测试 | JUnit4 / MockK / Turbine / coroutines-test / Compose UI Test | 4.13.2 / 1.13.13 / 1.2.0 / 1.9.0 / BOM 2025.06.00 |
 | 系统 | Android 12+ (API 31) → 16 (API 36) | |
 
 ---
@@ -120,27 +132,32 @@ app/src/main/java/com/nanji/lootarchive/
 │   ├── local/
 │   │   ├── dao/          7 个 DAO
 │   │   ├── entity/       7 个实体
-│   │   └── database/     AppDatabase (v7, hand-written migrations)
-│   └── repository/       4 个仓库 (Item/Category/Settings/Backup)
-├── di/                   Hilt 模块
+│   │   └── database/     AppDatabase (v7, 手写 Migration)
+│   ├── repository/       4 个仓库 (Item / Category / Settings / Backup)
+│   └── DefaultCategories.kt  内置 10 个分类的初始数据
+├── di/                   Hilt 模块 (AppModule / DatabaseModule)
+├── domain/model/         ItemStatus / ItemWithPhotos
 ├── ui/
-│   ├── additem/          新增/编辑（单屏快记）
+│   ├── about/            关于页 (光斑背景 + 检查更新)
+│   ├── additem/          新增 / 编辑 (单屏快记)
 │   ├── backup/           备份与恢复
-│   ├── camera/           CameraX
+│   ├── camera/           CameraX 应用内拍照
 │   ├── category/         分类管理
-│   ├── component/        GlassPanel / ClayCard / GlassAlertDialog / RadarChart / TrendLineChart / WheelDatePicker
+│   ├── component/        图表与通用组件 — MonthlyBarChart / PriceHistogram / TrendLineChart / GlassComponents / ScrollFade / WheelDatePickerDialog
 │   ├── detail/           物品详情 (照片轮播 + 状态切换)
 │   ├── home/             首页 (便当网格 + 分类筛选 + Hero 统计)
-│   ├── onboarding/       新手引导 (HorizontalPager 5 页)
-│   ├── recyclebin/       回收站 (倒计时 + 还原)
-│   ├── search/           搜索 (三级筛选 + 历史)
+│   ├── liquidglass/      液态玻璃底层 (AGSL 效果链 / 底栏 / 弹窗)
+│   ├── onboarding/       新手引导 (单页)
+│   ├── recyclebin/       回收站 (14 天倒计时 + 还原)
+│   ├── search/           关键词搜索 + 最近搜索
 │   ├── settings/         设置
-│   ├── statistics/       统计图表
-│   ├── theme/            主题 (Liquid Glass 液态玻璃 + Fredoka/Nunito/Mono 字体)
+│   ├── statistics/       统计页 (StatisticsScreen + StatisticsViewModel)
+│   ├── theme/            主题 token (Color / Type / Dimens / Shape / LiquidGlass)
 │   ├── MainScreen.kt     主导航 (3 Tab 底部胶囊)
 │   └── MyLandingScreen.kt 我的页面
-├── util/                 工具类
-└── MainActivity.kt       入口 (引导判断)
+├── util/                 工具类 (价格格式化 / 备份 / Excel / 更新检查 / 图片 …)
+├── worker/               ReminderWorker / TrashCleanupWorker
+└── LootArchiveApp.kt, MainActivity.kt   Application 与入口
 ```
 
 **导航**：自定义状态路由 (`currentRoute` + `backStack`)，`AnimatedContent` 过渡动画。底部 3 Tab（首页 / 统计 / 我的），子页面压栈返回。
@@ -163,7 +180,8 @@ app/src/main/java/com/nanji/lootarchive/
 **字体**：Fredoka (标题) + Nunito (正文) + Monospace (数字/价格)。  
 **图标**：Material Icons Rounded (`Icons.Rounded.*`)，返回键 `AutoMirrored`。  
 **间距**：外层 16dp / 卡片间 12dp / 内部 16dp。  
-**阴影**：卡片 1dp / 悬浮面板 4dp / FAB 6dp / 导航 8dp。
+**阴影**：卡片 1dp / 悬浮面板 4dp / FAB 6dp / 导航 8dp。  
+**图表配色**：`ChartColors` 一组 12 色（`#E8782A` 琥珀 / `#7C3AED` 紫罗兰 / `#10B981` 翠绿 / `#3B82F6` 湛蓝 / `#F59E0B` 金 / `#EF4444` 朱红 / …），暖色优先；统计页按金额名次依次取色，所以第一名永远是主色琥珀，与环形图、明细行、TOP5 进度条共用同一套色。
 
 ---
 
@@ -174,15 +192,18 @@ app/src/main/java/com/nanji/lootarchive/
 |:--|:--|:--|
 | id | Long PK | 自增 |
 | name | String | 名称 |
-| categoryId | Long FK | 分类 |
-| purchasePrice | Double | 价格 |
-| storageLocation | String | 位置 |
-| purchaseDate | Long? | 购入日期 |
-| warrantyExpiryDate | Long? | 保修到期 |
-| warrantyPeriodDays | Int? | 保修天数 |
+| categoryId | Long | 分类 ID（默认 0） |
+| purchasePrice | Double | 购入价 |
+| currency | String | 币种，默认 `CNY` |
+| storageLocation | String | 存放位置 |
+| purchaseDate | Long? | 购入日期（epoch millis） |
+| warrantyExpiryDate | Long? | 保修到期（epoch millis） |
+| warrantyPeriodDays | Int? | 保修天数，用于反算到期日 |
 | description | String | 描述 |
-| isDeleted | Boolean | 软删除 |
+| isDeleted | Boolean | 软删除（回收站标记） |
 | deletedAt | Long? | 删除时间 |
+| createdAt | Long | 创建时间 |
+| updatedAt | Long | 更新时间 |
 | status | String | 状态 (active/idle/sold/repair/lost) |
 | tags | String | 标签 (逗号分隔) |
 | lastStatusChangedAt | Long? | 状态变更时间 |
@@ -233,6 +254,8 @@ app/src/main/java/com/nanji/lootarchive/
 
 另有 `backup_records` 和 `experience_logs` 表。
 
+> **遗留表说明**：`achievements` / `user_profile` / `experience_logs` 三张表及其 DAO、Entity 仍然保留在数据库里（v7.0.0 从「我的」页去掉了等级、经验值与成就徽章之后，UI 与业务逻辑已不再读写它们，全项目除 `AppDatabase` 注册外再无引用）。保留是为了让老版本装机升级时不用重建表、旧数据不丢；新功能不要往这三张表上加东西。
+
 ---
 
 ## 构建
@@ -243,7 +266,9 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v6.11.0.apk`（约 7.9 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v7.2.0.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+
+单测：`./gradlew :app:testDebugUnitTest`。当前 4 个测试类 —— `ItemStatusTest`（状态口径）、`HomeSortTest`（首页排序）、`UpdateUrlValidationTest`（更新链接校验）、`BackupRepositoryZipSlipTest`（备份解压的路径穿越防护）。
 
 ### 自动构建与发布
 
@@ -256,16 +281,18 @@ APK 输出：`LootArchive-release-v6.11.0.apk`（约 7.9 MB，arm64-v8a + armeab
 | `app/build.gradle.kts` | `versionCode`、`versionName` |
 | `version.json` | `versionCode`、`versionName`、`updateDate`、`updateLog`、`apkDownloadUrl` |
 
-`versionCode` 才是 App 判断「有没有新版本」的依据（App 只比较它的大小），`versionName` 只是给人看的。**它必须比上一版大**，写小了或忘了改都不会提示更新 —— CI 会在发布前拦住这两种情况（回退、或改了版本名却忘了调大 `versionCode`）。
+`versionCode` 才是 App 判断「有没有新版本」的依据（App 只比较它的大小），`versionName` 只是给人看的。**它必须比上一版大**，写小了或忘了改都不会提示更新 —— CI 会在发布前拦住这两种情况（回退、或改了版本名却忘了调大 `versionCode`）。本项目的编码习惯是 `主版本 × 1000 + 次版本 × 100 + 修订号`：`7.1.1 → 7101`、`7.2.0 → 7200`。
 
 发一个新版本的完整流程：
 
-1. 改上面两处版本号（例如 `6.12.0` / `712`），并把 `version.json` 的 `updateDate` 改成当天日期
+1. 改上面两处版本号（`7.3.0` 对应 `7300`），并把 `version.json` 的 `updateDate` 改成当天日期
 2. 把 `version.json` 的 `updateLog` 写成面向用户的更新说明（会原样成为 Release 说明）
-3. 把 `apkDownloadUrl` 里的 Tag 目录改成新版本号：`.../releases/download/V6.12.0/LootArchive-release-v6.12.0.apk`
+3. 把 `apkDownloadUrl` 里的 Tag 目录改成新版本号：`.../releases/download/V7.3.0/LootArchive-release-v7.3.0.apk`
 4. 提交并推送 `main`
 
-CI 会构建出正式签名的 Release APK、校验签名指纹、自动打上 `V6.12.0` 标签、发布 Release，并把 APK 挂上去。Tag 名和 APK 文件名都由版本号推导（`V<versionName>` / `LootArchive-release-v<versionName>.apk`），所以不用手写。`updateLog` 会原样作为 Release 说明，保证 App 内「检查更新」的提示和 Release 页一致。
+CI 会构建出正式签名的 Release APK、校验签名指纹、自动打上 `V7.3.0` 标签、发布 Release，并把 APK 挂上去。Tag 名和 APK 文件名都由版本号推导（`V<versionName>` / `LootArchive-release-v<versionName>.apk`），所以不用手写。`updateLog` 会原样作为 Release 说明，保证 App 内「检查更新」的提示和 Release 页一致。
+
+**改 README、改文档这类与发版无关的提交，在提交信息里带上 `[skip ci]` 就不会触发这条流水线**，省一次构建。
 
 只推提交、没改版本号时，CI 会识别出「Tag 已指向别的提交」并跳过发布并告警，不会把旧版本重新发一遍；同一个版本重复推送则会刷新已有 Release，不会出错。同一分支的构建是串行的，连续推两次不会互相抢 Tag。
 
@@ -278,6 +305,19 @@ CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自�
 ---
 
 ## 更新日志
+
+### v7.2.0 (2026-10-12) 统计页换新装
+- **统计页整页重做，改用图表说话**：资产结构环形图、资产净值趋势、月度购入、客单价分布、单品价值 TOP 5、存放位置分布 —— 六张图覆盖原来满屏的数字卡片
+- **去掉重复模块与小指标卡**：删掉分类雷达图（五个轴全是同一维度的金额，等于把排行榜画成圆）、物品状态与保修到期两块；卡片里的 KPI 小方块一并清掉，数字都画进图里
+- **新增客单价分布**：五档直方图（<¥500 / ¥500-1K / ¥1-3K / ¥3-10K / ≥¥10K），件数最集中的档位高亮，一眼看出平时都在买什么价位的东西
+- **新增单品价值 TOP 5**：前三名带金银铜奖牌，进度条用所属分类的颜色，表头直接给出 TOP5 占资产的比例
+- **新增存放位置分布**：东西都堆在哪儿一目了然，按金额降序列出，带上每个位置的件数
+- **资产结构更好读**：环形图中心放总资产，右侧明细行带排名序号、件数、金额、占比与份额条，颜色与圆环一一对应；分类配色改为按金额名次取色，第一名永远是主色
+- **趋势图补空月**：横轴改成按自然月等距推进，只发生过购物的月份不再独占一列（之前半年没买东西，图上完全看不出来）；纵轴补上金额刻度，终点用两行徽标标出当前总资产与近 12 个月增量
+- **月度购入修三处**：金额标签不再被卡片裁掉、横轴固定近 12 个月且当月高亮、加一条月均虚线做基准
+- **平均单价修正**：平均单价不再带小数尾巴
+- **时间筛选全局联动**：切一次筛选，六张图一起重算
+- 统计口径与数据库结构不变，直接覆盖安装即可
 
 ### v7.1.1 (2026-10-12) 修复回收站闪退
 - **修复打开回收站直接闪退**：玻璃按钮与卡片图层互相引用，渲染线程计算图层变换时无限递归（崩溃日志为 RenderThread 上的栈溢出 SIGSEGV）
