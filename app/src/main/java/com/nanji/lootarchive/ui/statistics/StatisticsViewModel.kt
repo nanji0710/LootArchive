@@ -46,12 +46,11 @@ class StatisticsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 itemRepository.getAllItems(),
-                itemRepository.getOwnedValue(),
                 categoryRepository.getAllCategories(),
                 _timeFilter,
                 _refreshCounter
-            ) { items, ownedValue, categories, filter, _ ->
-                // 仅统计当前拥有的物品（在用+闲置+待修）
+            ) { items, categories, filter, _ ->
+                // 金额口径：仅当前拥有（在用/闲置/待修）物品的购入价之和；已出/丢失不计入任何金额
                 val ownedItems = items.filter { ItemStatus.fromCode(it.status).isOwned }
                 val now = System.currentTimeMillis()
                 val cutoff = when (filter) {
