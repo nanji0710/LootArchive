@@ -9,10 +9,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -29,7 +32,11 @@ data class TrendPoint(val label: String, val value: Double)
 
 /**
  * 资产净值趋势折线图 —— 横向可滚动（对齐月度购入趋势模块）。
- * 每月份固定列宽（默认 52dp），初始定位到最新月份；无坐标轴无网格线，仅每列数值+月份标签。
+ * 每月份固定列宽（默认 52dp），初始定位到最新月份。
+ *
+ * v7.1 视觉升级：三条极淡的水平基准线 + 渐变面积（顶部浓、底部透）
+ * + 端点「药丸徽标」直接标出最新累计额，中间点缩小并淡出，
+ * 让视线自然落到最新数值上（参考图里折线终点带数值气泡的做法）。
  */
 @Composable
 fun TrendLineChart(
@@ -41,6 +48,7 @@ fun TrendLineChart(
     if (points.size < 2) return
     val textAux = TextAuxiliary()
     val primary = Primary()
+    val gridColor = textAux.copy(alpha = 0.14f)
     val measurer = rememberTextMeasurer()
     val yStyle = remember(textAux) {
         // 图表坐标标签：10sp 比正文梯子最小档(12sp)还小，因为它要挤在
@@ -55,6 +63,12 @@ fun TrendLineChart(
             fontFamily = FredokaFont, fontSize = 10.sp, color = textAux, fontWeight = FontWeight.Normal
         )
     }
+    // 端点徽标：白字压在主题色药丸上，字重加粗一档
+    val badgeStyle = remember {
+        AppTypography.labelSmall.copy(
+            fontFamily = FredokaFont, fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.SemiBold
+        )
+    }
 
     val scrollState = rememberScrollState()
     // 布局完成后滚动到最右：初始显示最新月份
@@ -64,7 +78,7 @@ fun TrendLineChart(
 
     val maxVal = points.maxOf { it.value }.coerceAtLeast(1.0)
     val range = maxVal.coerceAtLeast(1.0)
-    val padT = 40f; val pb = 24f
+    val padT = 46f; val pb = 26f
 
     Row(
         modifier = modifier.fillMaxWidth().height(sizeDp.dp).horizontalScroll(scrollState),
@@ -74,33 +88,64 @@ fun TrendLineChart(
             val w = size.width; val h = size.height
             val ch = h - padT - pb
             val colW = w / points.size
+            val baseY = padT + ch
+
+            // 基准线：0 / 50% / 100% 三条，极淡 —— 只提供"读数参考系"，不抢图形
+            listOf(0f, 0.5f, 1f).forEach { ratio ->
+                val y = baseY - ch * ratio
+                drawLine(gridColor, Offset(0f, y), Offset(w, y), strokeWidth = 1f)
+            }
+
             val path = Path()
             points.forEachIndexed { i, pt ->
-                val x = colW * i + colW / 2f; val y = padT + ch - ((pt.value / range) * ch).toFloat()
+                val x = colW * i + colW / 2f; val y = baseY - ((pt.value / range) * ch).toFloat()
                 if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
             }
-            drawPath(path, primary, style = Stroke(3f))
+            // 渐变面积：贴线处最浓，落到底线完全透明
             val fp = Path(); fp.addPath(path)
-            fp.lineTo(colW * (points.size - 1) + colW / 2f, padT + ch)
-            fp.lineTo(colW / 2f, padT + ch); fp.close()
-            drawPath(fp, primary.copy(alpha = 0.12f))
-            points.forEachIndexed { i, pt ->
-                val x = colW * i + colW / 2f; val y = padT + ch - ((pt.value / range) * ch).toFloat()
-                drawCircle(primary, 5f, Offset(x, y))
-                val vl = measurer.measure(FormatUtil.formatPriceShort(pt.value), yStyle)
-                drawText(
-                    vl,
-                    topLeft = Offset(
-                        (x - vl.size.width / 2f).coerceIn(0f, (w - vl.size.width).coerceAtLeast(0f)),
-                        (y - 16f - vl.size.height).coerceAtLeast(0f)
-                    )
+            fp.lineTo(colW * (points.size - 1) + colW / 2f, baseY)
+            fp.lineTo(colW / 2f, baseY); fp.close()
+            drawPath(
+                fp,
+                Brush.verticalGradient(
+                    colors = listOf(primary.copy(alpha = 0.30f), primary.copy(alpha = 0.02f)),
+                    startY = 0f,
+                    endY = baseY
                 )
+            )
+            drawPath(path, primary, style = Stroke(3f))
+
+            points.forEachIndexed { i, pt ->
+                val x = colW * i + colW / 2f; val y = baseY - ((pt.value / range) * ch).toFloat()
+                val isLast = i == points.lastIndex
+                if (isLast) {
+                    // 端点：白圈衬托 + 实心点 + 数值药丸
+                    drawCircle(Color.White.copy(alpha = 0.9f), 8f, Offset(x, y))
+                    drawCircle(primary, 5.5f, Offset(x, y))
+                    val bl = measurer.measure(FormatUtil.formatPriceFull(pt.value), badgeStyle)
+                    val bw = bl.size.width + 18f
+                    val bh = bl.size.height + 10f
+                    val bx = (x - bw / 2f).coerceIn(0f, (w - bw).coerceAtLeast(0f))
+                    val by = (y - 16f - bh).coerceIn(0f, (h - bh).coerceAtLeast(0f))
+                    drawRoundRect(primary, Offset(bx, by), Size(bw, bh), CornerRadius(bh / 2f))
+                    drawText(bl, topLeft = Offset(bx + 9f, by + 5f))
+                } else {
+                    drawCircle(primary.copy(alpha = 0.85f), 3.5f, Offset(x, y))
+                    val vl = measurer.measure(FormatUtil.formatPriceShort(pt.value), yStyle)
+                    drawText(
+                        vl,
+                        topLeft = Offset(
+                            (x - vl.size.width / 2f).coerceIn(0f, (w - vl.size.width).coerceAtLeast(0f)),
+                            (y - 14f - vl.size.height).coerceAtLeast(0f)
+                        )
+                    )
+                }
                 val xl = measurer.measure(pt.label, xStyle)
                 drawText(
                     xl,
                     topLeft = Offset(
                         (x - xl.size.width / 2f).coerceIn(0f, (w - xl.size.width).coerceAtLeast(0f)),
-                        padT + ch + 8f
+                        baseY + 8f
                     )
                 )
             }

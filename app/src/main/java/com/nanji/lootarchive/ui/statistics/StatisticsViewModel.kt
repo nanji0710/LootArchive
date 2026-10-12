@@ -22,6 +22,9 @@ data class StatisticsUiState(
     val isLoading: Boolean = true,
     val totalCount: Int = 0,
     val totalValue: Double = 0.0,
+    // v7.1 资产总览 Hero：本月 / 上月新增购入额（口径与资产一致，只算拥有物品；不受时间筛选影响）
+    val monthPurchases: Double = 0.0,
+    val prevMonthPurchases: Double = 0.0,
     val currency: String = "CNY",
     val categorySummaries: List<CategorySummary> = emptyList(),
     val items: List<ItemEntity> = emptyList(),
@@ -65,10 +68,26 @@ class StatisticsViewModel @Inject constructor(
                     CategorySummary(cat, catItems.size, catItems.sumOf { it.purchasePrice })
                 }.filter { it.totalValue > 0 } // 只展示有金额的分类
                 val filteredTotalValue = filteredItems.sumOf { it.purchasePrice }
+                // 本月 / 上月新增购入额的日历边界
+                val cal = java.util.Calendar.getInstance()
+                cal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                cal.set(java.util.Calendar.MINUTE, 0)
+                cal.set(java.util.Calendar.SECOND, 0)
+                cal.set(java.util.Calendar.MILLISECOND, 0)
+                val monthStart = cal.timeInMillis
+                cal.add(java.util.Calendar.MONTH, -1)
+                val prevMonthStart = cal.timeInMillis
+                val monthPurchases = ownedItems.filter { (it.purchaseDate ?: 0L) >= monthStart }.sumOf { it.purchasePrice }
+                val prevMonthPurchases = ownedItems
+                    .filter { val d = it.purchaseDate ?: 0L; d in prevMonthStart until monthStart }
+                    .sumOf { it.purchasePrice }
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = filteredItems.size,
                     totalValue = filteredTotalValue,
+                    monthPurchases = monthPurchases,
+                    prevMonthPurchases = prevMonthPurchases,
                     categorySummaries = summaries,
                     items = filteredItems,
                     timeFilter = filter
