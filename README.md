@@ -120,12 +120,11 @@ app/src/main/java/com/nanji/lootarchive/
 │   ├── local/
 │   │   ├── dao/          7 个 DAO
 │   │   ├── entity/       7 个实体
-│   │   └── database/     AppDatabase (v6, hand-written migrations)
-│   ├── repository/       4 个仓库 (Item/Category/Settings/Backup)
-│   └── ExpService.kt     EXP + 成就引擎
+│   │   └── database/     AppDatabase (v7, hand-written migrations)
+│   └── repository/       4 个仓库 (Item/Category/Settings/Backup)
 ├── di/                   Hilt 模块
 ├── ui/
-│   ├── additem/          新增/编辑 (三步骤向导)
+│   ├── additem/          新增/编辑（单屏快记）
 │   ├── backup/           备份与恢复
 │   ├── camera/           CameraX
 │   ├── category/         分类管理
