@@ -82,9 +82,6 @@ interface ItemDao {
     @Query("SELECT COALESCE(SUM(purchasePrice), 0) FROM items WHERE isDeleted = 0 AND status IN ('active','idle','repair')")
     suspend fun getOwnedValueSync(): Double
 
-    @Query("SELECT COALESCE(SUM(salePrice), 0) FROM items WHERE isDeleted = 0 AND status = 'sold'")
-    suspend fun getTotalSaleRevenue(): Double
-
     @Query("SELECT COUNT(*) FROM items WHERE isDeleted = 0 AND description != '' AND description IS NOT NULL")
     suspend fun getItemsWithDescriptionCount(): Int
 
@@ -136,4 +133,15 @@ interface ItemDao {
         ORDER BY updatedAt DESC
     """)
     fun searchItemsWithTags(keyword: String): Flow<List<ItemEntity>>
+
+    // ========== v6.12 最近使用位置（新增物品页联想） ==========
+
+    @Query("""
+        SELECT storageLocation FROM items
+        WHERE isDeleted = 0 AND storageLocation != ''
+        GROUP BY storageLocation
+        ORDER BY MAX(updatedAt) DESC
+        LIMIT :limit
+    """)
+    suspend fun getRecentLocations(limit: Int = 3): List<String>
 }

@@ -13,11 +13,9 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import android.content.Intent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -31,7 +29,6 @@ import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.topFade
-import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentOption
 import com.nanji.lootarchive.ui.liquidglass.LiquidSegmentedControl
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
@@ -41,9 +38,7 @@ import com.nanji.lootarchive.ui.component.RadarChart
 import com.nanji.lootarchive.ui.theme.*
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.util.FormatUtil
-import com.nanji.lootarchive.util.csvEscape
 import java.text.NumberFormat
 import kotlinx.coroutines.launch
 
@@ -140,17 +135,6 @@ fun StatisticsScreen(
                                 showSelectionShadow = false
                             )
                         }
-                        // v6.6 已出收益（仅>0时显示）
-                        if (uiState.saleRevenue > 0) {
-                            Spacer(Modifier.height(12.dp))
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.AutoMirrored.Rounded.TrendingUp, null, Modifier.size(16.dp), tint = StatusSold)
-                                Spacer(Modifier.width(6.dp))
-                                Text("售出收益", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(), fontFamily = FredokaFont)
-                                Spacer(Modifier.weight(1f))
-                                Text("+¥${numberFormat.format(uiState.saleRevenue)}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = StatusSold, fontFamily = MonoFont)
-                            }
-                        }
                     }
                 }
 
@@ -160,7 +144,7 @@ fun StatisticsScreen(
                         Text("分类资产分布", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
                         Spacer(Modifier.height(16.dp))
                         val catTotal = uiState.categorySummaries.sumOf { it.totalValue }
-                            val totalForPie = catTotal + uiState.saleRevenue
+                            val totalForPie = catTotal
                             Box(
                                 Modifier.fillMaxWidth().height(160.dp)
                                     // Canvas 图表对无障碍不可读，提供图例摘要供 TalkBack 朗读
@@ -171,18 +155,13 @@ fun StatisticsScreen(
                                                 append(' ').append(if (totalForPie > 0) (s.totalValue / totalForPie * 100).toInt() else 0).append('%')
                                                 append('，')
                                             }
-                                            if (uiState.saleRevenue > 0) {
-                                                append("售出收益")
-                                                append(if (totalForPie > 0) (uiState.saleRevenue / totalForPie * 100).toInt() else 0).append('%')
-                                            }
                                         }
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
                             val holeColor = CardBg()
                             val sweeps = uiState.categorySummaries.map { if (totalForPie > 0) (it.totalValue / totalForPie * 360f).toFloat() else 0f }.toMutableList()
-                            if (uiState.saleRevenue > 0) sweeps.add((uiState.saleRevenue / totalForPie * 360f).toFloat())
-                            Canvas(Modifier.size(140.dp)) { var sa = -90f; sweeps.forEachIndexed { i, sw -> if (sw > 0) { val c = if (uiState.saleRevenue > 0 && i == sweeps.lastIndex) StatusSold else ChartColors[i % ChartColors.size]; drawArc(c, sa, sw, true, Offset.Zero, Size(size.width, size.height)); sa += sw } }; drawCircle(holeColor, size.width * 0.28f) }
+                            Canvas(Modifier.size(140.dp)) { var sa = -90f; sweeps.forEachIndexed { i, sw -> if (sw > 0) { val c = ChartColors[i % ChartColors.size]; drawArc(c, sa, sw, true, Offset.Zero, Size(size.width, size.height)); sa += sw } }; drawCircle(holeColor, size.width * 0.28f) }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(FormatUtil.formatPriceShort(uiState.totalValue), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
                                 Text("总资产", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont)
@@ -190,9 +169,6 @@ fun StatisticsScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                         uiState.categorySummaries.forEachIndexed { i, s -> Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), AppShape.chip, color = ChartColors[i % ChartColors.size]) {}; Spacer(Modifier.width(10.dp)); Text(s.category.name, style = MaterialTheme.typography.bodySmall, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(s.totalValue)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, color = Primary(), fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (s.totalValue / totalForPie * 100).toInt() else 0}%", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont) } }
-                        if (uiState.saleRevenue > 0) {
-                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Surface(Modifier.size(10.dp), AppShape.chip, color = StatusSold) {}; Spacer(Modifier.width(10.dp)); Text("售出收益", style = MaterialTheme.typography.bodySmall, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont); Text("¥${numberFormat.format(uiState.saleRevenue)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, color = StatusSold, fontFamily = FredokaFont); Spacer(Modifier.width(6.dp)); Text("${if (totalForPie > 0) (uiState.saleRevenue / totalForPie * 100).toInt() else 0}%", style = MaterialTheme.typography.labelSmall, color = TextAuxiliary(), fontFamily = FredokaFont) }
-                        }
                     }
                 }
 
@@ -212,21 +188,17 @@ fun StatisticsScreen(
                     }
                 }
 
-                // ── v5.4 资产净值趋势折线图（累计值，含售出收益）──
+                // ── v5.4 资产净值趋势折线图（累计购入额）──
                 val tSdf = java.text.SimpleDateFormat("yy/MM", java.util.Locale.getDefault())
                 val purchaseMap = uiState.items
                     .filter { it.purchaseDate != null }
                     .groupBy { tSdf.format(java.util.Date(it.purchaseDate!!)) }
                     .mapValues { it.value.sumOf { i -> i.purchasePrice } }
-                val saleMap = uiState.allItems
-                    .filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && it.saleDate != null && it.salePrice != null }
-                    .groupBy { tSdf.format(java.util.Date(it.saleDate!!)) }
-                    .mapValues { it.value.sumOf { i -> i.salePrice!! } }
-                val allTrendMonths = (purchaseMap.keys + saleMap.keys).distinct().sorted()
+                val allTrendMonths = purchaseMap.keys.sorted()
                 val trendPoints = if (allTrendMonths.size >= 2) {
                     var runningTotal = 0.0
                     allTrendMonths.map { m ->
-                        runningTotal += (purchaseMap[m] ?: 0.0) + (saleMap[m] ?: 0.0)
+                        runningTotal += purchaseMap[m] ?: 0.0
                         com.nanji.lootarchive.ui.component.TrendPoint(m, runningTotal)
                     }
                 } else emptyList()
@@ -249,11 +221,8 @@ fun StatisticsScreen(
                         val purchaseByMonth = uiState.items.filter { it.purchaseDate != null }
                             .groupBy { sdf.format(java.util.Date(it.purchaseDate!!)) }
                             .mapValues { it.value.sumOf { i -> i.purchasePrice } }
-                        val saleByMonth = uiState.allItems.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && it.saleDate != null && it.salePrice != null }
-                            .groupBy { sdf.format(java.util.Date(it.saleDate!!)) }
-                            .mapValues { it.value.sumOf { i -> i.salePrice!! } }
-                        val allMonths = (purchaseByMonth.keys + saleByMonth.keys).distinct().sorted().takeLast(12)
-                        val md = allMonths.map { m -> m to ((purchaseByMonth[m] ?: 0.0) + (saleByMonth[m] ?: 0.0)) }
+                        val allMonths = purchaseByMonth.keys.sorted().takeLast(12)
+                        val md = allMonths.map { m -> m to (purchaseByMonth[m] ?: 0.0) }
                         if (md.isEmpty()) Text("暂无购入数据", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary(), fontFamily = FredokaFont)
                         else {
                             val mv = md.maxOfOrNull { it.second }?.coerceAtLeast(1.0) ?: 1.0
@@ -307,69 +276,6 @@ fun StatisticsScreen(
                         }
                     }
                 }
-                // ── v5.4 导出CSV ──
-                val context = LocalContext.current
-                GlassSurface {
-                    Column(Modifier.padding(CardPadding)) {
-                        Text("数据导出", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, maxLines = 1)
-                        Spacer(Modifier.height(12.dp))
-                        var showExportDone by remember { mutableStateOf(false) }
-                        // ── 导出 CSV（液态玻璃按钮）──
-                        val exportBrush = backgroundBrush()
-                        val exportBackdrop = rememberLayerBackdrop {
-                            drawRect(brush = exportBrush)
-                            drawContent()
-                        }
-                        Box(Modifier.fillMaxWidth()) {
-                            Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .layerBackdrop(exportBackdrop)
-                            )
-                            LiquidGlassButton(
-                                onClick = {
-                                    try {
-                                        val csv = buildString {
-                                            appendLine("名称,分类,价格,位置,购入日期,状态,标签")
-                                            uiState.items.forEach { item ->
-                                                val cat = uiState.categorySummaries.find { it.category.id == item.categoryId }?.category?.name ?: "未知"
-                                                val date = item.purchaseDate?.let { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: ""
-                                                appendLine(listOf(item.name, cat, item.purchasePrice.toString(), item.storageLocation, date, item.status, item.tags).joinToString(",") { csvEscape(it) })
-                                            }
-                                        }
-                                        val fileName = "物品资产_${java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())}.csv"
-                                        val file = java.io.File(context.cacheDir, fileName)
-                                        file.writeText(csv, java.nio.charset.Charset.forName("UTF-8"))
-                                        val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                            type = "text/csv"
-                                            putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                        }
-                                        context.startActivity(android.content.Intent.createChooser(intent, "导出CSV文件"))
-                                        showExportDone = true
-                                    } catch (e: Exception) {
-                                        android.widget.Toast.makeText(context, "导出失败: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                backdrop = exportBackdrop,
-                                modifier = Modifier.fillMaxWidth(),
-                                height = 48.dp,
-                                tint = Primary()
-                            ) {
-                                Icon(Icons.Rounded.FileDownload, null, Modifier.size(18.dp), tint = Color.White)
-                                Spacer(Modifier.width(8.dp))
-                                Text("导出 CSV", color = Color.White, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                            }
-                        }
-                        if (showExportDone) {
-                            Spacer(Modifier.height(6.dp))
-                            Text("CSV已生成，请选择分享方式", style = MaterialTheme.typography.labelSmall, color = Primary())
-                        }
-                    }
-                }
-
                 Spacer(Modifier.height(AppSpacing.bottomBarClearance))
             }
             }

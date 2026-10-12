@@ -22,8 +22,7 @@ data class HomeUiState(
     /** 保修待提醒明细 —— 与 [warrantyExpiringCount] 同源（DAO 已剔除已出、按到期日升序） */
     val warrantyExpiringItems: List<ItemEntity> = emptyList(),
     val warrantyReminderDays: Int = 7,
-    val currency: String = "CNY",
-    val saleRevenue: Double = 0.0
+    val currency: String = "CNY"
 )
 
 @HiltViewModel
@@ -53,13 +52,12 @@ class HomeViewModel @Inject constructor(
                 ) { items, count, value, expiringItems, currency ->
                     // 批量取首图，避免逐物品 N+1 查询
                     val paths = try { itemRepository.getAllFirstPhotos() } catch (e: Exception) { android.util.Log.e("HomeVM", "Load photos failed", e); emptyMap() }
-                    val saleRev = items.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
                     HomeUiState(
                         isLoading = false, items = items, photoPaths = paths,
                         totalCount = count, totalValue = value,
                         warrantyExpiringCount = expiringItems.size, warrantyExpiringItems = expiringItems,
                         warrantyReminderDays = reminderDays.toInt(),
-                        currency = currency, saleRevenue = saleRev
+                        currency = currency
                     )
                 }.catch { e ->
                     android.util.Log.e("HomeVM", "loadData failed", e)

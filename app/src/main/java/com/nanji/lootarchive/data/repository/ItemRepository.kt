@@ -135,9 +135,10 @@ class ItemRepository @Inject constructor(
     /**
      * 保存物品及照片（新建/编辑）。文件删除在 IO 线程，DB 写入在事务内原子执行。
      * item.id == 0 → 新建；否则编辑（先删旧照片记录再重建）。
+     * @return 保存后的物品 id（新建为自增主键，编辑为 item.id）——保存后动作条（补照片/撤销）需要它。
      */
-    suspend fun saveItemWithPhotos(item: ItemEntity, photoPaths: List<String>) {
-        if (item.id == 0L) {
+    suspend fun saveItemWithPhotos(item: ItemEntity, photoPaths: List<String>): Long {
+        return if (item.id == 0L) {
             val id = database.withTransaction { itemDao.insertItem(item) }
             database.withTransaction {
                 itemPhotoDao.insertPhotos(
@@ -146,6 +147,7 @@ class ItemRepository @Inject constructor(
                     }
                 )
             }
+            id
         } else {
             val oldPaths = itemPhotoDao.getPhotosByItemIdOnce(item.id).map { it.photoPath }.toSet()
             val toDelete = oldPaths - photoPaths.toSet()
@@ -159,6 +161,7 @@ class ItemRepository @Inject constructor(
                 )
                 itemDao.updateItem(item)
             }
+            item.id
         }
     }
 
@@ -177,12 +180,17 @@ class ItemRepository @Inject constructor(
 
     suspend fun getAllPhotos(): List<ItemPhotoEntity> = itemPhotoDao.getAllPhotos()
 
+    /** 最近使用过的存放位置（最多 limit 条），供新增物品页位置联想。 */
+    suspend fun getRecentLocations(limit: Int = 3): List<String> = itemDao.getRecentLocations(limit)
+
     suspend fun addPhotosForItem(itemId: Long, photoFiles: List<java.io.File>) {
+        // 追加到已有照片之后：起始序号取现有照片数，避免与既有 sortOrder 冲突（此前从 0 起会导致顺序错乱）
+        val startOrder = itemPhotoDao.getPhotosByItemIdOnce(itemId).size
         val photos = photoFiles.mapIndexed { index, file ->
             ItemPhotoEntity(
                 itemId = itemId,
                 photoPath = file.absolutePath,
-                sortOrder = index
+                sortOrder = startOrder + index
             )
         }
         addPhotos(photos)

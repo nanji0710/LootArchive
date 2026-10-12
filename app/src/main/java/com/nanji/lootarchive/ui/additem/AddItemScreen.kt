@@ -3,30 +3,34 @@ package com.nanji.lootarchive.ui.additem
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.kyant.backdrop.backdrops.layerBackdrop
@@ -37,12 +41,23 @@ import com.nanji.lootarchive.ui.component.WheelDatePickerDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
+import com.nanji.lootarchive.util.LocationSuggestions
 import com.nanji.lootarchive.util.PhotoUtil
+import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * 新增/编辑物品 —— v6.12 单屏快记。
+ *
+ * 设计要点（对应 docs/additem-flow-simplification.md）：
+ * - 只有「名称」必填；价格必填（价值统计的基准），其余全部可选。
+ * - 一屏完成：照片条 → 名称 → 价格 → （可选）更多信息折叠区 → 保存。
+ * - 保存后留在页面，露出动作条：再记一件 / 拍照补图 / 相册补图 / 撤销（软删除，可还原）。
+ * - 编辑模式沿用同一屏，「更多信息」默认展开，保存后直接返回。
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AddItemScreen(
     editItemId: Long? = null,
@@ -53,59 +68,64 @@ fun AddItemScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val keyboard = LocalSoftwareKeyboardController.current
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    val todayText = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val nameFocus = remember { FocusRequester() }
+    val priceFocus = remember { FocusRequester() }
 
     var showPurchaseDatePicker by remember { mutableStateOf(false) }
-    var showSaleDatePicker by remember { mutableStateOf(false) }
     var showWarrantyDatePicker by remember { mutableStateOf(false) }
-    // v5.0: Step wizard state
-    var currentStep by remember { mutableIntStateOf(0) }
+    var showCustomWarranty by remember { mutableStateOf(false) }
+
+    // 表单会话入口：新增页进入、编辑页进入都从这里开始（替代旧的 resetForm 时序）
+    LaunchedEffect(editItemId) { viewModel.startSession(editItemId) }
+
+    // 拍照回传：未保存 → 进表单照片条；已保存 → 直接补到刚保存的物品
+    LaunchedEffect(photoSession) {
+        if (photoSession > 0) {
+            val paths = com.nanji.lootarchive.util.PhotoQueue.consume()
+            if (paths.isNotEmpty()) viewModel.onPhotosPicked(paths)
+        }
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
-        uris.forEach { uri ->
-            PhotoUtil.savePhotoFromUri(context, uri)?.let { path -> viewModel.addPhotoPath(path) }
+        val paths = uris.mapNotNull { PhotoUtil.savePhotoFromUri(context, it) }
+        if (paths.isNotEmpty()) viewModel.onPhotosPicked(paths)
+    }
+
+    // 编辑模式字段多，默认展开「更多信息」
+    LaunchedEffect(uiState.isEditMode) { if (uiState.isEditMode) viewModel.setMoreExpanded(true) }
+
+    // 新增：自动聚焦名称（编辑模式不抢焦点，避免键盘盖住回填内容）
+    LaunchedEffect(uiState.isEditMode, uiState.savedItemId) {
+        if (!uiState.isEditMode && uiState.savedItemId == null) {
+            delay(180)
+            runCatching { nameFocus.requestFocus() }
         }
     }
 
-    var didInit by remember { mutableStateOf(false) }
-    LaunchedEffect(editItemId) {
-        if (!didInit) { viewModel.initEditMode(editItemId); didInit = true }
-    }
+    // 编辑保存后返回；新增保存后留在页面显示动作条
+    LaunchedEffect(uiState.isSaved) { if (uiState.isSaved && uiState.isEditMode) onNavigateBack() }
 
-    DisposableEffect(Unit) {
-        onDispose { viewModel.resetForm() }
-    }
-
-    LaunchedEffect(photoSession) {
-        if (photoSession > 0) {
-            val paths = com.nanji.lootarchive.util.PhotoQueue.consume()
-            paths.forEach { path -> viewModel.addPhotoPath(path) }
+    // 轻提示自动消失
+    LaunchedEffect(uiState.infoMessage) {
+        if (uiState.infoMessage != null) {
+            delay(2600)
+            viewModel.clearInfoMessage()
         }
     }
-    LaunchedEffect(uiState.isSaved) { if (uiState.isSaved) onNavigateBack() }
 
-    // R2: 向导按钮局部捕获层（每行独立，禁止采样页面层）
-    val wizardRowBrush = backgroundBrush()
-    val saveRowBackdrop = rememberLayerBackdrop {
-        drawRect(brush = wizardRowBrush)
+    val rowBrush = backgroundBrush()
+    val topRowBackdrop = rememberLayerBackdrop {
+        drawRect(brush = rowBrush)
         drawContent()
     }
-    val step1RowBackdrop = rememberLayerBackdrop {
-        drawRect(brush = wizardRowBrush)
-        drawContent()
-    }
-    val step1NextRowBackdrop = rememberLayerBackdrop {
-        drawRect(brush = wizardRowBrush)
-        drawContent()
-    }
-    val step2RowBackdrop = rememberLayerBackdrop {
-        drawRect(brush = wizardRowBrush)
-        drawContent()
-    }
-    val step3RowBackdrop = rememberLayerBackdrop {
-        drawRect(brush = wizardRowBrush)
+    val actionBarBackdrop = rememberLayerBackdrop {
+        drawRect(brush = rowBrush)
         drawContent()
     }
 
@@ -113,27 +133,34 @@ fun AddItemScreen(
         topBar = {
             Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 6.dp, vertical = 8.dp)) {
                 Row(
-                    Modifier.fillMaxWidth().layerBackdrop(saveRowBackdrop),
+                    Modifier.fillMaxWidth().layerBackdrop(topRowBackdrop),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { viewModel.onScreenDisposed(); onNavigateBack() }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary())
                     }
                     Text(
                         if (uiState.isEditMode) "编辑物品" else "新增物品",
-                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(),
-                        modifier = Modifier.weight(1f), fontFamily = FredokaFont
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont
                     )
                     Spacer(Modifier.width(90.dp))
                 }
                 LiquidGlassButton(
-                    onClick = { viewModel.saveItem() },
-                    backdrop = saveRowBackdrop,
+                    onClick = {
+                        keyboard?.hide()
+                        viewModel.saveItem()
+                    },
+                    backdrop = topRowBackdrop,
                     enabled = !uiState.isLoading,
                     height = 36.dp,
                     horizontalPadding = 14.dp,
                     modifier = Modifier.align(Alignment.CenterEnd)
                 ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(Modifier.size(14.dp), color = Primary(), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(6.dp))
+                    }
                     Text("保存", color = Primary(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                 }
             }
@@ -144,34 +171,6 @@ fun AddItemScreen(
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // v5.0: Step Indicator
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                for (i in 0..2) {
-                    Surface(
-                        Modifier.size(if (i == currentStep) 12.dp else 10.dp),
-                        AppShape.chip,
-                        color = when {
-                            i < currentStep -> Color(0xFF10B981)
-                            i == currentStep -> Primary()
-                            else -> TextAuxiliary().copy(alpha = 0.25f)
-                        }
-                    ) {}
-                    if (i < 2) {
-                        Spacer(Modifier.width(6.dp))
-                        Surface(
-                            Modifier.width(28.dp).height(2.dp),
-                            AppShape.bar,
-                            color = if (i < currentStep) Color(0xFF10B981) else TextAuxiliary().copy(alpha = 0.15f)
-                        ) {}
-                        Spacer(Modifier.width(6.dp))
-                    }
-                }
-            }
-            // 错误提示 — 置于表单顶部，任何步骤保存失败都立即可见
             if (uiState.errorMessage != null) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
@@ -180,379 +179,449 @@ fun AddItemScreen(
                     Text(uiState.errorMessage!!, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(
-                    when (currentStep) {
-                        0 -> "照片"
-                        1 -> "📝 详情"
-                        else -> "📍 位置与保修"
-                    },
-                    style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium,
-                    color = Primary()
+
+            if (uiState.infoMessage != null) {
+                Surface(color = Primary().copy(alpha = 0.12f), shape = AppShape.panel) {
+                    Text(
+                        uiState.infoMessage!!,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        style = MaterialTheme.typography.bodySmall, color = Primary(), fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            // ── 照片条（选填，可后补）──
+            ClayCard {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("照片", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                    Spacer(Modifier.weight(1f))
+                    LiquidGlassButton(
+                        onClick = onNavigateToCamera,
+                        backdrop = topRowBackdrop,
+                        height = 34.dp,
+                        horizontalPadding = 12.dp
+                    ) {
+                        Icon(Icons.Rounded.CameraAlt, null, Modifier.size(15.dp), tint = Primary())
+                        Spacer(Modifier.width(4.dp))
+                        Text("拍照", color = Primary(), style = MaterialTheme.typography.bodySmall)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    LiquidGlassButton(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        backdrop = topRowBackdrop,
+                        height = 34.dp,
+                        horizontalPadding = 12.dp
+                    ) {
+                        Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(15.dp), tint = TextPrimary())
+                        Spacer(Modifier.width(4.dp))
+                        Text("相册", color = TextPrimary(), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                if (uiState.photoPaths.isNotEmpty()) {
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        uiState.photoPaths.forEach { path ->
+                            Box(modifier = Modifier.size(72.dp)) {
+                                AsyncImage(
+                                    model = File(path), contentDescription = "物品照片",
+                                    modifier = Modifier.fillMaxSize().clip(AppShape.panel),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Box(
+                                    modifier = Modifier.align(Alignment.TopEnd).size(48.dp),
+                                    contentAlignment = Alignment.TopEnd
+                                ) {
+                                    Box(
+                                        modifier = Modifier.size(24.dp)
+                                            .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(bottomStart = AppRadius.md))
+                                            .clickable { viewModel.removePhotoPath(path) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Rounded.Close, "删除", modifier = Modifier.size(14.dp), tint = Color.White)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── 快记：名称（必填）+ 价格（必填）──
+            ClayCard {
+                OutlinedTextField(
+                    value = uiState.name,
+                    onValueChange = viewModel::updateName,
+                    label = { Text("物品名称 *") },
+                    placeholder = { Text("如: MacBook Pro 2024") },
+                    isError = uiState.nameError != null,
+                    supportingText = uiState.nameError?.let { { Text(it) } },
+                    modifier = Modifier.fillMaxWidth().focusRequester(nameFocus),
+                    singleLine = true,
+                    shape = AppShape.panel,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { runCatching { priceFocus.requestFocus() } })
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = uiState.purchasePrice,
+                    onValueChange = viewModel::updatePurchasePrice,
+                    label = { Text("购入价格 *") },
+                    placeholder = { Text("0.00") },
+                    isError = uiState.priceError != null,
+                    supportingText = uiState.priceError?.let { { Text(it) } },
+                    modifier = Modifier.fillMaxWidth().focusRequester(priceFocus),
+                    singleLine = true,
+                    shape = AppShape.panel,
+                    leadingIcon = { Text("¥", color = Primary(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineSmall) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        keyboard?.hide()
+                        viewModel.saveItem()
+                    })
                 )
             }
 
-            Spacer(Modifier.height(4.dp))
+            // ── 更多信息（选填，默认收起）──
+            ClayCard {
+                Row(
+                    Modifier.fillMaxWidth().clickable { viewModel.setMoreExpanded(!uiState.moreExpanded) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.Tune, null, Modifier.size(18.dp), tint = Primary())
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (uiState.moreExpanded) "收起更多信息" else "更多信息（选填）",
+                            style = MaterialTheme.typography.bodyMedium, color = TextPrimary(), fontWeight = FontWeight.Medium
+                        )
+                        if (!uiState.moreExpanded) {
+                            Text(
+                                "分类 · 状态 · 位置 · 日期 · 保修 · 描述",
+                                style = MaterialTheme.typography.labelSmall, color = TextAuxiliary()
+                            )
+                        }
+                    }
+                    Icon(
+                        if (uiState.moreExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                        null, Modifier.size(20.dp), tint = TextAuxiliary()
+                    )
+                }
+            }
 
-            // ── Step 0: 照片 ──
-            if (currentStep == 0) {
-                ClayCard {
-                    Text("物品照片", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont)
-                    Spacer(Modifier.height(12.dp))
-
-                    if (uiState.photoPaths.isEmpty()) {
-                        Text("点击下方按钮添加照片", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(), modifier = Modifier.padding(vertical = 16.dp))
-                    } else {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            uiState.photoPaths.take(4).forEach { path ->
-                                Box(modifier = Modifier.size(90.dp)) {
-                                    AsyncImage(
-                                        model = File(path), contentDescription = "物品照片",
-                                        modifier = Modifier.fillMaxSize().clip(AppShape.panel),
-                                        contentScale = ContentScale.Crop
+            AnimatedVisibility(visible = uiState.moreExpanded) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // 分类
+                    ClayCard {
+                        Text("所属分类", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                        Spacer(Modifier.height(10.dp))
+                        if (uiState.categories.isEmpty()) {
+                            Text("暂无分类", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                uiState.categories.forEach { category ->
+                                    FilterChip(
+                                        selected = uiState.categoryId == category.id,
+                                        onClick = { viewModel.updateCategoryId(category.id) },
+                                        label = { Text(category.name, style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                        shape = AppShape.thumb,
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                            selectedLabelColor = Primary()
+                                        )
                                     )
-                                    // 48dp 触摸区包裹 24dp 视觉删除钮（满足最小触摸目标）
-                                    Box(
-                                        modifier = Modifier.align(Alignment.TopEnd).size(48.dp),
-                                        contentAlignment = Alignment.TopEnd
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.size(24.dp)
-                                                .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(bottomStart = AppRadius.md))
-                                                .clickable { viewModel.removePhotoPath(path) },
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(Icons.Rounded.Close, "删除", modifier = Modifier.size(14.dp), tint = Color.White)
-                                        }
-                                    }
                                 }
                             }
-                            if (uiState.photoPaths.size > 4) {
-                                Text(
-                                    "+${uiState.photoPaths.size - 4}",
-                                    modifier = Modifier.align(Alignment.CenterVertically).padding(start = 4.dp),
-                                    style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary()
+                        }
+                    }
+
+                    // 状态
+                    ClayCard {
+                        Text("物品状态", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            ItemStatus.entries.forEach { status ->
+                                FilterChip(
+                                    selected = uiState.status == status.code,
+                                    onClick = { viewModel.updateStatus(status.code) },
+                                    label = { Text(status.label, style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                    shape = AppShape.thumb,
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = statusColor(status.code).copy(alpha = 0.15f),
+                                        selectedLabelColor = statusColor(status.code)
+                                    )
                                 )
                             }
                         }
                     }
 
-                    Spacer(Modifier.height(14.dp))
-                    Box(Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().layerBackdrop(step1RowBackdrop),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Spacer(Modifier.width(224.dp).height(48.dp))
+                    // 存放位置（自由输入 + 最近使用/内置建议联想）
+                    ClayCard {
+                        OutlinedTextField(
+                            value = uiState.storageLocation,
+                            onValueChange = viewModel::updateStorageLocation,
+                            label = { Text("存放位置") },
+                            placeholder = { Text("如: 卧室 · 书桌") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = AppShape.panel,
+                            leadingIcon = { Icon(Icons.Rounded.LocationOn, null, tint = Primary()) }
+                        )
+                        val suggestions = remember(uiState.recentLocations) {
+                            (uiState.recentLocations + LocationSuggestions.flatList).distinct().take(12)
                         }
-                        Row(
-                            Modifier.fillMaxWidth().align(Alignment.CenterEnd),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            LiquidGlassButton(
-                                onClick = onNavigateToCamera, modifier = Modifier.weight(1f),
-                                backdrop = step1RowBackdrop,
-                                height = 48.dp,
-                                horizontalPadding = 20.dp,
-                                tint = Primary()
+                        if (suggestions.isNotEmpty()) {
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                if (uiState.recentLocations.isNotEmpty()) "最近使用 / 常用位置" else "常用位置",
+                                style = MaterialTheme.typography.labelSmall, color = TextAuxiliary()
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Icon(Icons.Rounded.CameraAlt, null, Modifier.size(16.dp), tint = Color.White)
-                                Spacer(Modifier.width(4.dp))
-                                Text("拍照", color = Color.White, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
-                            }
-                            LiquidGlassButton(
-                                onClick = { galleryLauncher.launch("image/*") }, modifier = Modifier.weight(1f),
-                                backdrop = step1RowBackdrop,
-                                height = 48.dp,
-                                horizontalPadding = 20.dp
-                            ) {
-                                Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(16.dp), tint = TextPrimary())
-                                Spacer(Modifier.width(4.dp))
-                                Text("从相册选择", color = TextPrimary(), style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    }
-                }
-
-                Box(Modifier.fillMaxWidth()) {
-                    Row(Modifier.fillMaxWidth().layerBackdrop(step1NextRowBackdrop), horizontalArrangement = Arrangement.End) {
-                        Spacer(Modifier.width(104.dp).height(48.dp))
-                    }
-                    LiquidGlassButton(
-                        onClick = { currentStep = 1 },
-                        backdrop = step1NextRowBackdrop,
-                        height = 48.dp,
-                        horizontalPadding = 20.dp,
-                        modifier = Modifier.align(Alignment.CenterEnd)
-                    ) {
-                        Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-
-            // ── Step 1: 详情 ──
-            if (currentStep == 1) {
-                // 物品名称
-                ClayCard {
-                    OutlinedTextField(
-                        value = uiState.name,
-                        onValueChange = viewModel::updateName,
-                        label = { Text("物品名称 *") },
-                        placeholder = { Text("如: MacBook Pro 2024") },
-                        isError = uiState.nameError != null,
-                        supportingText = uiState.nameError?.let { { Text(it) } },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = AppShape.panel
-                    )
-                }
-
-                // 分类选择
-                ClayCard {
-                    Text("所属分类 *", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
-                    Spacer(Modifier.height(10.dp))
-                    if (uiState.categories.isEmpty()) {
-                        Text("暂无分类", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
-                    } else {
-                        Column {
-                            uiState.categories.chunked(3).forEach { row ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    row.forEach { category ->
-                                        FilterChip(
-                                            selected = uiState.categoryId == category.id,
-                                            onClick = { viewModel.updateCategoryId(category.id) },
-                                            label = { Text(category.name, style = MaterialTheme.typography.bodySmall) },
-                                            shape = AppShape.thumb,
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = Primary().copy(alpha = 0.15f),
-                                                selectedLabelColor = Primary()
-                                            )
+                                suggestions.forEach { location ->
+                                    FilterChip(
+                                        selected = uiState.storageLocation == location,
+                                        onClick = { viewModel.updateStorageLocation(location) },
+                                        label = { Text(location, style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                        shape = AppShape.thumb,
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                            selectedLabelColor = Primary()
                                         )
-                                    }
+                                    )
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
                             }
                         }
                     }
-                }
 
-                // v5.2 物品状态选择器
-                ClayCard {
-                    Text("物品状态", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
-                    Spacer(Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        ItemStatus.entries.forEach { status ->
+                    // 购入日期
+                    ClayCard {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.CalendarToday, null, tint = Primary(), modifier = Modifier.size(22.dp))
+                            Spacer(Modifier.width(14.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("购入日期", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
+                                Text(
+                                    uiState.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "点击选择",
+                                    style = MaterialTheme.typography.bodyLarge, color = TextPrimary()
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val purchaseText = uiState.purchaseDate?.let { dateFormat.format(Date(it)) }
                             FilterChip(
-                                selected = uiState.status == status.code,
-                                onClick = { viewModel.updateStatus(status.code) },
-                                label = { Text(status.label, style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                selected = purchaseText == todayText,
+                                onClick = viewModel::setPurchaseDateToday,
+                                label = { Text("今天", style = MaterialTheme.typography.bodySmall) },
                                 shape = AppShape.thumb,
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = statusColor(status.code).copy(alpha = 0.15f),
-                                    selectedLabelColor = statusColor(status.code)
+                                    selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                    selectedLabelColor = Primary()
+                                )
+                            )
+                            val yesterdayText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                .format(Date(System.currentTimeMillis() - 24L * 60 * 60 * 1000))
+                            FilterChip(
+                                selected = purchaseText == yesterdayText,
+                                onClick = viewModel::setPurchaseDateYesterday,
+                                label = { Text("昨天", style = MaterialTheme.typography.bodySmall) },
+                                shape = AppShape.thumb,
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                    selectedLabelColor = Primary()
+                                )
+                            )
+                            FilterChip(
+                                selected = false,
+                                onClick = { showPurchaseDatePicker = true },
+                                label = { Text("选择日期", style = MaterialTheme.typography.bodySmall) },
+                                shape = AppShape.thumb,
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                    selectedLabelColor = Primary()
                                 )
                             )
                         }
                     }
-                }
 
-                // v6.6 售出收益（仅已出状态显示）
-                AnimatedVisibility(visible = ItemStatus.fromCode(uiState.status) == ItemStatus.SOLD) {
+                    // 保修
                     ClayCard {
-                        Text("售出收益", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
+                        Text("保修", style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), fontWeight = FontWeight.Medium)
                         Spacer(Modifier.height(10.dp))
-                        OutlinedTextField(
-                            value = uiState.salePriceText,
-                            onValueChange = viewModel::updateSalePrice,
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("卖出价格（选填）", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary()) },
-                            prefix = { Text("¥", style = MaterialTheme.typography.labelLarge, color = TextPrimary(), fontWeight = FontWeight.Medium) },
-                            singleLine = true,
-                            shape = AppShape.thumb,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary().copy(alpha = 0.5f),
-                                unfocusedBorderColor = TextAuxiliary().copy(alpha = 0.2f),
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
-                        )
-                        Spacer(Modifier.height(10.dp))
+                        val presets = listOf("7 天" to 7, "30 天" to 30, "半年" to 182, "1 年" to 365, "2 年" to 730)
+                        val isCustom = showCustomWarranty ||
+                            (uiState.warrantyPeriodDays.isNotEmpty() && presets.none { it.second.toString() == uiState.warrantyPeriodDays })
                         Row(
-                            Modifier.fillMaxWidth().clip(AppShape.thumb)
-                                .background(if (LocalDarkTheme.current) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.02f))
-                                .clickable { showSaleDatePicker = true }.padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Icon(Icons.Rounded.CalendarToday, null, Modifier.size(18.dp), tint = TextAuxiliary())
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                uiState.saleDate?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it)) } ?: "售出日期（选填）",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (uiState.saleDate != null) TextPrimary() else TextAuxiliary(),
-                                modifier = Modifier.weight(1f)
+                            presets.forEach { (label, days) ->
+                                FilterChip(
+                                    selected = uiState.warrantyPeriodDays == days.toString(),
+                                    onClick = {
+                                        showCustomWarranty = false
+                                        viewModel.setWarrantyPreset(days)
+                                    },
+                                    label = { Text(label, style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                    shape = AppShape.thumb,
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                        selectedLabelColor = Primary()
+                                    )
+                                )
+                            }
+                            FilterChip(
+                                selected = isCustom,
+                                onClick = { showCustomWarranty = true },
+                                label = { Text("自定义", style = MaterialTheme.typography.bodySmall) },
+                                shape = AppShape.thumb,
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                    selectedLabelColor = Primary()
+                                )
                             )
+                            if (uiState.warrantyPeriodDays.isNotEmpty() || uiState.warrantyExpiryDate != null) {
+                                FilterChip(
+                                    selected = false,
+                                    onClick = {
+                                        showCustomWarranty = false
+                                        viewModel.clearWarranty()
+                                    },
+                                    label = { Text("关闭", style = MaterialTheme.typography.bodySmall) },
+                                    shape = AppShape.thumb,
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Primary().copy(alpha = 0.15f),
+                                        selectedLabelColor = Primary()
+                                    )
+                                )
+                            }
                         }
-                    }
-                }
-
-                // 购入价格
-                ClayCard {
-                    OutlinedTextField(
-                        value = uiState.purchasePrice,
-                        onValueChange = viewModel::updatePurchasePrice,
-                        label = { Text("购入价格 *") },
-                        placeholder = { Text("0.00") },
-                        isError = uiState.priceError != null,
-                        supportingText = uiState.priceError?.let { { Text(it) } },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = AppShape.panel,
-                        leadingIcon = { Text("¥", color = Primary(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineSmall) }
-                    )
-                }
-
-                // 物品描述
-                ClayCard {
-                    OutlinedTextField(
-                        value = uiState.description,
-                        onValueChange = viewModel::updateDescription,
-                        label = { Text("物品描述") },
-                        placeholder = { Text("如: 配置、成色、入手渠道等") },
-                        modifier = Modifier.fillMaxWidth(), minLines = 3, maxLines = 6,
-                        shape = AppShape.panel
-                    )
-                }
-
-                Box(Modifier.fillMaxWidth()) {
-                    Row(Modifier.fillMaxWidth().layerBackdrop(step2RowBackdrop), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Spacer(Modifier.width(210.dp).height(48.dp))
-                    }
-                    Row(Modifier.fillMaxWidth().align(Alignment.CenterEnd), horizontalArrangement = Arrangement.SpaceBetween) {
-                        LiquidGlassButton(
-                            onClick = { currentStep = 0 },
-                            backdrop = step2RowBackdrop,
-                            height = 48.dp,
-                            horizontalPadding = 20.dp
-                        ) {
-                            Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
-                        }
-                        LiquidGlassButton(
-                            onClick = { currentStep = 2 },
-                            backdrop = step2RowBackdrop,
-                            height = 48.dp,
-                            horizontalPadding = 20.dp
-                        ) {
-                            Text("下一步 →", color = Primary(), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-            }
-
-            // ── Step 2: 位置与保修 ──
-            if (currentStep == 2) {
-                ClayCard {
-                    OutlinedTextField(
-                        value = uiState.storageLocation,
-                        onValueChange = viewModel::updateStorageLocation,
-                        label = { Text("存放位置") },
-                        placeholder = { Text("如: 卧室书桌抽屉") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = AppShape.panel,
-                        leadingIcon = { Icon(Icons.Rounded.LocationOn, null, tint = Primary()) }
-                    )
-                }
-
-                ClayCard {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { showPurchaseDatePicker = true }.padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Rounded.CalendarToday, null, tint = Primary(), modifier = Modifier.size(22.dp))
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column {
-                            Text("购入日期", style = MaterialTheme.typography.bodySmall, color = TextSecondary())
-                            Text(
-                                text = uiState.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "点击选择",
-                                style = MaterialTheme.typography.bodyLarge, color = TextPrimary()
-                            )
-                        }
-                    }
-                }
-
-                ClayCard {
-                    Text("保修信息", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = TextPrimary(), fontFamily = FredokaFont)
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("保修天数", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
-                            Spacer(Modifier.height(4.dp))
+                        if (isCustom) {
+                            Spacer(Modifier.height(10.dp))
                             OutlinedTextField(
                                 value = uiState.warrantyPeriodDays,
                                 onValueChange = viewModel::updateWarrantyPeriodDays,
                                 placeholder = { Text("365") },
+                                label = { Text("保修天数") },
                                 modifier = Modifier.fillMaxWidth(), singleLine = true,
-                                shape = AppShape.panel
+                                shape = AppShape.panel,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done)
                             )
                         }
-                        Column(Modifier.weight(1f)) {
-                            Text("到期日期", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
-                            Spacer(Modifier.height(4.dp))
-                            OutlinedTextField(
-                                value = uiState.warrantyExpiryDate?.let { dateFormat.format(Date(it)) } ?: "",
-                                onValueChange = {},
-                                readOnly = true,
-                                placeholder = { Text("自动计算") },
-                                modifier = Modifier.fillMaxWidth().clickable { showWarrantyDatePicker = true },
-                                shape = AppShape.panel
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            Modifier.fillMaxWidth().clip(AppShape.thumb)
+                                .background(if (LocalDarkTheme.current) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.02f))
+                                .clickable { showWarrantyDatePicker = true }.padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Rounded.VerifiedUser, null, Modifier.size(18.dp), tint = TextAuxiliary())
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                uiState.warrantyExpiryDate?.let { "到期日 ${dateFormat.format(Date(it))}" } ?: "保修到期日（自动计算）",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (uiState.warrantyExpiryDate != null) TextPrimary() else TextAuxiliary(),
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
-                }
 
-                Box(Modifier.fillMaxWidth()) {
-                    Row(Modifier.fillMaxWidth().layerBackdrop(step3RowBackdrop), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Spacer(Modifier.width(216.dp).height(48.dp))
-                    }
-                    Row(Modifier.fillMaxWidth().align(Alignment.CenterEnd), horizontalArrangement = Arrangement.SpaceBetween) {
-                        LiquidGlassButton(
-                            onClick = { currentStep = 1 },
-                            backdrop = step3RowBackdrop,
-                            height = 48.dp,
-                            horizontalPadding = 20.dp
-                        ) {
-                            Text("← 上一步", color = TextPrimary(), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
-                        }
-                        LiquidGlassButton(
-                            onClick = { viewModel.saveItem() },
-                            backdrop = step3RowBackdrop,
-                            enabled = !uiState.isLoading,
-                            height = 48.dp,
-                            horizontalPadding = 20.dp
-                        ) {
-                            if (uiState.isLoading) {
-                                CircularProgressIndicator(Modifier.size(16.dp), color = Primary(), strokeWidth = 2.dp)
-                                Spacer(Modifier.width(8.dp))
-                            }
-                            Text("完成保存 ✓", color = Primary(), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
-                        }
+                    // 描述
+                    ClayCard {
+                        OutlinedTextField(
+                            value = uiState.description,
+                            onValueChange = viewModel::updateDescription,
+                            label = { Text("物品描述") },
+                            placeholder = { Text("如: 配置、成色、入手渠道等") },
+                            modifier = Modifier.fillMaxWidth(), minLines = 3, maxLines = 6,
+                            shape = AppShape.panel
+                        )
                     }
                 }
             }
 
-            if (uiState.isLoading && uiState.photoPaths.isNotEmpty()) {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(modifier = Modifier.padding(16.dp), color = Primary())
+            // ── 保存后动作条（仅新增模式）──
+            if (uiState.isSaved && !uiState.isEditMode && uiState.savedItemId != null) {
+                ClayCard {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.CheckCircle, null, Modifier.size(18.dp), tint = Color(0xFF10B981))
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "已保存「${uiState.savedItemName}」",
+                            style = MaterialTheme.typography.bodyMedium, color = TextPrimary(), fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        LiquidGlassButton(
+                            onClick = { viewModel.startNewEntry() },
+                            backdrop = actionBarBackdrop,
+                            height = 40.dp,
+                            horizontalPadding = 14.dp
+                        ) {
+                            Icon(Icons.Rounded.AddCircleOutline, null, Modifier.size(15.dp), tint = Primary())
+                            Spacer(Modifier.width(4.dp))
+                            Text("再记一件", color = Primary(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                        }
+                        LiquidGlassButton(
+                            onClick = onNavigateToCamera,
+                            backdrop = actionBarBackdrop,
+                            height = 40.dp,
+                            horizontalPadding = 14.dp
+                        ) {
+                            Icon(Icons.Rounded.CameraAlt, null, Modifier.size(15.dp), tint = TextPrimary())
+                            Spacer(Modifier.width(4.dp))
+                            Text("拍照补图", color = TextPrimary(), style = MaterialTheme.typography.bodySmall)
+                        }
+                        LiquidGlassButton(
+                            onClick = { galleryLauncher.launch("image/*") },
+                            backdrop = actionBarBackdrop,
+                            height = 40.dp,
+                            horizontalPadding = 14.dp
+                        ) {
+                            Icon(Icons.Rounded.PhotoLibrary, null, Modifier.size(15.dp), tint = TextPrimary())
+                            Spacer(Modifier.width(4.dp))
+                            Text("相册补图", color = TextPrimary(), style = MaterialTheme.typography.bodySmall)
+                        }
+                        LiquidGlassButton(
+                            onClick = { viewModel.undoLastSave() },
+                            backdrop = actionBarBackdrop,
+                            height = 40.dp,
+                            horizontalPadding = 14.dp
+                        ) {
+                            Icon(Icons.Rounded.Undo, null, Modifier.size(15.dp), tint = Color(0xFFEF4444))
+                            Spacer(Modifier.width(4.dp))
+                            Text("撤销", color = Color(0xFFEF4444), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "「再记一件」会沿用分类、位置与购入日期；「撤销」把刚记的这条移入回收站。",
+                        style = MaterialTheme.typography.labelSmall, color = TextAuxiliary()
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.height(40.dp))
         }
     }
 
@@ -571,15 +640,6 @@ fun AddItemScreen(
             initialDateMillis = uiState.warrantyExpiryDate ?: System.currentTimeMillis(),
             onDismiss = { showWarrantyDatePicker = false },
             onConfirm = { millis -> viewModel.updateWarrantyExpiryDate(millis); showWarrantyDatePicker = false }
-        )
-    }
-    if (showSaleDatePicker) {
-        WheelDatePickerDialog(
-            title = "选择售出日期",
-            initialDateMillis = uiState.saleDate ?: System.currentTimeMillis(),
-            maxDateMillis = System.currentTimeMillis(),
-            onDismiss = { showSaleDatePicker = false },
-            onConfirm = { millis -> viewModel.updateSaleDate(millis); showSaleDatePicker = false }
         )
     }
 }

@@ -83,12 +83,8 @@ fun HomeScreen(
     }
     val ownedItems = filteredItems.filter { ItemStatus.fromCode(it.status).isOwned }
     val heroCount = filteredItems.size
-    val groupedSaleRevenue = uiState.items.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && it.salePrice != null }
-        .let { soldItems ->
-            if (effectiveFilter != null) soldItems.filter { it.categoryId == effectiveFilter.first }
-            else soldItems
-        }.sumOf { it.salePrice!! }
-    val heroValue = ownedItems.sumOf { it.purchasePrice } + groupedSaleRevenue
+    // 口径：只统计当前拥有的物品（已出/丢失不计入金额）
+    val heroValue = ownedItems.sumOf { it.purchasePrice }
 
     val animCount by animateIntAsState(heroCount, animationSpec = tween(MotionDuration.Count, easing = MotionCurve.EaseOut))
     val animValue by animateFloatAsState(heroValue.toFloat(), animationSpec = tween(MotionDuration.Count, easing = MotionCurve.EaseOut))

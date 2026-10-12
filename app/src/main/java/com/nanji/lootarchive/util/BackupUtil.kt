@@ -132,8 +132,6 @@ object BackupUtil {
                     ei.item.warrantyPeriodDays?.let { put("warrantyPeriodDays", it) }
                     put("description", ei.item.description)
                     put("status", ei.item.status)
-                    ei.item.salePrice?.let { put("salePrice", it) }
-                    ei.item.saleDate?.let { put("saleDate", it) }
                     put("tags", ei.item.tags)
                     ei.item.lastStatusChangedAt?.let { put("lastStatusChangedAt", it) }
                     put("photos", photoNames)
@@ -270,9 +268,7 @@ object BackupUtil {
                 description = obj.optString("description", ""),
                 status = obj.optString("status", "active"),
                 tags = obj.optString("tags", ""),
-                lastStatusChangedAt = if (obj.has("lastStatusChangedAt")) obj.optLong("lastStatusChangedAt") else null,
-                salePrice = if (obj.has("salePrice")) obj.optDouble("salePrice").takeIf { it > 0 } else null,
-                saleDate = if (obj.has("saleDate")) obj.optLong("saleDate").takeIf { it > 0 } else null
+                lastStatusChangedAt = if (obj.has("lastStatusChangedAt")) obj.optLong("lastStatusChangedAt") else null
             )
 
             // Extract photos

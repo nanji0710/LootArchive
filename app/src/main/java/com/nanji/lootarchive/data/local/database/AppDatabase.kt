@@ -17,7 +17,7 @@ import com.nanji.lootarchive.data.local.entity.*
         AchievementEntity::class,
         ExperienceLogEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -110,6 +110,54 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE items ADD COLUMN saleDate INTEGER DEFAULT NULL")
+            }
+        }
+
+        /**
+         * v6 → v7：移除「售出金额 / 售出日期」机制（售出后不计入任何金额）。
+         * Android 12 的 SQLite 为 3.32，不支持 DROP COLUMN，故按官方表重建流程执行：
+         * 建新表 → 拷贝数据 → 删旧表 → 改名 → 重建索引；其余字段与数据完整保留。
+         */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // item_photos.itemId → items.id 是 CASCADE 外键：重建期间推迟外键检查，避免删旧表时连坐删照片
+                db.execSQL("PRAGMA defer_foreign_keys = ON")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS items_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        categoryId INTEGER NOT NULL,
+                        purchasePrice REAL NOT NULL,
+                        currency TEXT NOT NULL,
+                        storageLocation TEXT NOT NULL,
+                        purchaseDate INTEGER,
+                        warrantyExpiryDate INTEGER,
+                        warrantyPeriodDays INTEGER,
+                        description TEXT NOT NULL,
+                        isDeleted INTEGER NOT NULL,
+                        deletedAt INTEGER,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'active',
+                        tags TEXT NOT NULL DEFAULT '',
+                        lastStatusChangedAt INTEGER DEFAULT NULL
+                    )
+                """)
+                db.execSQL("""
+                    INSERT INTO items_new (id, name, categoryId, purchasePrice, currency, storageLocation,
+                        purchaseDate, warrantyExpiryDate, warrantyPeriodDays, description, isDeleted, deletedAt,
+                        createdAt, updatedAt, status, tags, lastStatusChangedAt)
+                    SELECT id, name, categoryId, purchasePrice, currency, storageLocation,
+                        purchaseDate, warrantyExpiryDate, warrantyPeriodDays, description, isDeleted, deletedAt,
+                        createdAt, updatedAt, status, tags, lastStatusChangedAt
+                    FROM items
+                """)
+                db.execSQL("DROP TABLE items")
+                db.execSQL("ALTER TABLE items_new RENAME TO items")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_items_categoryId ON items (categoryId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_items_name ON items (name)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_items_isDeleted ON items (isDeleted)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_items_status ON items (status)")
             }
         }
     }

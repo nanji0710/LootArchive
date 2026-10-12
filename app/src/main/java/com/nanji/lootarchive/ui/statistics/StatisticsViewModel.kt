@@ -22,11 +22,9 @@ data class StatisticsUiState(
     val isLoading: Boolean = true,
     val totalCount: Int = 0,
     val totalValue: Double = 0.0,
-    val saleRevenue: Double = 0.0,
     val currency: String = "CNY",
     val categorySummaries: List<CategorySummary> = emptyList(),
     val items: List<ItemEntity> = emptyList(),
-    val allItems: List<ItemEntity> = emptyList(),
     val timeFilter: String = "all",
     val selectedCategorySummary: CategorySummary? = null,
     val selectedCategoryItems: List<ItemEntity> = emptyList()
@@ -68,16 +66,12 @@ class StatisticsViewModel @Inject constructor(
                     CategorySummary(cat, catItems.size, catItems.sumOf { it.purchasePrice })
                 }.filter { it.totalValue > 0 } // 只展示有金额的分类
                 val filteredTotalValue = filteredItems.sumOf { it.purchasePrice }
-                // 已出物品售出收益（不受时间筛选影响）
-                val saleRevenue = items.filter { ItemStatus.fromCode(it.status) == ItemStatus.SOLD && !it.isDeleted }.sumOf { it.salePrice ?: 0.0 }
                 StatisticsUiState(
                     isLoading = false,
                     totalCount = filteredItems.size,
-                    totalValue = filteredTotalValue + saleRevenue,
-                    saleRevenue = saleRevenue,
+                    totalValue = filteredTotalValue,
                     categorySummaries = summaries,
                     items = filteredItems,
-                    allItems = items,
                     timeFilter = filter
                 )
             }.collect { _uiState.value = it }
