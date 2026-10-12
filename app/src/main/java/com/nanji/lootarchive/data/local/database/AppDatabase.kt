@@ -117,11 +117,14 @@ abstract class AppDatabase : RoomDatabase() {
          * v6 → v7：移除「售出金额 / 售出日期」机制（售出后不计入任何金额）。
          * Android 12 的 SQLite 为 3.32，不支持 DROP COLUMN，故按官方表重建流程执行：
          * 建新表 → 拷贝数据 → 删旧表 → 改名 → 重建索引；其余字段与数据完整保留。
+         *
+         * 注意 item_photos.itemId → items.id 带 ON DELETE CASCADE：`DROP TABLE items` 会执行隐式
+         * DELETE 并触发级联，把照片记录一起删掉；`PRAGMA defer_foreign_keys` 只推迟约束「校验」，
+         * 不推迟级联「动作」（已在离线 SQLite 复现验证）。因此先把照片行备份进临时表，重建后写回。
          */
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // item_photos.itemId → items.id 是 CASCADE 外键：重建期间推迟外键检查，避免删旧表时连坐删照片
-                db.execSQL("PRAGMA defer_foreign_keys = ON")
+                db.execSQL("CREATE TEMP TABLE IF NOT EXISTS item_photos_backup AS SELECT * FROM item_photos")
                 db.execSQL("""
                     CREATE TABLE IF NOT EXISTS items_new (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -154,6 +157,13 @@ abstract class AppDatabase : RoomDatabase() {
                 """)
                 db.execSQL("DROP TABLE items")
                 db.execSQL("ALTER TABLE items_new RENAME TO items")
+                // 写回被级联删除的照片记录（此时 items 已重建完成，外键可正常解析）
+                db.execSQL("DELETE FROM item_photos")
+                db.execSQL("""
+                    INSERT INTO item_photos (id, itemId, photoPath, sortOrder, createdAt)
+                    SELECT id, itemId, photoPath, sortOrder, createdAt FROM item_photos_backup
+                """)
+                db.execSQL("DROP TABLE temp.item_photos_backup")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_items_categoryId ON items (categoryId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_items_name ON items (name)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_items_isDeleted ON items (isDeleted)")
