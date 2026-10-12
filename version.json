@@ -1,7 +1,7 @@
 {
-  "versionName": "7.1.1",
-  "versionCode": 7101,
+  "versionName": "7.2.0",
+  "versionCode": 7200,
   "updateDate": "2026-10-12",
-  "updateLog": "v7.1.1 修复：打开回收站会闪退\n- 修复「点回收站直接闪退」的问题（玻璃按钮与卡片图层互相引用，渲染线程计算图层时递归溢出）\n- 修复回收站条目里「还原 / 删除」按钮压住「删除于 …」文字，现在按按钮实际宽度自动留位\n- 本版同样包含 v7.1.0 的统计页焕新：图标标题、本月新增与环比、圆环占比、趋势终点金额、排名进度条\n- 数据与口径不变，直接覆盖安装即可",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.1.1/LootArchive-release-v7.1.1.apk"
+  "updateLog": "v7.2.0 统计页换新装\n- 统计页整页重做，改用图表说话：资产结构、资产净值趋势、月度购入、客单价分布、单品价值 TOP 5、存放位置分布\n- 去掉了满屏的小数字卡片和几个重复的模块，想看的数字都在图上\n- 顺手修掉三个显示毛病：月度购入的金额标签被卡片切掉、趋势图只画出一半历史、平均单价带小数\n- 统计口径没变，直接覆盖安装即可",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.2.0/LootArchive-release-v7.2.0.apk"
 }

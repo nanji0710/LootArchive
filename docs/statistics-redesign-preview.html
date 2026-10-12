@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LootArchive · 统计页 v7.2 设计方案</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   设计 token —— 与 app/src/main/java/com/nanji/lootarchive/ui/theme/
+   Color.kt / Dimens.kt / Type.kt 一一对应，改这里 = 改 App
+   ══════════════════════════════════════════════════════════════ */
+@font-face{font-family:'Fredoka';src:url('../app/src/main/res/font/fredoka_medium.ttf') format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:'Fredoka';src:url('../app/src/main/res/font/fredoka_semibold.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:'Fredoka';src:url('../app/src/main/res/font/fredoka_bold.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:'Nunito';src:url('../app/src/main/res/font/nunito_regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Nunito';src:url('../app/src/main/res/font/nunito_medium.ttf') format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:'Nunito';src:url('../app/src/main/res/font/nunito_semibold.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:'Nunito';src:url('../app/src/main/res/font/nunito_bold.ttf') format('truetype');font-weight:700;font-display:swap}
+
+:root{
+  --primary:#E8782A;
+  --primary-ink:#C25E15;
+  --primary-soft:rgba(232,120,42,.12);
+  --secondary:#7C3AED;
+  --bg1:#FBF9F6; --bg2:#F4E9DD;
+  --glass:rgba(255,255,255,.74);
+  --glass-border:rgba(255,255,255,.85);
+  --card:#FEFDFB;
+  --tp:#1C1917; --ts:#57534E; --ta:#78716C;
+  --shadow:rgba(28,25,23,.07);
+  --shadow-lg:rgba(28,25,23,.12);
+  --track:rgba(120,113,108,.10);
+  --hair:rgba(120,113,108,.14);
+  --hair2:rgba(120,113,108,.09);
+  --panel:rgba(120,113,108,.07);
+  --idle:#4B5563; --lost:#374151;
+  --page-bg:#EFEAE4;
+  --page-ink:#1C1917;
+  --page-ink2:#6B6560;
+}
+html[data-theme="dark"]{
+  --primary:#F5995C;
+  --primary-ink:#F5995C;
+  --primary-soft:rgba(245,153,92,.16);
+  --secondary:#A78BFA;
+  --bg1:#0C0C10; --bg2:#171118;
+  --glass:rgba(30,28,34,.78);
+  --glass-border:rgba(255,255,255,.085);
+  --card:#1C1A18;
+  --tp:#F0ECE6; --ts:#A8A29E; --ta:#8E857D;
+  --shadow:rgba(0,0,0,.45);
+  --shadow-lg:rgba(0,0,0,.6);
+  --track:rgba(255,255,255,.075);
+  --hair:rgba(255,255,255,.11);
+  --hair2:rgba(255,255,255,.07);
+  --panel:rgba(255,255,255,.055);
+  --idle:#9CA3AF; --lost:#6B7280;
+  --page-bg:#0A0A0D;
+  --page-ink:#F0ECE6;
+  --page-ink2:#8E857D;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(900px 500px at 12% -6%, rgba(232,120,42,.10), transparent 60%),
+    radial-gradient(760px 480px at 92% 4%, rgba(124,58,237,.08), transparent 62%),
+    var(--page-bg);
+  color:var(--page-ink);
+  font-family:'Nunito',-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  min-height:100vh;
+  transition:background .3s ease,color .3s ease;
+}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ── 页面外框 ── */
+.page-head{
+  position:sticky;top:0;z-index:60;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  padding:16px 28px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  background:color-mix(in srgb,var(--page-bg) 82%,transparent);
+  border-bottom:1px solid var(--hair2);
+}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.brand-mark{
+  width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(140deg,#E8782A,#F0A45E);color:#fff;
+  box-shadow:0 6px 16px rgba(232,120,42,.35);
+}
+.brand-mark svg{width:20px;height:20px}
+.brand h1{margin:0;font-family:'Fredoka',sans-serif;font-weight:600;font-size:17px;letter-spacing:.1px}
+.brand p{margin:1px 0 0;font-size:12px;color:var(--page-ink2)}
+.head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.seg{
+  display:inline-flex;padding:3px;gap:2px;border-radius:999px;
+  background:var(--panel);border:1px solid var(--hair2);
+}
+.seg button{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:600;color:var(--page-ink2);
+  padding:7px 14px;border-radius:999px;transition:.22s ease;white-space:nowrap;
+}
+.seg button.on{background:var(--card);color:var(--primary-ink);box-shadow:0 2px 8px var(--shadow)}
+html[data-theme="dark"] .seg button.on{background:rgba(255,255,255,.10);color:var(--primary)}
+
+.layout{display:flex;gap:34px;align-items:flex-start;padding:26px 28px 60px;max-width:1560px;margin:0 auto}
+.side{flex:0 0 320px;position:sticky;top:92px;max-height:calc(100vh - 120px);overflow:auto;padding-right:6px}
+.side::-webkit-scrollbar{width:6px}
+.side::-webkit-scrollbar-thumb{background:var(--hair);border-radius:99px}
+.side h2{font-family:'Fredoka',sans-serif;font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--page-ink2);margin:0 0 10px;font-weight:600}
+.side section{margin-bottom:22px}
+.side ul{margin:0;padding:0;list-style:none}
+.side li{position:relative;padding:7px 0 7px 18px;font-size:13px;line-height:1.55;color:var(--page-ink2);border-bottom:1px dashed var(--hair2)}
+.side li:last-child{border-bottom:0}
+.side li::before{content:'';position:absolute;left:2px;top:14px;width:5px;height:5px;border-radius:2px;background:var(--primary);opacity:.7}
+.side li b{color:var(--page-ink);font-weight:700}
+.side li code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+  background:var(--panel);padding:1px 5px;border-radius:5px;color:var(--page-ink)
+}
+.legend-tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:1px}
+.tag-new{background:rgba(16,185,129,.16);color:#0E9F6E}
+.tag-keep{background:var(--panel);color:var(--page-ink2)}
+.tag-fix{background:rgba(59,130,246,.16);color:#2563EB}
+.tag-drop{background:rgba(239,68,68,.15);color:#DC2626}
+html[data-theme="dark"] .tag-new{color:#34D399}
+html[data-theme="dark"] .tag-fix{color:#60A5FA}
+html[data-theme="dark"] .tag-drop{color:#F87171}
+
+.stage{flex:1;min-width:0;display:flex;justify-content:center}
+
+/* ── 手机外壳 ── */
+.phone{
+  width:393px;flex:0 0 auto;position:relative;
+  background:linear-gradient(160deg,var(--bg1),var(--bg2));
+  border-radius:46px;
+  box-shadow:0 0 0 10px color-mix(in srgb,var(--page-ink) 88%,transparent),
+              0 0 0 12px color-mix(in srgb,var(--page-ink) 30%,transparent),
+              0 34px 70px -20px var(--shadow-lg);
+  transition:box-shadow .3s ease;
+}
+.phone-screen{position:relative;height:820px;border-radius:46px;overflow:hidden;background:linear-gradient(170deg,var(--bg1) 0%,var(--bg2) 100%)}
+.phone-screen::before{
+  content:'';position:absolute;inset:-10% -20% auto -20%;height:60%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(232,120,42,.16),transparent 72%);
+}
+.phone-screen::after{
+  content:'';position:absolute;right:-30%;top:30%;width:70%;height:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(124,58,237,.10),transparent 70%);
+}
+.statusbar{
+  position:relative;z-index:5;height:46px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;font-size:12.5px;font-weight:700;color:var(--tp);font-family:'Fredoka',sans-serif;
+}
+.statusbar .icons{display:flex;gap:5px;align-items:center;opacity:.85}
+.statusbar .icons svg{width:15px;height:15px}
+.screen-scroll{
+  position:relative;z-index:4;height:calc(100% - 46px);overflow-y:auto;overflow-x:hidden;
+  padding:4px 16px 130px;scrollbar-width:none;
+  display:flex;flex-direction:column;gap:12px;
+}
+.screen-scroll::-webkit-scrollbar{display:none}
+.screen-scroll > .card{flex:0 0 auto}
+
+/* ── 玻璃卡片 ── */
+.card{
+  position:relative;
+  background:var(--glass);
+  backdrop-filter:blur(22px) saturate(1.35);-webkit-backdrop-filter:blur(22px) saturate(1.35);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  box-shadow:0 4px 14px -4px var(--shadow);
+  overflow:hidden;
+  animation:cardIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+html[data-theme="dark"] .card{border-color:rgba(255,255,255,.075)}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card-pad{padding:16px}
+
+.card-head{display:flex;align-items:center;gap:6px;padding:16px 16px 0}
+.sec-icon{
+  width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--primary-soft);color:var(--primary);
+}
+.sec-icon svg{width:16px;height:16px}
+.sec-title{
+  font-family:'Fredoka',sans-serif;font-weight:600;font-size:18px;line-height:24px;
+  color:var(--tp);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:6px;
+}
+.sec-cap{font-family:'Fredoka',sans-serif;font-size:12px;color:var(--ta);white-space:nowrap}
+.card-body{padding:16px}
+
+.board-note{
+  display:none;margin:0 16px 14px;padding:10px 12px;border-radius:12px;
+  background:var(--panel);font-size:12.5px;line-height:1.6;color:var(--page-ink2);
+}
+.board-note b{color:var(--page-ink)}
+.board-note code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:var(--hair2);padding:1px 5px;border-radius:5px}
+
+/* ── 1. Hero ── */
+.hero{background:linear-gradient(155deg,color-mix(in srgb,var(--card) 82%,#FFE9D6),var(--glass))}
+html[data-theme="dark"] .hero{background:linear-gradient(155deg,color-mix(in srgb,var(--card) 88%,#3A2318),var(--glass))}
+.hero-glow{
+  position:absolute;top:-70px;right:-50px;width:210px;height:210px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(232,120,42,.30),transparent 72%);pointer-events:none;
+}
+.hero .card-pad{position:relative}
+.lbl-line{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.lbl-chip{
+  width:18px;height:18px;border-radius:8px;display:grid;place-items:center;
+  background:rgba(232,120,42,.16);color:var(--primary);
+}
+.lbl-chip svg{width:12px;height:12px}
+.lbl-txt{font-size:13px;color:var(--ta);font-family:'Fredoka',sans-serif}
+.hero-value{
+  font-family:'Fredoka',sans-serif;font-weight:700;font-size:34px;line-height:1.12;
+  color:var(--primary-ink);letter-spacing:-.5px;
+}
+.hero-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:var(--ts)}
+.delta{
+  font-weight:700;padding:2px 9px;border-radius:99px;font-size:12px;
+  background:rgba(16,185,129,.13);color:#0E9F6E;
+}
+.delta.down{background:rgba(239,68,68,.13);color:#DC2626}
+html[data-theme="dark"] .delta{color:#34D399}
+html[data-theme="dark"] .delta.down{color:#F87171}
+/* 首屏事实条 —— 只用文字 + 分隔点，不做卡片 */
+.hero-facts{
+  margin-top:14px;font-size:12.5px;color:var(--ts);line-height:1.7;
+}
+.hero-facts b{font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:var(--tp)}
+.hero-facts i{font-style:normal;color:var(--ta);opacity:.5;margin:0 7px}
+
+.filter-seg{
+  position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  margin-top:14px;padding:3px;border-radius:999px;background:var(--panel);border:1px solid var(--hair2);
+}
+.filter-seg .thumb{
+  position:absolute;top:3px;left:3px;height:calc(100% - 6px);width:calc(25% - 1.5px);
+  border-radius:999px;background:var(--card);box-shadow:0 2px 8px var(--shadow);
+  transition:transform .34s cubic-bezier(.22,1,.36,1);z-index:0;
+}
+html[data-theme="dark"] .filter-seg .thumb{background:rgba(255,255,255,.11)}
+.filter-seg button{
+  position:relative;z-index:1;appearance:none;border:0;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:12px;font-weight:600;color:var(--ta);padding:8px 0;border-radius:999px;transition:color .25s;
+}
+.filter-seg button.on{color:var(--primary-ink)}
+html[data-theme="dark"] .filter-seg button.on{color:var(--primary)}
+
+/* ── 环形图 ── */
+.donut-wrap{position:relative;height:200px;display:grid;place-items:center}
+.donut{width:196px;height:196px;overflow:visible}
+.donut-seg{transition:stroke-dasharray .95s cubic-bezier(.22,1,.36,1)}
+.donut-center{position:absolute;text-align:center;pointer-events:none}
+.donut-center b{display:block;font-family:'Fredoka',sans-serif;font-weight:700;font-size:19px;color:var(--primary-ink);line-height:1.2}
+.donut-center span{display:block;font-size:11.5px;color:var(--ta);margin-top:1px}
+
+/* ── 排行行 ── */
+.rank-list{margin-top:14px;display:flex;flex-direction:column}
+.rank-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--hair2)}
+.rank-row:first-child{border-top:0}
+.rank-no{
+  width:22px;height:22px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--panel);font-family:'Fredoka',sans-serif;font-weight:700;font-size:11.5px;color:var(--ta);margin-top:1px;
+}
+.rank-no.top{background:var(--primary-soft);color:var(--primary-ink)}
+html[data-theme="dark"] .rank-no.top{color:var(--primary)}
+.rank-main{flex:1;min-width:0}
+.rank-l1{display:flex;align-items:center;gap:7px}
+.dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+.rank-name{font-size:13.5px;color:var(--tp);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{
+  font-size:10.5px;color:var(--ta);background:var(--panel);border-radius:99px;
+  padding:1px 7px;white-space:nowrap;flex:0 0 auto;font-weight:600;
+}
+.rank-val{margin-left:auto;font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:var(--primary-ink);white-space:nowrap}
+html[data-theme="dark"] .rank-val{color:var(--primary)}
+.rank-pct{font-family:'Fredoka',sans-serif;font-size:11.5px;color:var(--ta);width:42px;text-align:right;flex:0 0 auto}
+.rank-bar{height:4px;border-radius:99px;background:var(--track);margin-top:7px;overflow:hidden}
+.rank-bar i{display:block;height:100%;border-radius:99px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+
+/* ── 通用 SVG 图表 ── */
+.chart-svg{width:100%;height:auto;display:block;overflow:visible}
+.chart-svg text{font-family:'Fredoka',sans-serif;font-weight:500}
+.axis-lbl{font-size:10px;fill:var(--ta)}
+.grid-line{stroke:var(--hair);stroke-width:1}
+.dash-line{stroke:var(--ta);stroke-width:1;stroke-dasharray:4 4;opacity:.55}
+.area-fill{opacity:0;transition:opacity .8s ease .15s}
+.area-fill.on{opacity:1}
+.line-path{stroke-dasharray:var(--len,1000);stroke-dashoffset:var(--len,1000);transition:stroke-dashoffset 1.15s cubic-bezier(.22,1,.36,1)}
+.line-path.on{stroke-dashoffset:0}
+
+/* ── 柱状图（DOM） ── */
+.bars{display:flex;align-items:flex-end;gap:4px;height:132px;position:relative;padding-top:20px}
+.bars .gridwrap{position:absolute;inset:20px 0 0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.bars .gridwrap i{display:block;height:1px;background:var(--hair2)}
+.bars .avgline{
+  position:absolute;left:0;right:0;border-top:1.5px dashed var(--ta);opacity:.55;pointer-events:none;z-index:2;
+}
+.bars .avgline span{
+  position:absolute;left:2px;top:-17px;font-family:'Fredoka',sans-serif;font-size:10px;color:var(--ta);
+  background:var(--card);padding:0 5px;border-radius:5px;
+}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:112px;position:relative;z-index:1}
+.bar-col .bar{
+  width:100%;max-width:24px;border-radius:5px;height:0;
+  transition:height .85s cubic-bezier(.22,1,.36,1);position:relative;
+}
+.bar-col .bar.empty{height:3px!important;background:var(--track)}
+.bar-col .tip{
+  position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);
+  font-family:'Fredoka',sans-serif;font-size:10px;font-weight:600;white-space:nowrap;
+  background:var(--primary);color:#fff;border-radius:6px;padding:1px 6px;opacity:0;transition:opacity .3s ease .5s;
+}
+.bar-col .tip.on{opacity:1}
+/* 首末列的气泡贴边对齐，避免被卡片裁掉 */
+.bar-col:first-child .tip{left:0;transform:none}
+.bar-col:last-child .tip{left:auto;right:0;transform:none}
+.bar-x{display:flex;gap:4px;margin-top:8px}
+.bar-x span{flex:1;text-align:center;font-family:'Fredoka',sans-serif;font-size:10px;color:var(--ta);white-space:nowrap}
+.bar-x span.hot{color:var(--primary-ink);font-weight:700}
+html[data-theme="dark"] .bar-x span.hot{color:var(--primary)}
+
+/* ── 直方图 ── */
+.hist{display:flex;align-items:flex-end;gap:8px;height:140px}
+.hist .col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:140px}
+.hist .cnt{font-family:'Fredoka',sans-serif;font-weight:700;font-size:13px;color:var(--ts);margin-bottom:5px;opacity:0;transition:opacity .4s ease .55s}
+.hist .cnt.on{opacity:1}
+.hist .cnt.hot{color:var(--primary-ink)}
+html[data-theme="dark"] .hist .cnt.hot{color:var(--primary)}
+.hist .bx{
+  width:100%;border-radius:8px 8px 4px 4px;height:0;transition:height .85s cubic-bezier(.22,1,.36,1);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 82%,transparent),color-mix(in srgb,var(--primary) 40%,transparent));
+}
+.hist .bx.hot{background:linear-gradient(180deg,var(--primary),color-mix(in srgb,var(--primary) 55%,transparent))}
+.hist .lb{font-size:10.5px;color:var(--ta);margin-top:8px;text-align:center;line-height:1.25;font-family:'Fredoka',sans-serif}
+
+/* ── TOP 单品 ── */
+.top-list{display:flex;flex-direction:column;gap:2px}
+.top-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--hair2)}
+.top-row:first-child{border-top:0}
+.medal{
+  width:26px;height:26px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;
+  font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;
+  background:var(--panel);color:var(--ta);
+}
+.medal.m1{background:linear-gradient(140deg,#F3B33D,#E8782A);color:#fff;box-shadow:0 3px 9px rgba(232,120,42,.35)}
+.medal.m2{background:linear-gradient(140deg,#C9CDD6,#98A0AE);color:#fff}
+.medal.m3{background:linear-gradient(140deg,#E0A272,#C07C45);color:#fff}
+.top-main{flex:1;min-width:0}
+.top-l1{display:flex;align-items:baseline;gap:7px}
+.top-nm{flex:1;min-width:0;font-size:13.5px;color:var(--tp);font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+.top-val{font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:var(--primary-ink);white-space:nowrap;flex:0 0 auto}
+html[data-theme="dark"] .top-val{color:var(--primary)}
+.top-bar{height:3px;border-radius:99px;background:var(--track);margin-top:6px;overflow:hidden}
+.top-bar i{display:block;height:100%;border-radius:99px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+
+/* ── 存放位置 ── */
+.loc-list{display:flex;flex-direction:column;gap:11px}
+.loc-row .l1{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.loc-row .nm{font-size:13px;color:var(--tp);font-weight:600}
+.loc-row .ct{font-size:11px;color:var(--ta);background:var(--panel);border-radius:99px;padding:1px 7px;font-weight:600}
+.loc-row .vv{margin-left:auto;font-family:'Fredoka',sans-serif;font-weight:700;font-size:13px;color:var(--ts)}
+.loc-row .bar{height:7px;border-radius:99px;background:var(--track);overflow:hidden}
+.loc-row .bar i{display:block;height:100%;border-radius:99px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+
+/* ── 底部玻璃导航 ── */
+.tabbar{
+  position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:9;
+  display:flex;gap:2px;padding:6px;border-radius:999px;
+  background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);box-shadow:0 10px 26px -8px var(--shadow-lg);
+}
+.tabbar div{
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 20px;border-radius:999px;
+  font-size:10.5px;color:var(--ta);font-weight:600;transition:.2s;
+}
+.tabbar div svg{width:19px;height:19px}
+.tabbar div.on{background:var(--primary-soft);color:var(--primary-ink)}
+html[data-theme="dark"] .tabbar div.on{color:var(--primary)}
+
+/* ══ 图表总览模式 ══ */
+body.board .stage{display:block}
+body.board .phone{
+  width:100%;box-shadow:none;background:transparent;border-radius:0;
+}
+body.board .phone-screen{height:auto;border-radius:0;background:transparent;overflow:visible}
+body.board .phone-screen::before,body.board .phone-screen::after{display:none}
+body.board .statusbar,body.board .tabbar,body.board .filter-seg{display:none}
+body.board .screen-scroll{
+  height:auto;overflow:visible;padding:0;display:block;
+  columns:440px;column-gap:16px;
+}
+body.board .screen-scroll>.card{break-inside:avoid;margin:0 0 16px}
+body.board .board-note{display:block}
+body.board .card{animation:none}
+body.board .hero .card-pad{max-width:none}
+@media(max-width:1180px){
+  .layout{flex-direction:column;padding:20px 16px 50px}
+  .side{position:static;flex:none;width:100%;max-height:none;order:2}
+  .stage{order:1;width:100%}
+}
+/* ══ 长图模式（#flat=1）—— 手机不内滚，方便整页截图 ══ */
+body.flat .phone-screen{height:auto}
+body.flat .screen-scroll{height:auto;overflow:visible;padding-bottom:24px}
+body.flat .tabbar{position:static;transform:none;margin:20px auto 26px}
+
+@media(max-width:460px){
+  .phone{width:100%;border-radius:0;box-shadow:none;background:transparent}
+  .phone-screen{height:auto;border-radius:0}
+  .statusbar,body .tabbar{display:none}
+  .screen-scroll{height:auto;overflow:visible}
+  .page-head{padding:12px 14px}
+}
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7.5 12 3l9 4.5-9 4.5z"/><path d="M3 12.5 12 17l9-4.5"/><path d="M3 17 12 21.5 21 17"/>
+      </svg>
+    </div>
+    <div>
+      <h1>统计页改版方案 · v7.2 预览</h1>
+      <p>数据全部由一份 mock 物品表实时计算，与真机口径一致；改时间筛选所有图表联动</p>
+    </div>
+  </div>
+  <div class="head-actions">
+    <div class="seg" id="viewToggle">
+      <button data-view="phone" class="on">手机视图</button>
+      <button data-view="board">图表总览</button>
+    </div>
+    <div class="seg" id="themeToggle">
+      <button data-theme="light" class="on">浅色</button>
+      <button data-theme="dark">深色</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="side">
+    <section>
+      <h2>信息架构</h2>
+      <ul>
+        <li><b>合并去重</b>：原「分类资产分布」与「分类排名」是同一份数据的两次陈述 → 合成一张<b>资产结构</b>卡（环形图 + 带排名的图例）。</li>
+        <li><b>顺序重排</b>：总览 → 结构 → 趋势 → 洞察，四段式；金额类在前，行为类在后。</li>
+        <li><b>Hero 扩容</b>：右上的「物品总数」小面板换成一行纯文字事实条 —— 在持件数 / 分类数 / <b>平均单价</b>（新增），不做卡片。</li>
+        <li><b>筛选器</b>：留在 Hero 内，但宽度拉满、与卡片同宽；滚动时淡出（真机可实现吸顶）。</li>
+        <li><b>零指标卡</b>：整页不再有「小方块数字」。需要读的量全部交给图本身（柱高、条长、虚线、端点徽标、卡片角标）。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>新增图表</h2>
+      <ul>
+        <li><b>客单价分布</b><span class="legend-tag tag-new">新</span><br>5 档价格区间直方图，件数最集中的档位高亮。回答「我这堆东西是精品还是杂货」。</li>
+        <li><b>单品价值 TOP 5</b><span class="legend-tag tag-new">新</span><br>带奖牌的排行榜，一眼看到「钱压在哪几件上」。</li>
+        <li><b>存放位置分布</b><span class="legend-tag tag-new">新</span><br><code>storageLocation</code> 的金额/件数分布。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>替换与修复</h2>
+      <ul>
+        <li><b>删掉雷达图</b><span class="legend-tag tag-drop">删除</span><br>原「分类多维对比」5 条轴全是「金额」一项归一化，等于把排行画成圆——没有第二维度。排名已经在<b>资产结构</b>卡里用条形 + 百分比讲清楚了，不需要再来一张。</li>
+        <li><b>趋势图补齐空月</b><span class="legend-tag tag-fix">修复</span><br>现实现只 <code>groupBy</code> 有购入的月份，没买的月份<b>整段消失</b>，x 轴不等距（<code>StatisticsScreen.kt:324-330</code>）。补 0 后时间轴才可言。</li>
+        <li><b>柱状图高亮口径</b><span class="legend-tag tag-fix">修复</span><br>现在是「最高月」高亮（<code>StatisticsScreen.kt:355</code>），改用<b>当月</b>高亮 + 月均虚线，回答的是「我最近买得凶不凶」。</li>
+        <li><b>Y 轴刻度</b><span class="legend-tag tag-fix">修复</span><br>趋势图加 4 档金额刻度，现在只能靠端点徽标猜量级。</li>
+        <li><b>图表无障碍</b><span class="legend-tag tag-keep">保留</span><br>沿用现有 <code>semantics { contentDescription }</code> 摘要，新图表一并补上。</li>
+        <li><b>删掉物品状态</b><span class="legend-tag tag-drop">删除</span><br>生命周期占比（在用/闲置/待修/已出/丢失）在首页列表里一眼就能看出来，统计页不值得为它占一整张卡。</li>
+        <li><b>删掉保修到期</b><span class="legend-tag tag-drop">删除</span><br><code>warrantyExpiryDate</code> 虽有数据，但本质是「提醒」而不是「统计」，更适合放首页或通知，不该混在资产分析里。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>刻意没做的</h2>
+      <ul>
+        <li>不新增标签云 —— 标签录入在 v7.0 已按方案 A 移除，数据稀疏。</li>
+        <li>不做入库热力图 —— 与「月度购入」重复，且手机宽度下 43 个月格子太碎。</li>
+        <li>没有改任何数据口径，全部沿用「仅在用/闲置/待修的购入价计入资产」。</li>
+      </ul>
+    </section>
+  </aside>
+
+  <main class="stage">
+    <div class="phone" id="phone">
+      <div class="phone-screen">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="icons">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h3v-6H2zm5 0h3V9H7zm5 0h3V5h-3zm5 0h3V2h-3z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21 1.5 9.5A15 15 0 0 1 22.5 9.5z" opacity=".9"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="17" height="10" rx="3"/><rect x="4" y="9" width="10" height="6" rx="1.5" fill="currentColor" stroke="none"/><path d="M21 10.5v3" stroke-linecap="round"/></svg>
+          </span>
+        </div>
+        <div class="screen-scroll" id="screen"></div>
+        <div class="tabbar">
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-6H8v6H4a1 1 0 0 1-1-1z"/></svg>首页</div>
+          <div class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M14 2v8h8a8 8 0 0 0-8-8z" opacity=".55"/></svg>统计</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>我的</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   1. Mock 数据 —— 与 ItemEntity 字段一一对应
+      [名称, 分类下标, 购入价, 几个月前购入, 状态, 存放位置下标, 保修月数|null]
+   ══════════════════════════════════════════════════════════════ */
+const TODAY = new Date(2026, 9, 15); // mock「今天」= 2026-10-15
+
+const CATS = ['数码电子','摄影器材','电脑外设','游戏设备','户外装备','家居生活'];
+/* 取自 ui/theme/Color.kt ChartColors 前 6 位，保持与真机同色同义 */
+const CAT_COLORS = ['#E8782A','#7C3AED','#10B981','#3B82F6','#F59E0B','#EF4444'];
+const LOCS = ['书房工作台','卧室衣柜','客厅电视柜','储藏室','车库','未标注'];
+
+const RAW = [
+  // ── 数码电子 12 ──
+  ['MacBook Pro 14" M4 Pro', 0, 18999,  5, 'active', 0, 24],
+  ['iPad mini 7',            0,  3999,  0, 'active', 0, 12],
+  ['iPhone 15 Pro',          0,  5999, 22, 'idle',   1, null],
+  ['AirPods Pro 2',          0,  1899, 18, 'active', 0, null],
+  ['Apple Watch S10',        0,  2999,  2, 'active', 1, 12],
+  ['索尼 WH-1000XM5',        0,  2299, 14, 'active', 0, 12],
+  ['Anker 140W 氮化镓充电器', 0,   399, 10, 'active', 0, 18],
+  ['Kindle Paperwhite 5',    0,  1099, 40, 'idle',   1, null],
+  ['罗技 MX Master 3S',      0,   699,  9, 'active', 0,  9],
+  ['小米移动电源 20000mAh',   0,   199, 30, 'idle',   3, null],
+  ['树莓派 5 8GB',           0,   799,  4, 'active', 0, 12],
+  ['明基 ScreenBar Halo',    0,   999, 10, 'active', 0, 24],
+  // ── 摄影器材 8 ──
+  ['索尼 A7M4 机身',          1, 11499, 14, 'active', 3, 12],
+  ['索尼 FE 24-70mm F2.8 GM II', 1, 13800, 13, 'active', 3, 12],
+  ['索尼 FE 50mm F1.8',      1,  1299, 20, 'active', 3, 12],
+  ['曼富图 Befree 三脚架',     1,  1899, 26, 'idle',   3, null],
+  ['神牛 V1 闪光灯',          1,  1599, 18, 'active', 3, 24],
+  ['锐玛 电子防潮箱',          1,   899, 14, 'active', 3, 12],
+  ['索尼 128G CFexpress 卡',  1,  1299, 13, 'active', 3, null],
+  ['国家地理 摄影包',          1,   799, 30, 'idle',   3, null],
+  // ── 电脑外设 9 ──
+  ['LG 32GS95UE 显示器',     2,  8499,  3, 'active', 0, 36],
+  ['HHKB Professional HYBRID', 2, 2499, 36, 'active', 0, null],
+  ['明基 27" 4K 显示器',      2,  2299, 42, 'repair', 3, null],
+  ['Keychron Q1 Pro',        2,  1199, 30, 'idle',   3, null],
+  ['三星 T7 2TB 移动固态',     2,   999, 16, 'active', 0, 36],
+  ['绿联 雷电4 扩展坞',        2,  1299,  8, 'active', 0, 24],
+  ['显示器支架 ×2',           2,   599,  3, 'active', 0, 12],
+  ['Anker 桌面充电站',        2,   399, 11, 'active', 0, 18],
+  ['群晖 DS923+ NAS',        2,  6299, 20, 'active', 3, 24],
+  // ── 游戏设备 7 ──
+  ['Steam Deck OLED',        3,  4588,  9, 'active', 0, 12],
+  ['PS5 Slim 光驱版',         3,  3499, 26, 'active', 2, 12],
+  ['Switch OLED',            3,  2099, 34, 'idle',   2, null],
+  ['Xbox Series X 手柄',      3,   459, 14, 'active', 2, 12],
+  ['DualSense 手柄',          3,   529, 26, 'repair', 3, 24],
+  ['罗技 G Pro X 耳机',       3,  1099, 20, 'active', 0, 24],
+  ['塞尔达 王国之泪',          3,   359, 18, 'idle',   2, null],
+  // ── 户外装备 9 ──
+  ['始祖鸟 Beta LT 冲锋衣',    4,  4800, 16, 'active', 1, null],
+  ['摩登天空 双人帐篷',        4,  1899, 22, 'idle',   4, null],
+  ['黑冰 G700 睡袋',          4,  1299, 22, 'active', 4, null],
+  ['Osprey Kestrel 48L',     4,  1399, 30, 'active', 3, null],
+  ['攀索 头灯',               4,   459, 20, 'active', 4, 21],
+  ['挪客 折叠桌椅',            4,   799, 14, 'idle',   4, null],
+  ['鲁滨逊 登山杖 ×2',         4,   399, 22, 'active', 4, null],
+  ['膳魔师 保温水壶 1L',        4,   269, 10, 'active', 4, null],
+  ['车载冰箱 26L',            4,  1499,  6, 'active', 4, 12],
+  // ── 家居生活 12 ──
+  ['Herman Miller Aeron',    5,  6999, 18, 'active', 0, 12],
+  ['米家 空气净化器 5',        5,  1499, 14, 'active', 2, 16],
+  ['戴森 V12 Detect',        5,  2999, 30, 'active', 3, 24],
+  ['乐歌 电动升降桌',          5,  2499, 20, 'active', 0, 24],
+  ['北欧 落地灯',             5,   699, 40, 'active', 2, null],
+  ['收纳箱 ×6',              5,   359,  0, 'active', 3, null],
+  ['无印 香薰机',             5,   199, 26, 'repair', 2, null],
+  ['泰摩 手冲咖啡套装',        5,   899,  1, 'active', 0, null],
+  ['飞利浦 电动牙刷',          5,   459, 12, 'active', 1, 24],
+  ['徕芬 SE 吹风机',          5,   599,  4, 'active', 1, 24],
+  ['小熊 加湿器',             5,   399, 16, 'idle',   3, null],
+  ['水星家纺 四件套 ×2',       5,  1299,  1, 'active', 1, null],
+  // ── 已出 9（不计入资产，只进「物品状态」）──
+  ['iPhone 12 128G',         0,  3299, 60, 'sold', 3, null],
+  ['索尼 A6000 套机',         1,  3499, 72, 'sold', 3, null],
+  ['iPad Air 3',             0,  3199, 66, 'sold', 3, null],
+  ['罗技 G304 鼠标',          2,   199, 45, 'sold', 3, null],
+  ['小米手环 6',              0,   249, 52, 'sold', 3, null],
+  ['樱桃 MX 3.0 键盘',        2,   399, 70, 'sold', 3, null],
+  ['AOC 24" 显示器',          2,   699, 60, 'sold', 3, null],
+  ['索尼 WH-1000XM3',        0,  1299, 64, 'sold', 3, null],
+  ['GTX 1660 Super 显卡',    2,  1499, 58, 'sold', 3, null],
+  // ── 丢失 2 ──
+  ['AirPods 3',              0,  1399, 30, 'lost', 5, null],
+  ['小米充电宝 10000mAh',      0,   129, 44, 'lost', 5, null],
+];
+
+const ITEMS = RAW.map((r, i) => ({
+  id: i, name: r[0], cat: r[1], price: r[2], m: r[3], status: r[4], loc: r[5], w: r[6],
+  owned: r[4] === 'active' || r[4] === 'idle' || r[4] === 'repair',
+}));
+
+const STATUS_DEF = [
+  { k:'active', label:'在用', light:'#10B981', dark:'#10B981' },
+  { k:'idle',   label:'闲置', light:'#4B5563', dark:'#9CA3AF' },
+  { k:'repair', label:'待修', light:'#EF4444', dark:'#EF4444' },
+  { k:'sold',   label:'已出', light:'#F59E0B', dark:'#F59E0B' },
+  { k:'lost',   label:'丢失', light:'#374151', dark:'#6B7280' },
+];
+const isDark = () => document.documentElement.dataset.theme === 'dark';
+const statusColor = k => { const d = STATUS_DEF.find(s => s.k === k); return isDark() ? d.dark : d.light; };
+
+/* ══════════════════════════════════════════════════════════════
+   2. 口径 —— 与 StatisticsViewModel / StatisticsScreen 完全一致
+   ══════════════════════════════════════════════════════════════ */
+const FILTERS = [
+  { key:'all', label:'全部',   months:Infinity },
+  { key:'3',   label:'近三月', months:3 },
+  { key:'6',   label:'近半年', months:6 },
+  { key:'12',  label:'近一年', months:12 },
+];
+let filterIdx = 0;
+
+const inScope = (it, months) => it.m <= months;
+const fmt  = n => '¥' + Math.round(n).toLocaleString('en-US');
+const fmt1 = n => '¥' + n.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+/* 对齐 util/FormatUtil.kt formatPriceShort */
+function short(n){
+  if (n >= 1e6) return '¥' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e4) return '¥' + (n/1e4).toFixed(1) + '万';
+  if (n >= 1e3) return '¥' + (n/1e3).toFixed(2) + 'K';
+  return '¥' + Math.round(n);
+}
+const monthDate = m => new Date(TODAY.getFullYear(), TODAY.getMonth() - m, 1);
+const monthLabel = m => { const d = monthDate(m); return String(d.getFullYear()).slice(2) + '/' + String(d.getMonth()+1).padStart(2,'0'); };
+const pad2 = n => String(n).padStart(2,'0');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function compute(){
+  const f = FILTERS[filterIdx];
+  const M = f.months;
+  const all = ITEMS;
+
+  /* 资产口径：仅在用/闲置/待修（与 ItemStatus.isOwned 一致），先按时间筛选 */
+  const ownedAll = all.filter(i => i.owned);
+  const owned = ownedAll.filter(i => inScope(i, M));
+
+  const total = owned.reduce((s,i) => s + i.price, 0);
+  const count = owned.length;
+  const avg = count ? total / count : 0;
+
+  /* 分类汇总（只展示有金额的分类，与原实现一致） */
+  const cats = CATS.map((name, idx) => {
+    const list = owned.filter(i => i.cat === idx);
+    return { name, idx, color: CAT_COLORS[idx], count: list.length,
+             total: list.reduce((s,i) => s + i.price, 0),
+             avg: list.length ? list.reduce((s,i) => s + i.price, 0) / list.length : 0 };
+  }).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+
+  /* 本月 / 上月新增（日历月边界，不受时间筛选影响 —— 与原实现一致） */
+  const monthPurchases = ownedAll.filter(i => i.m === 0).reduce((s,i) => s + i.price, 0);
+  const prevMonthPurchases = ownedAll.filter(i => i.m === 1).reduce((s,i) => s + i.price, 0);
+
+  /* 月度 + 累计（补空月 —— 这是本次要修的 bug） */
+  const maxM = owned.length ? Math.max(...owned.map(i => i.m)) : 0;
+  const monthly = new Array(maxM + 1).fill(0);
+  owned.forEach(i => monthly[i.m] += i.price);
+  const cum = []; let run = 0;
+  for (let m = maxM; m >= 0; m--) { run += monthly[m]; cum.push({ m, total: run, delta: monthly[m] }); }
+
+  /* 状态分布：全部物品（含已出/丢失），同样按购入时间筛选 */
+  const statusScope = all.filter(i => inScope(i, M));
+  const statuses = STATUS_DEF.map(s => ({
+    ...s, color: isDark() ? s.dark : s.light,
+    count: statusScope.filter(i => i.status === s.k).length,
+  })).filter(s => s.count > 0);
+
+  /* 客单价分布 */
+  const BRACKETS = [
+    { lb:'<¥500',    lo:0,     hi:500 },
+    { lb:'¥500-1K',  lo:500,   hi:1000 },
+    { lb:'¥1-3K',    lo:1000,  hi:3000 },
+    { lb:'¥3-10K',   lo:3000,  hi:10000 },
+    { lb:'≥¥10K',    lo:10000, hi:Infinity },
+  ];
+  const hist = BRACKETS.map(b => ({ ...b, n: owned.filter(i => i.price >= b.lo && i.price < b.hi).length }));
+  const prices = owned.map(i => i.price).sort((a,b) => a-b);
+  const median = prices.length ? (prices.length % 2 ? prices[(prices.length-1)/2]
+                              : (prices[prices.length/2 - 1] + prices[prices.length/2]) / 2) : 0;
+
+  /* 保修：只看当前持有物品，不受购入时间筛选影响（保修是「现在」的事） */
+  const WB = [
+    { lb:'已过期',    test:l => l < 0,                    color:'#EF4444' },
+    { lb:'≤30 天',    test:l => l >= 0 && l <= 1,         color:'#F97316' },
+    { lb:'31-90 天',  test:l => l > 1  && l <= 3,         color:'#F59E0B' },
+    { lb:'91-365 天', test:l => l > 3  && l <= 12,        color:'#10B981' },
+    { lb:'一年以上',   test:l => l > 12,                   color:'#3B82F6' },
+  ];
+  const withW = ownedAll.filter(i => i.w != null).map(i => ({ ...i, left: i.w - i.m }));
+  const wbuckets = WB.map(b => ({ ...b, n: withW.filter(i => b.test(i.left)).length }));
+  /* 先列「即将到期」，不足 3 件再用刚过期的补位 */
+  const soon = [
+    ...withW.filter(i => i.left >= 0 && i.left <= 3).sort((a,b) => a.left - b.left),
+    ...withW.filter(i => i.left < 0).sort((a,b) => b.left - a.left),
+  ].slice(0, 3);
+
+  /* 象限：x=件数 y=客单价 size=金额 */
+  const quad = cats.map(c => ({ ...c }));
+  const qAvgX = quad.length ? quad.reduce((s,c) => s+c.count, 0) / quad.length : 0;
+  const qAvgY = avg;
+
+  /* TOP 单品 */
+  const top = [...owned].sort((a,b) => b.price - a.price).slice(0, 5);
+
+  /* 存放位置 */
+  const locs = LOCS.map((name, idx) => {
+    const list = owned.filter(i => i.loc === idx);
+    return { name, idx, count: list.length, total: list.reduce((s,i) => s + i.price, 0) };
+  }).filter(l => l.count > 0).sort((a,b) => b.total - a.total);
+
+  return { f, M, total, count, avg, cats, monthPurchases, prevMonthPurchases,
+           monthly, cum, statuses, statusTotal: statusScope.length,
+           ownedCount: count, ownedAllCount: ownedAll.length, allCount: statusScope.length,
+           hist, median, wbuckets, soon, wTotal: withW.length,
+           quad, qAvgX, qAvgY, top, locs };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. 图标
+   ══════════════════════════════════════════════════════════════ */
+const I = {
+  wallet:'<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a2 2 0 0 1 2 2v1"/><path d="M3 7.5V17a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a1.5 1.5 0 0 0-1.5-1.5H5.5A2.5 2.5 0 0 1 3 5.5"/><circle cx="16.5" cy="13.5" r="1.3" fill="currentColor" stroke="none"/>',
+  pie:'<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M14.5 2.2A9 9 0 0 1 21.8 9.5H14.5z"/>',
+  trend:'<path d="M3 17.5 9 11l4 3.5L21 6"/><path d="M15 6h6v6"/>',
+  bars:'<path d="M5 20V11"/><path d="M12 20V5"/><path d="M19 20v-6"/>',
+  ring:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v8.5h8.5"/>',
+  scatter:'<circle cx="7.5" cy="16" r="2.4"/><circle cx="14" cy="9" r="3.4"/><circle cx="19" cy="15.5" r="1.8"/>',
+  trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4.5v1.5A3.5 3.5 0 0 0 8 11"/><path d="M17 6h2.5v1.5A3.5 3.5 0 0 1 16 11"/><path d="M12 14v3"/><path d="M8.5 20.5h7"/>',
+  shield:'<path d="M12 3 5 6v5.5c0 4.3 2.9 7.6 7 9.5 4.1-1.9 7-5.2 7-9.5V6z"/><path d="m9.2 12 2 2 3.6-4"/>',
+  pin:'<path d="M12 21s6.5-5.6 6.5-10.5A6.5 6.5 0 0 0 5.5 10.5C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/>',
+  tag:'<path d="M11.6 3H20a1 1 0 0 1 1 1v8.4a2 2 0 0 1-.6 1.4l-6.6 6.6a2 2 0 0 1-2.8 0l-6.4-6.4a2 2 0 0 1 0-2.8l6.6-6.6A2 2 0 0 1 11.6 3z"/><circle cx="16.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"/>',
+  spark:'<path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18.5 15.5 19.3 18l2.5.8-2.5.8-.8 2.5-.8-2.5-2.5-.8 2.5-.8z"/>',
+};
+const svgIcon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+
+/* ══════════════════════════════════════════════════════════════
+   4. 各卡片渲染
+   ══════════════════════════════════════════════════════════════ */
+const head = (icon, title, cap) => `
+  <div class="card-head">
+    <div class="sec-icon">${svgIcon(icon)}</div>
+    <div class="sec-title">${title}</div>
+    ${cap ? `<div class="sec-cap">${cap}</div>` : ''}
+  </div>`;
+
+const note = t => `<div class="board-note">${t}</div>`;
+
+/* ── 1. Hero ── */
+function cHero(D){
+  const diff = D.monthPurchases - D.prevMonthPurchases;
+  const pct  = D.prevMonthPurchases > 0 ? Math.abs(diff) / D.prevMonthPurchases * 100 : null;
+  const up   = diff >= 0;
+  const delta = D.prevMonthPurchases > 0
+    ? `<span class="delta ${up ? '' : 'down'}">${up ? '↑' : '↓'} 较上月 ${up ? '+' : '−'}${fmt(Math.abs(diff))}${pct != null ? ' · ' + pct.toFixed(1) + '%' : ''}</span>`
+    : '';
+  return `
+  <div class="card hero">
+    <div class="hero-glow"></div>
+    <div class="card-pad">
+      <div class="lbl-line">
+        <span class="lbl-chip">${svgIcon('wallet')}</span>
+        <span class="lbl-txt">全部资产总值</span>
+      </div>
+      <div class="hero-value mono">${fmt(D.total)}</div>
+      <div class="hero-sub">
+        <span>本月新增 ${fmt(D.monthPurchases)}</span>
+        ${delta}
+      </div>
+      <div class="hero-facts">
+        <b class="mono">${D.count}</b> 件在持 <i>·</i> <b class="mono">${D.cats.length}</b> 个分类
+        <i>·</i> 均价 <b class="mono">¥${Math.round(D.avg).toLocaleString('en-US')}</b>
+      </div>
+      <div class="filter-seg" id="filterSeg">
+        <div class="thumb" style="transform:translateX(${filterIdx * 100}%)"></div>
+        ${FILTERS.map((f,i) => `<button data-i="${i}" class="${i===filterIdx?'on':''}">${f.label}</button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── 2. 资产结构（环形 + 排行 合并） ── */
+function cStructure(D){
+  const R = 76, SW = 25, C = 2 * Math.PI * R;
+  let acc = 0;
+  const segs = D.cats.map((c, i) => {
+    const len = D.total > 0 ? (c.total / D.total) * C : 0;
+    const gap = Math.min(3, len * 0.12);
+    const draw = Math.max(len - gap, 0.8);
+    const off = -acc; acc += len;
+    return `<circle class="donut-seg" cx="100" cy="100" r="${R}" fill="none"
+      stroke="${c.color}" stroke-width="${SW}"
+      stroke-dasharray="0 ${C.toFixed(2)}" data-len="${draw.toFixed(2)}" data-rest="${(C-draw).toFixed(2)}"
+      stroke-dashoffset="${off.toFixed(2)}" transform="rotate(-90 100 100)"/>`;
+  }).join('');
+
+  const top = D.cats[0];
+  const rows = D.cats.map((c, i) => {
+    const share = D.total > 0 ? c.total / D.total * 100 : 0;
+    const w = top ? Math.max(c.total / top.total * 100, 3) : 0;
+    return `
+    <div class="rank-row">
+      <div class="rank-no ${i === 0 ? 'top' : ''}">${i + 1}</div>
+      <div class="rank-main">
+        <div class="rank-l1">
+          <span class="dot" style="background:${c.color}"></span>
+          <span class="rank-name">${esc(c.name)}</span>
+          <span class="pill">${c.count} 件</span>
+          <span class="rank-val mono">${fmt(c.total)}</span>
+          <span class="rank-pct mono">${share >= 10 ? share.toFixed(0) : share.toFixed(1)}%</span>
+        </div>
+        <div class="rank-bar"><i style="width:0;background:${c.color}" data-w="${w.toFixed(1)}"></i></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="card">
+    ${head('ring', '资产结构', `${D.cats.length} 个分类`)}
+    ${note('合并了原「分类资产分布」+「分类排名」两张卡。<br>环形色 = 分类身份色，跨全部图表同色同义；排行条以榜首为满格。')}
+    <div class="card-body">
+      <div class="donut-wrap">
+        <svg class="donut" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="${R}" fill="none" stroke="var(--track)" stroke-width="${SW}"/>
+          ${segs}
+        </svg>
+        <div class="donut-center">
+          <b class="mono">${fmt(D.total)}</b>
+          <span>总资产</span>
+        </div>
+      </div>
+      <div class="rank-list">${rows}</div>
+    </div>
+  </div>`;
+}
+
+/* ── 4. 资产净值趋势 ── */
+function cTrend(D){
+  const pts = D.cum.slice(-24);
+  if (pts.length < 2) return '';
+  const W = 320, H = 182, pT = 46, pB = 24, pL = 40, pR = 10;
+  const cw = W - pL - pR, ch = H - pT - pB;
+  const maxV = Math.max(...pts.map(p => p.total), 1);
+  const niceMax = Math.ceil(maxV / 20000) * 20000 || 1;
+  const X = i => pL + cw * (i / (pts.length - 1));
+  const Y = v => pT + ch - (v / niceMax) * ch;
+
+  const grid = [0, .25, .5, .75, 1].map(r => {
+    const y = pT + ch - ch * r;
+    return `<line class="grid-line" x1="${pL}" y1="${y.toFixed(1)}" x2="${W - pR}" y2="${y.toFixed(1)}"/>
+            <text class="axis-lbl" x="${pL - 6}" y="${(y + 3.5).toFixed(1)}" text-anchor="end">${short(niceMax * r)}</text>`;
+  }).join('');
+
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p.total).toFixed(1)}`).join(' ');
+  const area = `${line} L${X(pts.length-1).toFixed(1)},${(pT+ch).toFixed(1)} L${X(0).toFixed(1)},${(pT+ch).toFixed(1)} Z`;
+
+  const last = pts[pts.length - 1];
+  const lx = X(pts.length - 1), ly = Y(last.total);
+  const bw = 86, bh = 38;
+  const bx = Math.min(Math.max(lx - bw / 2, pL), W - pR - bw);
+  const by = Math.max(ly - 12 - bh, 2);
+
+  /* 近 12 个月区间：两条竖直虚线把它从 24 个月里切出来 —— 用图说话，不再单列指标卡 */
+  const b12 = Math.max(pts.length - 13, 0);
+  const marks = pts.length >= 13
+    ? `<line x1="${X(b12).toFixed(1)}" y1="${pT}" x2="${X(b12).toFixed(1)}" y2="${(pT + ch).toFixed(1)}"
+             stroke="var(--ta)" stroke-width="1" stroke-dasharray="3 4" opacity=".45"/>` : '';
+
+  const ticks = pts.map((p,i) => (i % 4 === 0 || i === pts.length-1)
+    ? `<text class="axis-lbl" x="${X(i).toFixed(1)}" y="${H - 6}" text-anchor="middle">${monthLabel(p.m)}</text>` : '').join('');
+
+  const r12 = pts.length >= 13 ? last.total - pts[pts.length - 13].total : last.total;
+  return `
+  <div class="card">
+    ${head('trend', '资产净值趋势', `近 ${pts.length} 个月`)}
+    ${note('修复：原实现只 <code>groupBy</code> 有购入的月份，没买的月份整段消失、x 轴不等距。现在补齐空月（<code>StatisticsScreen.kt:324-330</code>），并加了 4 档金额刻度；<b>虚线右侧为近 12 个月</b>。')}
+    <div class="card-body">
+      <svg class="chart-svg" viewBox="0 0 ${W} ${H}">
+        <defs>
+          <linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E8782A" stop-opacity=".34"/>
+            <stop offset="100%" stop-color="#E8782A" stop-opacity=".02"/>
+          </linearGradient>
+        </defs>
+        ${grid}
+        ${marks}
+        <path class="area-fill" d="${area}" fill="url(#areaG)"/>
+        <path class="line-path" d="${line}" fill="none" stroke="#E8782A" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="8" fill="var(--card)" opacity=".9"/>
+        <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4.6" fill="#E8782A"/>
+        <rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw}" height="${bh}" rx="13" fill="#E8782A"/>
+        <text x="${(bx + bw/2).toFixed(1)}" y="${(by + 16).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" class="mono">${short(last.total)}</text>
+        <text x="${(bx + bw/2).toFixed(1)}" y="${(by + 29).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#fff" opacity=".88" class="mono">近 12 月 +${short(r12)}</text>
+        ${ticks}
+      </svg>
+    </div>
+  </div>`;
+}
+
+/* ── 5. 月度购入 ── */
+const BAR_H = 112;   /* .bar-col 的 px 高度，与 CSS 常量保持一致 */
+function cMonthly(D){
+  const N = 12, md = [];
+  for (let m = N - 1; m >= 0; m--) md.push({ m, v: D.monthly[m] || 0 });
+  if (!md.length) return '';
+  const maxV = Math.max(...md.map(d => d.v), 1);
+  const avgV = md.reduce((s,d) => s + d.v, 0) / md.length;
+  const cur = md[md.length - 1];
+  const cols = md.map(d => {
+    /* 用 px 而不是 % —— flex 列里百分比高度会被解析成 0 */
+    const px = Math.max(Math.round(d.v / maxV * BAR_H), 4);
+    const isCur = d.m === 0;
+    const bg = d.v === 0 ? '' :
+      isCur ? 'background:linear-gradient(180deg,#E8782A,rgba(232,120,42,.5))'
+            : 'background:linear-gradient(180deg,rgba(232,120,42,.62),rgba(232,120,42,.22))';
+    const showTip = d.v > 0 && (isCur || d.v === maxV);
+    return `<div class="bar-col">
+      <div class="bar ${d.v === 0 ? 'empty' : ''}" data-px="${px}" style="${bg}"
+           title="${monthLabel(d.m)} ${fmt(d.v)}">
+        ${showTip ? `<span class="tip ${isCur ? 'on' : ''}">${short(d.v)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="card">
+    ${head('bars', '月度购入', `近 12 个月 · 合计 ${short(md.reduce((s,d)=>s+d.v,0))}`)}
+    ${note('改动：高亮口径由「最高月」改成<b>当月</b>（原 <code>StatisticsScreen.kt:355</code>），并叠加<b>月均虚线</b> —— 回答的是「最近买得凶不凶」，而不是「哪个月买得最多」。')}
+    <div class="card-body">
+      <div class="bars">
+        <div class="gridwrap"><i></i><i></i><i></i><i></i></div>
+        <div class="avgline" style="bottom:${(avgV / maxV * BAR_H).toFixed(1)}px"><span>月均 ${short(avgV)}</span></div>
+        ${cols}
+      </div>
+      <div class="bar-x">${md.map(d => `<span class="${d.m===0?'hot':''}">${monthLabel(d.m).slice(3)}</span>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+/* ── 6. 客单价分布（新） ── */
+function cPriceHist(D){
+  const HIST_H = 140;
+  const maxN = Math.max(...D.hist.map(h => h.n), 1);
+  const modeIdx = D.hist.reduce((bi,b,i) => b.n > D.hist[bi].n ? i : bi, 0);
+  const cols = D.hist.map((b,i) => `
+    <div class="col">
+      <span class="cnt ${i===modeIdx?'hot':''}">${b.n}</span>
+      <div class="bx ${i===modeIdx?'hot':''}" data-px="${Math.max(Math.round(b.n/maxN*HIST_H), b.n > 0 ? 6 : 0)}"></div>
+    </div>`).join('');
+  return `
+  <div class="card">
+    ${head('bars', '客单价分布', `${D.count} 件`)}
+    ${note('新图表。把持有物品按购入价分 5 档 —— 回答「这堆东西是少量精品还是大量杂货」。<b>橙色档</b>是件数最集中的区间。')}
+    <div class="card-body">
+      <div class="hist">${cols}</div>
+      <div class="bar-x">${D.hist.map((b,i) => `<span class="${i===modeIdx?'hot':''}">${b.lb}</span>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+/* ── 9. TOP 单品（新） ── */
+function cTop(D){
+  if (!D.top.length) return '';
+  const maxV = D.top[0].price || 1;
+  const rows = D.top.map((i, n) => `
+    <div class="top-row">
+      <div class="medal ${n < 3 ? 'm' + (n+1) : ''}">${n + 1}</div>
+      <div class="top-main">
+        <div class="top-l1">
+          <span class="top-nm">${esc(i.name)}</span>
+          <span class="top-val mono">${fmt(i.price)}</span>
+        </div>
+        <div class="top-bar"><i style="width:0;background:${CAT_COLORS[i.cat]}" data-w="${(i.price/maxV*100).toFixed(1)}"></i></div>
+      </div>
+      <span class="pill">${CATS[i.cat]}</span>
+    </div>`).join('');
+  const sum = D.top.reduce((s,i) => s + i.price, 0);
+  const share = D.total > 0 ? (sum / D.total * 100).toFixed(1) : 0;
+  return `
+  <div class="card">
+    ${head('trophy', '单品价值 TOP 5', `持有中 · 占资产 ${share}%`)}
+    ${note('新图表。金额条以榜首为满格，色点用分类身份色 —— 一眼看出「钱都压在哪几件上」。')}
+    <div class="card-body">
+      <div class="top-list">${rows}</div>
+    </div>
+  </div>`;
+}
+
+/* ── 10. 存放位置（新） ── */
+function cLocation(D){
+  if (D.locs.length < 2) return '';
+  const maxV = D.locs[0].total || 1;
+  const ghosts = ['#06B6D4','#84CC16','#F97316','#6366F1','#14B8A6','#EC4899'];
+  const rows = D.locs.map((l, i) => `
+    <div class="loc-row">
+      <div class="l1">
+        <span class="nm">${esc(l.name)}</span>
+        <span class="ct">${l.count} 件</span>
+        <span class="vv mono">${fmt(l.total)}</span>
+      </div>
+      <div class="bar"><i style="width:0;background:${ghosts[i % ghosts.length]}" data-w="${Math.max(l.total/maxV*100,3).toFixed(1)}"></i></div>
+    </div>`).join('');
+  return `
+  <div class="card">
+    ${head('pin', '存放位置分布', `${D.locs.length} 处`)}
+    ${note('新图表。<code>ItemEntity.storageLocation</code> 此前只用于搜索与录入联想。按<b>金额</b>排序 —— 顺带回答「我的钱都堆在哪个房间」。')}
+    <div class="card-body"><div class="loc-list">${rows}</div></div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. 渲染 + 入场动画
+   ══════════════════════════════════════════════════════════════ */
+function render(animate){
+  const D = compute();
+  const html = [
+    cHero(D), cStructure(D), cTrend(D), cMonthly(D),
+    cPriceHist(D), cTop(D), cLocation(D),
+  ].filter(Boolean).join('');
+
+  const screen = document.getElementById('screen');
+  screen.innerHTML = html;
+  screen.querySelectorAll('.card').forEach((el, i) => { el.style.animationDelay = (animate ? i * 45 : 0) + 'ms'; });
+
+  /* 时间筛选 */
+  screen.querySelectorAll('#filterSeg button').forEach(b => {
+    b.addEventListener('click', () => {
+      filterIdx = +b.dataset.i;
+      render(true);
+      document.getElementById('screen').scrollTop = 0;
+    });
+  });
+
+  /* 环形图：从 0 展开 */
+  const segs = [...screen.querySelectorAll('.donut-seg')];
+  requestAnimationFrame(() => segs.forEach((s, i) => setTimeout(() => {
+    s.setAttribute('stroke-dasharray', `${s.dataset.len} ${s.dataset.rest}`);
+  }, i * 70)));
+
+  /* 折线：描边绘制 */
+  const lp = screen.querySelector('.line-path');
+  if (lp) {
+    const L = lp.getTotalLength();
+    lp.style.setProperty('--len', L);
+    requestAnimationFrame(() => requestAnimationFrame(() => lp.classList.add('on')));
+  }
+  const af = screen.querySelector('.area-fill');
+  if (af) requestAnimationFrame(() => af.classList.add('on'));
+
+  /* 柱状 / 进度条：从 0 长到目标值 */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    screen.querySelectorAll('.bar:not(.empty)').forEach((b, i) => setTimeout(() => { b.style.height = b.dataset.px + 'px'; }, i * 32));
+    screen.querySelectorAll('.bx[data-px]').forEach((b, i) => setTimeout(() => { b.style.height = b.dataset.px + 'px'; }, i * 55));
+    screen.querySelectorAll('i[data-w]').forEach((b, i) => setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 45));
+    screen.querySelectorAll('.cnt').forEach(c => c.classList.add('on'));
+    screen.querySelectorAll('.tip:not(.on)').forEach(t => t.classList.add('on'));
+  }));
+}
+
+/* 主题 / 视图切换 */
+document.getElementById('themeToggle').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.documentElement.dataset.theme = b.dataset.theme;
+  document.querySelectorAll('#themeToggle button').forEach(x => x.classList.toggle('on', x === b));
+  render(true);
+});
+document.getElementById('viewToggle').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.body.classList.toggle('board', b.dataset.view === 'board');
+  document.querySelectorAll('#viewToggle button').forEach(x => x.classList.toggle('on', x === b));
+  render(true);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   6. URL 直达：#view=board（图表总览）· #theme=dark（深色）· #flat=1（长图）
+   ══════════════════════════════════════════════════════════════ */
+(function boot(){
+  const h = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const pick = (id, attr, val) =>
+    document.querySelectorAll(`#${id} button`).forEach(b => b.classList.toggle('on', b.dataset[attr] === val));
+  if (h.get('theme') === 'dark') { document.documentElement.dataset.theme = 'dark'; pick('themeToggle', 'theme', 'dark'); }
+  if (h.get('view') === 'board') { document.body.classList.add('board'); pick('viewToggle', 'view', 'board'); }
+  if (h.get('flat') === '1') document.body.classList.add('flat');
+})();
+
+render(true);
+
+/* 自检：把关键口径打到控制台，方便和真机对数 */
+const D0 = compute();
+console.table({
+  '资产总值': fmt(D0.total),
+  '持有件数': D0.count,
+  '全部件数': D0.allCount,
+  '分类数': D0.cats.length,
+  '平均单价': fmt(D0.avg),
+  '本月新增': fmt(D0.monthPurchases),
+  '上月新增': fmt(D0.prevMonthPurchases),
+  '中位数': fmt(D0.median),
+  '有保修件数': D0.wTotal,
+  '累计月数': D0.cum.length,
+});
+</script>
+</body>
+</html>
