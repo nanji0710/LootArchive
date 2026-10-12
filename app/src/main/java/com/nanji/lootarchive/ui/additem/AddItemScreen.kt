@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -608,7 +609,7 @@ fun AddItemScreen(
                             height = 40.dp,
                             horizontalPadding = 14.dp
                         ) {
-                            Icon(Icons.Rounded.Undo, null, Modifier.size(15.dp), tint = Color(0xFFEF4444))
+                            Icon(Icons.AutoMirrored.Rounded.Undo, null, Modifier.size(15.dp), tint = Color(0xFFEF4444))
                             Spacer(Modifier.width(4.dp))
                             Text("撤销", color = Color(0xFFEF4444), style = MaterialTheme.typography.bodySmall)
                         }
