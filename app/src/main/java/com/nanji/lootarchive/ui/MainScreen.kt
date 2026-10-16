@@ -3,6 +3,7 @@ package com.nanji.lootarchive.ui
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.graphics.Color
@@ -79,11 +80,23 @@ fun MainScreen() {
     val hostState = rememberLiquidDialogHostState()
     var backStack by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
+    // 这一跳是「进」还是「出」。
+    // AnimatedContent 只认 targetState，同一个路由既可能是压栈进来的、也可能是弹栈回来的，
+    // 它自己分不清，所以由导航动作显式记一笔 —— 少了这个，返回只能复用前进那一套位移。
+    var navForward by remember { mutableStateOf(true) }
+
     fun navigate(route: String, id: Long? = null) {
         if (id != null) { if (route == Route.ADD) editItemId = id; if (route == Route.DETAIL) detailItemId = id }
+        navForward = true
         backStack = backStack + currentRoute; currentRoute = route
     }
-    fun goBack() { editItemId = null; if (backStack.isNotEmpty()) { currentRoute = backStack.last(); backStack = backStack.dropLast(1) } }
+    fun goBack() {
+        editItemId = null
+        if (backStack.isNotEmpty()) {
+            navForward = false
+            currentRoute = backStack.last(); backStack = backStack.dropLast(1)
+        }
+    }
     fun switchTab(tab: Int) {
         currentTab = tab
         backStack = emptyList()
@@ -99,7 +112,9 @@ fun MainScreen() {
     // ── 三主页切换 ──
     // currentTab 是唯一事实来源，页面直接按 currentTab 渲染；
     // 原先承载横滑切换的 HorizontalPager 已移除（A-5 交互装饰）。
-    val isHome = !isSubPage && currentTab == 0
+    // 悬浮搜索栏 / FAB / 底部导航不再在这里判「是不是子页」：它们挂在 AnimatedContent
+    // 的 tabs 分支内部，由「谁在场」决定去留 —— 否则 isSubPage 一变它们就凭空消失，
+    // 而页面还要再滑 320ms，一眼就能看出装饰和页面是两拨东西。
 
     BackHandler(enabled = isSubPage) { goBack() }
 
@@ -116,20 +131,33 @@ fun MainScreen() {
                     AnimatedContent(
                         targetState = if (isSubPage) currentRoute else "tabs",
                         transitionSpec = {
-                            // 页面转场统一走 Motion token：进场用 Medium、退场用 Quick
-                            // （退出更快收场，免得两个页面同时在场太久）。
-                            // 注意淡入要 FiniteAnimationSpec<Float>、滑动要
-                            // FiniteAnimationSpec<IntOffset>，两者不能共用一个实例。
-                            val fadeInSpec = tween<Float>(MotionDuration.Medium, easing = MotionCurve.EaseOut)
-                            val fadeOutSpec = tween<Float>(MotionDuration.Quick, easing = MotionCurve.EaseOut)
-                            val slideInSpec = tween<IntOffset>(MotionDuration.Medium, easing = MotionCurve.EaseOut)
-                            val slideOutSpec = tween<IntOffset>(MotionDuration.Quick, easing = MotionCurve.EaseOut)
-                            (fadeIn(animationSpec = fadeInSpec) + slideInHorizontally(animationSpec = slideInSpec) { it / 10 }) togetherWith
-                            (fadeOut(animationSpec = fadeOutSpec) + slideOutHorizontally(animationSpec = slideOutSpec) { -it / 10 })
+                            // 方向必须分开写。AnimatedContent 只认 targetState，同一个路由既可能是
+                            // 压栈进来的、也可能是弹栈回来的，它自己分不清「进」和「出」，
+                            // 于是返回只能复用前进那一套位移 —— 两个页面朝同侧各挪一小段
+                            // 再交叉淡出，就成了「整屏横切」。方向交给 navForward 显式决定。
+                            //
+                            // 前进：新页从右推进、旧页向左退场；
+                            // 返回：当前页向右退出、上一层页面从左边跟进 —— 正好是前进的镜像。
+                            //
+                            // 关键是两个页面整段动画里「同向、同速、左右相邻」：旧页的左边缘
+                            // 和新页的右边缘始终重合在同一个 x 上，合起来刚好铺满屏幕，既不
+                            // 重叠也不留缝 —— 像同一张胶片在平移，而不是两块内容各滑各的。
+                            // 位移给满一屏宽度（slideInto/OutOfContainer 的初值就是容器宽），
+                            // 滑就滑干净，停在半路才是真别扭。
+                            val slideSpec = tween<IntOffset>(MotionDuration.Page, easing = MotionCurve.Standard)
+                            if (navForward) {
+                                slideIntoContainer(SlideDirection.Left, animationSpec = slideSpec) togetherWith
+                                    slideOutOfContainer(SlideDirection.Left, animationSpec = slideSpec)
+                            } else {
+                                slideIntoContainer(SlideDirection.Right, animationSpec = slideSpec) togetherWith
+                                    slideOutOfContainer(SlideDirection.Right, animationSpec = slideSpec)
+                            }
                         },
                         label = "page"
                     ) { state ->
                         if (state == "tabs") {
+                            // 三个主页共用同一块玻璃 backdrop：底部导航 + 悬浮件的采样源
+                            val glassBackdrop = LocalPageBackdrop.current
                             Box(Modifier.fillMaxSize()) {
                                 tabStateHolder.SaveableStateProvider(currentTab) {
                                     when (currentTab) {
@@ -157,6 +185,58 @@ fun MainScreen() {
                                             onNavigateToAbout = { navigate(Route.ABOUT) }
                                         )
                                     }
+                                }
+
+                                // ── 首页悬浮搜索栏（液态玻璃，采样页面 backdrop）──
+                                // 放在 tabs 分支内部而不是外层：它们是「三个主页」这一层自己的
+                                // 装饰，页面滑走时要跟着一起滑走，不能单独提前消失。
+                                if (currentTab == 0 && glassBackdrop != null) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .statusBarsPadding()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    ) {
+                                        LiquidGlassButton(
+                                            onClick = { navigate(Route.SEARCH) },
+                                            backdrop = glassBackdrop,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            height = 48.dp,
+                                            horizontalPadding = 14.dp
+                                        ) {
+                                            Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("搜索物品...", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
+                                        }
+                                    }
+
+                                    // 液态玻璃 FAB（缩小版）
+                                    Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 90.dp)) {
+                                        LiquidGlassButton(
+                                            onClick = { navigate(Route.ADD) },
+                                            backdrop = glassBackdrop,
+                                            height = 40.dp,
+                                            horizontalPadding = 18.dp
+                                        ) {
+                                            Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Primary())
+                                            Spacer(Modifier.width(4.dp))
+                                            Text("新增物品", color = TextPrimary(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                                        }
+                                    }
+                                }
+
+                                // ── v5.0 液态玻璃可拖拽底部导航 ──
+                                if (glassBackdrop != null) {
+                                    LiquidGlassBottomBar(
+                                        tabs = MainTab.entries.map { LiquidGlassTab(it.label, it.unselectedIcon, it.selectedIcon) },
+                                        selectedTabIndex = currentTab,
+                                        onTabSelected = ::switchTab,
+                                        backdrop = glassBackdrop,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .navigationBarsPadding()
+                                            .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
+                                    )
                                 }
                             }
                         } else {
@@ -197,61 +277,6 @@ fun MainScreen() {
                     }
                     } // close layerBackdrop Box
 
-                // ── 首页悬浮搜索栏（液态玻璃，采样页面 backdrop）──
-                if (isHome) {
-                    val backdrop = LocalPageBackdrop.current
-                    if (backdrop != null) {
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .statusBarsPadding()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            LiquidGlassButton(
-                                onClick = { navigate(Route.SEARCH) },
-                                backdrop = backdrop,
-                                modifier = Modifier.fillMaxWidth(),
-                                height = 48.dp,
-                                horizontalPadding = 14.dp
-                            ) {
-                                Icon(Icons.Outlined.Search, "搜索", Modifier.size(18.dp), tint = TextAuxiliary())
-                                Spacer(Modifier.width(8.dp))
-                                Text("搜索物品...", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
-                            }
-                        }
-
-                        // 液态玻璃 FAB（缩小版）
-                        Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 90.dp)) {
-                            LiquidGlassButton(
-                                onClick = { navigate(Route.ADD) },
-                                backdrop = backdrop,
-                                height = 40.dp,
-                                horizontalPadding = 18.dp
-                            ) {
-                                Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Primary())
-                                Spacer(Modifier.width(4.dp))
-                                Text("新增物品", color = TextPrimary(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
-                            }
-                        }
-                    }
-                }
-
-                // ── v5.0 液态玻璃可拖拽底部导航 ──
-                if (!isSubPage) {
-                    val backdrop = LocalPageBackdrop.current
-                    if (backdrop != null) {
-                        LiquidGlassBottomBar(
-                            tabs = MainTab.entries.map { LiquidGlassTab(it.label, it.unselectedIcon, it.selectedIcon) },
-                            selectedTabIndex = currentTab,
-                            onTabSelected = ::switchTab,
-                            backdrop = backdrop,
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .navigationBarsPadding()
-                                .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
-                        )
-                    }
-                }
                 LiquidDialogHost(hostState, backdrop)
                 } // close ProvideLiquidDialogHost
             } // close ProvidePageBackdrop

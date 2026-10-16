@@ -1,7 +1,7 @@
 {
-  "versionName": "7.2.0",
-  "versionCode": 7200,
-  "updateDate": "2026-10-12",
-  "updateLog": "v7.2.0 统计页换新装\n- 统计页整页重做，改用图表说话：资产结构、资产净值趋势、月度购入、客单价分布、单品价值 TOP 5、存放位置分布\n- 去掉了满屏的小数字卡片和几个重复的模块，想看的数字都在图上\n- 顺手修掉三个显示毛病：月度购入的金额标签被卡片切掉、趋势图只画出一半历史、平均单价带小数\n- 统计口径没变，直接覆盖安装即可",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.2.0/LootArchive-release-v7.2.0.apk"
+  "versionName": "7.2.1",
+  "versionCode": 7201,
+  "updateDate": "2026-10-16",
+  "updateLog": "v7.2.1 返回动画重做\n- 页面返回改成整屏平移：当前页向右滑出，上一层页面从左边无缝跟进，两页始终严丝合缝，不再是原来那种「两页各挪一点、交叉淡出」的横切感\n- 前进和返回现在是镜像的两套动画（上一版的返回复用的就是前进那一套）\n- 首页的悬浮搜索栏、新增按钮和底部导航跟着页面一起滑进滑出，不再在页面还没滑完时就凭空消失\n- 只改了转场动画，数据与界面结构不变，直接覆盖安装即可",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.2.1/LootArchive-release-v7.2.1.apk"
 }
