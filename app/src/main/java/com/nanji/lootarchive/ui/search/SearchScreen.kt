@@ -29,12 +29,15 @@ import com.nanji.lootarchive.data.local.entity.ItemEntity
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.EmptyState
+import com.nanji.lootarchive.ui.nav.NavKeys
+import com.nanji.lootarchive.ui.nav.navSharedElement
+import com.nanji.lootarchive.ui.nav.navSharedPhoto
 import com.nanji.lootarchive.ui.theme.*
 import java.io.File
 import java.text.NumberFormat
 import coil.compose.AsyncImage
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun SearchScreen(
     onNavigateBack: () -> Unit,
@@ -167,21 +170,25 @@ fun SearchScreen(
     }
 }
 
+@OptIn(androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 private fun SearchItemCard(item: ItemEntity, firstPhotoPath: String?, numberFormat: NumberFormat, onClick: () -> Unit) {
     ClayCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Box(Modifier.fillMaxWidth().height(110.dp).clip(AppShape.panel)) {
-            if (firstPhotoPath != null) {
-                AsyncImage(model = File(firstPhotoPath), contentDescription = null, modifier = Modifier.fillMaxSize().clip(AppShape.panel), contentScale = ContentScale.Crop)
-            } else {
-                Box(Modifier.fillMaxSize().background(Primary().copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Image, null, Modifier.size(36.dp), tint = TextAuxiliary().copy(alpha = 0.35f))
+            // ★ 共享元素①：搜索结果缩略图 → 详情页整屏首图（与首页卡片同一套 key）
+            Box(Modifier.fillMaxSize().navSharedPhoto(NavKeys.itemPhoto(item.id))) {
+                if (firstPhotoPath != null) {
+                    AsyncImage(model = File(firstPhotoPath), contentDescription = null, modifier = Modifier.fillMaxSize().clip(AppShape.panel), contentScale = ContentScale.Crop)
+                } else {
+                    Box(Modifier.fillMaxSize().background(Primary().copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Image, null, Modifier.size(36.dp), tint = TextAuxiliary().copy(alpha = 0.35f))
+                    }
                 }
             }
         }
         Spacer(Modifier.height(8.dp))
-        Text(item.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+        Text(item.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold, modifier = Modifier.navSharedElement(NavKeys.itemTitle(item.id)))
         Spacer(Modifier.height(4.dp))
-        Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont)
+        Text("¥${numberFormat.format(item.purchasePrice)}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = FredokaFont, modifier = Modifier.navSharedElement(NavKeys.itemPrice(item.id)))
     }
 }

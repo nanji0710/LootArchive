@@ -29,6 +29,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +45,12 @@ import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
 import com.nanji.lootarchive.ui.component.topFade
+import com.nanji.lootarchive.ui.nav.LocalHomeDissolve
+import com.nanji.lootarchive.ui.nav.NavKeys
+import com.nanji.lootarchive.ui.nav.dissolveOut
+import com.nanji.lootarchive.ui.nav.navFlyingItemId
+import com.nanji.lootarchive.ui.nav.navSharedElement
+import com.nanji.lootarchive.ui.nav.navSharedPhoto
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidFilterChip
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
@@ -53,7 +61,7 @@ import java.io.File
 import java.text.NumberFormat
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(
     categoryFilter: Pair<Long, String>? = null,
@@ -94,6 +102,10 @@ fun HomeScreen(
     // 网格状态提到外面：顶栏渐隐要读它的滚动量（见 ui/component/ScrollFade.kt）。
     val gridState = rememberLazyGridState()
     Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
+        // 首页其余内容（正在飞的那张卡片除外）的「解体 / 重新形成」进度。
+        // 0 = 常态，1 = 轻微缩小 + 上移 + 透明；与卡片 Hero 共用同一根时间轴。
+        val dissolve = LocalHomeDissolve.current
+
         LazyVerticalGrid(
             // 固定 2 列：第一张卡片跨满整行（见 span 逻辑），其余每行两张。
             // 之前用 Adaptive(minSize=160)，宽屏上列数会变成 3~4 —— 就不是"一行两个"了。
@@ -106,7 +118,7 @@ fun HomeScreen(
         ) {
             // ── Hero: 当前拥有资产 大数字 + 3个小统计 ──
             item(span = { GridItemSpan(maxLineSpan) }) {
-                Box(Modifier.fillMaxWidth().clip(AppShape.sheet).background(if (LocalDarkTheme.current) _CardDark else HeroCardLight).padding(20.dp)) {
+                Box(Modifier.fillMaxWidth().dissolveOut(dissolve).clip(AppShape.sheet).background(if (LocalDarkTheme.current) _CardDark else HeroCardLight).padding(20.dp)) {
                     Column {
                         Text("当前拥有", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
                         Spacer(Modifier.height(4.dp))
@@ -143,7 +155,7 @@ fun HomeScreen(
                     drawRect(brush = chipsBrush)
                     drawContent()
                 }
-                Box(Modifier.fillMaxWidth()) {
+                Box(Modifier.fillMaxWidth().dissolveOut(dissolve)) {
                     Box(
                         Modifier
                             .fillMaxWidth()
@@ -178,7 +190,7 @@ fun HomeScreen(
             // ── 对标 HTML .ph-section-title: "最近添加" ──
             if (filteredItems.isNotEmpty() && !uiState.isLoading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text("最近添加", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.padding(vertical = 4.dp))
+                    Text("最近添加", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.dissolveOut(dissolve).padding(vertical = 4.dp))
                 }
             }
 
@@ -200,20 +212,28 @@ fun HomeScreen(
                     span = { index -> if (index == 0) GridItemSpan(maxLineSpan) else GridItemSpan(1) }
                 ) { index ->
                     val item = filteredItems[index]
+                    val flyingId = navFlyingItemId()
                     val isWide = index == 0
                     val catColor = ChartColors[(item.categoryId % ChartColors.size).toInt()]
                     val photoH = if (isWide) 160.dp else 135.dp
                     val nameSz = if (isWide) 17.sp else 15.sp
                     val priceSz = if (isWide) 18.sp else 16.sp
                     val isOwned = ItemStatus.fromCode(item.status).isOwned
-                    Card(Modifier.fillMaxWidth().clickable { onNavigateToDetail(item.id) }
+                    // 被点的那张卡片留给共享元素自己飞，不参与解体；其余卡片跟着首页一起化开。
+                    Card(Modifier.fillMaxWidth()
+                        .then(if (item.id == flyingId) Modifier else Modifier.dissolveOut(dissolve))
+                        .clickable { com.nanji.lootarchive.ui.nav.navSourceTitleSize = nameSz; onNavigateToDetail(item.id) }
                         .then(if (isOwned) Modifier.shadow(3.dp, AppShape.card) else Modifier)
                         .then(if (!isOwned) Modifier.alpha(0.50f) else Modifier),
                         shape = AppShape.card, colors = CardDefaults.cardColors(containerColor = CardBg()), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                         Column {
                             Box(Modifier.fillMaxWidth().height(photoH).clip(RoundedCornerShape(topStart = AppRadius.xl, topEnd = AppRadius.xl))) {
-                                if (uiState.photoPaths[item.id] != null) AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                                else Box(Modifier.fillMaxSize().background(catColor.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(if (isWide) 52.dp else 44.dp), tint = catColor.copy(alpha = 0.35f)) }
+                                // ★ 共享元素①：卡片照片 → 详情页整屏首图（主容器变形）。
+                                // 只包图片本体，角标/状态点留在外面——它们不属于映射关系，随卡片淡出。
+                                Box(Modifier.fillMaxSize().navSharedPhoto(NavKeys.itemPhoto(item.id))) {
+                                    if (uiState.photoPaths[item.id] != null) AsyncImage(model = File(uiState.photoPaths[item.id]!!), contentDescription = item.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                    else Box(Modifier.fillMaxSize().background(catColor.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, null, Modifier.size(if (isWide) 52.dp else 44.dp), tint = catColor.copy(alpha = 0.35f)) }
+                                }
                                 Surface(Modifier.padding(10.dp).size(10.dp).align(Alignment.TopStart), AppShape.chip, color = catColor) {}
                                 if (item.warrantyExpiryDate != null) {
                                     val days = (item.warrantyExpiryDate - System.currentTimeMillis()) / (24*60*60*1000)
@@ -245,22 +265,28 @@ fun HomeScreen(
                                 }
                             }
                             Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                                Text(item.name, fontSize = nameSz, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+                                val navP = com.nanji.lootarchive.ui.nav.navProgress()
+                                val titleSz = androidx.compose.ui.unit.lerp(MaterialTheme.typography.headlineLarge.fontSize, nameSz, 1f - navP)
+                                val titleLn = androidx.compose.ui.unit.lerp(MaterialTheme.typography.headlineLarge.lineHeight, nameSz * 1.15f, 1f - navP)
+                                Text(item.name, fontSize = titleSz, lineHeight = titleLn, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold, fontFamily = FredokaFont, modifier = Modifier.navSharedElement(NavKeys.itemTitle(item.id)))
                                 Spacer(Modifier.height(6.dp))
                                 if (isOwned) {
                                     Surface(shape = AppShape.thumb, color = Primary().copy(alpha = 0.12f)) {
-                                        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
+                                        Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = Primary(), modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp).navSharedElement(NavKeys.itemPrice(item.id)))
                                     }
                                 } else {
-                                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = TextAuxiliary())
+                                    Text("¥${numberFormat.format(item.purchasePrice)}", fontSize = priceSz, fontWeight = FontWeight.Bold, color = TextAuxiliary(), modifier = Modifier.navSharedElement(NavKeys.itemPrice(item.id)))
                                 }
                                 // v5.2 标签胶囊
                                 val itemTags = item.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                                 if (itemTags.isNotEmpty()) {
                                     Spacer(Modifier.height(6.dp))
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        itemTags.take(2).forEach { tag ->
-                                            Surface(shape = AppShape.chip, color = Primary().copy(alpha = 0.08f)) {
+                                        itemTags.take(2).forEachIndexed { i, tag ->
+                                            Surface(
+                                                modifier = if (i == 0) Modifier.navSharedElement(NavKeys.itemTag(item.id)) else Modifier,
+                                                shape = AppShape.chip, color = Primary().copy(alpha = 0.08f)
+                                            ) {
                                                 Text(tag, style = MaterialTheme.typography.labelSmall, color = Primary(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                             }
                                         }

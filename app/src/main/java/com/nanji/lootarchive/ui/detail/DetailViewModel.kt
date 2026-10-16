@@ -7,6 +7,7 @@ import com.nanji.lootarchive.data.repository.SettingsRepository
 import com.nanji.lootarchive.domain.model.ItemWithPhotos
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,10 +31,14 @@ class DetailViewModel @Inject constructor(
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
     private var currentItemId: Long = 0
+    private var loadJob: Job? = null
 
     fun loadItem(itemId: Long) {
         currentItemId = itemId
-        viewModelScope.launch {
+        // 同一件物品可能被两个地方加载（点击时预取 + 详情页 LaunchedEffect）。
+        // 旧协程不取消的话，两个 collector 会抢着写 uiState，出现「上一件物品的数据盖掉新的」。
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             combine(
                 itemRepository.getItemByIdFlow(itemId),
                 itemRepository.getItemPhotos(itemId),

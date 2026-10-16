@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,8 +20,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,6 +35,12 @@ import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidIconButton
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
+import com.nanji.lootarchive.ui.nav.NavKeys
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextOverflow
+import com.nanji.lootarchive.ui.nav.navFlightProgress
+import com.nanji.lootarchive.ui.nav.navSharedElement
+import com.nanji.lootarchive.ui.nav.navSharedPhoto
 import com.nanji.lootarchive.ui.theme.*
 import java.io.File
 import java.text.NumberFormat
@@ -38,7 +48,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun DetailScreen(
     itemId: Long, onNavigateBack: () -> Unit, onNavigateToEdit: (Long) -> Unit,
@@ -60,7 +70,28 @@ fun DetailScreen(
         sheetContent = {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
                 Spacer(Modifier.height(8.dp))
-                Text(data.item.name, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
+                // 标题：共享元素现在用 ScaleToBounds 做「整块等比缩放」，飞行途中显示的就是
+                // 这一份文字、字号由框架按两端 bounds 连续插值 —— 不能再用「截断态 / 完整态
+                // 两层文字互淡」：那样共享容器的尺寸会取两层里更高的那一层，容器比可见文字
+                // 高一截，飞行的起止两端就会看到文字轻微跳一下（用户报的「一瞬间抖动」）。
+                // 字号显式插值：飞行途中每一帧的字号都由 navFlightProgress 插出来 —— 起点是
+                // 首页被点卡片标题当时的字号（点击时写入 navSourceTitleSize），终点是本页
+                // headlineLarge 的字号。这样「变大」是一帧一帧连续发生的，不会瞬间跳到目标字号。
+                val titleProgress = com.nanji.lootarchive.ui.nav.navProgress()
+                val titleSize = androidx.compose.ui.unit.lerp(com.nanji.lootarchive.ui.nav.navSourceTitleSize, MaterialTheme.typography.headlineLarge.fontSize, titleProgress)
+                val titleLine = androidx.compose.ui.unit.lerp(com.nanji.lootarchive.ui.nav.navSourceTitleSize * 1.15f, MaterialTheme.typography.headlineLarge.lineHeight, titleProgress)
+                Text(
+                    data.item.name,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontSize = titleSize,
+                    lineHeight = titleLine,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary(),
+                    fontFamily = FredokaFont,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.navSharedElement(NavKeys.itemTitle(data.item.id))
+                )
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (data.category != null) { Surface(shape = AppShape.thumb, color = Primary().copy(alpha = 0.12f)) { Text(data.category!!.name, color = Primary(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) } }
@@ -89,15 +120,18 @@ fun DetailScreen(
                 if (itemTags.isNotEmpty()) {
                     Spacer(Modifier.height(8.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        itemTags.forEach { tag ->
-                            Surface(shape = AppShape.chip, color = Primary().copy(alpha = 0.08f)) {
+                        itemTags.forEachIndexed { i, tag ->
+                            Surface(
+                                modifier = if (i == 0) Modifier.navSharedElement(NavKeys.itemTag(data.item.id)) else Modifier,
+                                shape = AppShape.chip, color = Primary().copy(alpha = 0.08f)
+                            ) {
                                 Text(tag, style = MaterialTheme.typography.labelSmall, color = Primary(), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                             }
                         }
                     }
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = TextAuxiliary().copy(alpha = 0.12f))
-                DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}", valueColor = Primary())
+                DetailRow("购入价格", "${currencySymbol}${numberFormat.format(data.item.purchasePrice)}", valueColor = Primary(), valueModifier = Modifier.navSharedElement(NavKeys.itemPrice(data.item.id)))
                 DetailRow("购入日期", data.item.purchaseDate?.let { dateFormat.format(Date(it)) } ?: "未设置")
                 val warrantyText = when { data.isWarrantyExpired -> "已过期"; data.isWarrantyExpiring -> "即将到期"; data.item.warrantyExpiryDate != null -> "保修中 · ${dateFormat.format(Date(data.item.warrantyExpiryDate!!))}"; else -> "无保修" }
                 val warrantyColor = when { data.isWarrantyExpired -> WarrantyExpired; data.isWarrantyExpiring -> WarrantyExpiring; else -> WarrantyActive }
@@ -137,8 +171,15 @@ fun DetailScreen(
                 val listState = rememberLazyListState()
                 val cp = listState.firstVisibleItemIndex.coerceIn(0, data.photos.size - 1)
                 LazyRow(state = listState, modifier = Modifier.fillMaxSize()) {
-                    items(data.photos, key = { it.id }) { photo ->
-                        AsyncImage(model = File(photo.photoPath), contentDescription = data.item.name, modifier = Modifier.width(screenWidth).fillMaxHeight(), contentScale = ContentScale.Crop)
+                    itemsIndexed(data.photos, key = { _, p -> p.id }) { index, photo ->
+                        // ★ 共享元素①的另一端：首图 = 卡片照片的目标容器（整屏主区域）。
+                        // 只挂首图——若每张都挂，滑到第二张再返回就会从错误的位置往回缩。
+                        AsyncImage(
+                            model = File(photo.photoPath), contentDescription = data.item.name,
+                            modifier = Modifier.width(screenWidth).fillMaxHeight()
+                                .then(if (index == 0) Modifier.navSharedPhoto(NavKeys.itemPhoto(data.item.id)) else Modifier),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
                 Box(Modifier.fillMaxWidth().height(100.dp).align(Alignment.BottomCenter).background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.30f)))))
@@ -149,7 +190,11 @@ fun DetailScreen(
                 drawRect(brush = topActionsBrush)
                 drawContent()
             }
-            Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 10.dp, vertical = 10.dp)) {
+            // 顶部三个玻璃按钮（返回/编辑/删除）用**同一条转场进度**：飞行快落定（约后 45%）
+            // 才浮现，返回时先隐去 —— 不再「点开卡片它们就杵在屏幕上 / 返回时瞬间消失」。
+            val topBarProgress = com.nanji.lootarchive.ui.nav.navProgress()
+            val topBarAlpha = ((topBarProgress - 0.55f) / 0.45f).coerceIn(0f, 1f)
+            Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 10.dp, vertical = 10.dp).alpha(topBarAlpha)) {
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -213,7 +258,12 @@ fun DetailScreen(
 }
 
 @Composable
-private fun DetailRow(label: String, value: String, valueColor: Color = TextPrimary()) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), modifier = Modifier.width(72.dp)); Text(value, style = MaterialTheme.typography.bodyMedium, color = valueColor, modifier = Modifier.weight(1f)) }
+private fun DetailRow(label: String, value: String, valueColor: Color = TextPrimary(), valueModifier: Modifier = Modifier) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = TextSecondary(), modifier = Modifier.width(72.dp))
+        // 外层 Box 吃掉剩余宽度，共享元素挂在 Text 自己身上：飞的是文字本身的尺寸，
+        // 而不是被 weight 拉满的整行，落位时不会把行撑开。
+        Box(Modifier.weight(1f)) { Text(value, style = MaterialTheme.typography.bodyMedium, color = valueColor, modifier = valueModifier) }
+    }
 }
 private fun getCurrencySymbol(code: String): String = when (code) { "USD" -> "$"; "EUR" -> "€"; "JPY" -> "¥"; "GBP" -> "£"; else -> "¥" }

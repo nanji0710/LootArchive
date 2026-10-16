@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-7.2.2-orange)]()
+[![Version](https://img.shields.io/badge/Version-7.5.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -266,7 +266,7 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v7.2.2.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v7.5.0.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 单测：`./gradlew :app:testDebugUnitTest`。当前 4 个测试类 —— `ItemStatusTest`（状态口径）、`HomeSortTest`（首页排序）、`UpdateUrlValidationTest`（更新链接校验）、`BackupRepositoryZipSlipTest`（备份解压的路径穿越防护）。
 
@@ -305,6 +305,31 @@ CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自�
 ---
 
 ## 更新日志
+
+### v7.5.0 (2026-10-16) 点开 / 返回的动画彻底重做
+
+- 点开首页卡片：卡片里的**图片、名称、金额、标签各自从原位飞出**，落到详情页对应的位置（图片→大图、名称→标题、金额→购入价格、标签→详情页标签），其余内容随后淡入。不再整页横切，也不再整页缩放。
+- 返回：每个元素沿原路缩回卡片里原来的位置（真正的时间反演，不是「进入用缩放、返回直接滑走」）。
+- 顶部搜索框、底部导航栏、悬浮新增按钮在打开时移出屏幕（向上 / 向下），返回时原路滑回 —— 与卡片动画共用同一条 440ms 时间轴与方向化缓动（`MotionDuration.Hero` + `MotionCurve.Standard/Reverse`），用**布局位移**实现（不额外套图形图层，避开 v7.2.1 那类玻璃图层递归）。
+- 标题 / 金额 / 标签的字号**逐帧插值**：`lerp(卡片字号, 详情页字号, navProgress())`，从卡片字号连续长成详情页字号，返回时连续缩回，不会瞬间跳到目标字号。进度由 MainScreen 的 `chromeProgress` 统一驱动（进入与返回都会平滑走完全程，`LocalNavProgress` 下发两端）。
+- 首页其余内容（顶部卡片、分类 chips、「最近添加」标题、其他卡片）做轻量「解体式退场」：缩小到 0.9、上浮 10dp、淡出；返回时重新聚拢。被点的那张卡片按 `navFlyingItemId()` 排除，避免与飞行副本重叠。
+- 详情页右上角的返回 / 编辑 / 删除三个玻璃按钮，等卡片快落位（进度 > 55%）才浮现，返回时先隐去。
+- 返回同样是减速曲线（快起慢收），末段自然落定。
+- 没有对应元素的跳转（新增物品、相机）保持原来的方向感知整屏平移。
+- 真机验收：HONOR BKQ-AN10 / Android 17，20+ 轮开合往返 `logcat -b crash` 无 `FATAL` / `computeTransformImpl` 记录。
+
+### v7.2.3 (2026-10-16) 打开/返回改为「从哪来到哪去」
+- **共享元素转场**：改用 Compose 官方的 `SharedTransitionLayout` + `sharedBounds`，点哪个元素就从哪个元素的位置长大铺满屏幕，返回时缩回原位
+- **物品卡片 ↔ 详情页是「多元素映射」，不是整卡缩放**：卡片里的缩略图、名称、金额、标签各自挂一个 key（`item:<id>:photo|title|price|tag`），分别飞到详情页的首图、大标题、「购入价格」和第一个标签；两端的其余内容（分类 chip、位置、状态、其余信息行）走轻量淡入
+- **搜索结果卡片 ↔ 详情页**：缩略图、名称、金额三个元素同样从卡片位置飞出（与首页卡片共用同一套 key，所以从哪个入口进去都能正确配回）
+- **「我的」页菜单行 ↔ 二级页**：整行作为一个容器长大成整页、返回时收回那一行（设置/分类管理/备份/回收站/关于五个）
+- **新文件 `ui/nav/NavShared.kt`**：`NavKeys`（物品四件套 + 五个菜单常量）、`ProvideNavShared(shared, visibility, keys, content)`、`Modifier.navSharedElement(key, shape)`、`Modifier.navSharedPhoto(key, shape)`、`NavSharedSurface(key, content)`。注意 `ScaleToBounds` 是 `ResizeMode` 伴生对象上的工厂函数，不是顶层类，也没有嵌套类 `SharedTransitionScope.ScaleToBounds`
+- **三种 resizeMode 分工（关键）**：照片用 `ScaleToBounds(Crop)`（等比放大、按需裁切）；文字用 `ScaleToBounds(Fit)`（等比放大、只留白不裁字头字尾）；整页用 `RemeasureToBounds`（页面在飞行中重新排版，而不是被当成一张图放大——7.2.1 之前那种「整页当图片缩放」就是这条选错）
+- **转场分工**：有共享元素的跳转整体改成淡入淡出（进场 `Medium`、退场 `Quick`，曲线仍用 `MotionCurve.Standard`），页面不再横移，把位移让给元素本身飞行；没有共享元素的跳转（新增物品、相机）保持方向感知的整屏平移
+- **配对校验**：`pairsWith(host, keys)` 先确认源页真的长着配对元素才启用共享转场，否则退回整屏平移（缩略图只在首页与搜索结果页，菜单行只在「我的」页）。返回时取的是「正在退场那一页」的元素作为飞行主体
+- **时长**：新增 `MotionDuration.Hero = 440ms`，比页面级 `Page = 320ms` 略长，因为元素要跨越更大的位移
+- **真机验收**：20× 慢速（`animator_duration_scale 20`）抽帧确认「卡片/菜单行 → 详情/二级页 → 返回」两端连续；卡片 4 轮 + 菜单行 5 轮往返回归，进程存活、crash 缓冲区无 `computeTransformImpl`
+- **两条红线**：共享元素的内容里不放液态玻璃（玻璃只能采样祖先图层，不能被录进 backdrop 的额外图层）；底部导航/新增按钮/搜索栏仍留在 `AnimatedContent` 之外（v7.2.1 闪退的教训）
 
 ### v7.2.2 (2026-10-16) 紧急修复：v7.2.1 启动闪退
 - **修复启动闪退**：v7.2.1 装上后点图标即退。真机 tombstone 指出是 `RenderThread` 上 `android::uirenderer::computeTransformImpl` 无限自递归（`512 total frames`、`Cause: stack pointer is close to top of stack; likely stack overflow`、SIGSEGV）——液态玻璃组件被放进 `AnimatedContent` 的转场图层内部后，玻璃的图层采样与转场图层互相引用成环

@@ -50,6 +50,9 @@ object MotionDuration {
     /** 页面级转场：二级页推进/退出。 */
     const val Page = 320
 
+    /** 共享元素飞行：卡片 ↔ 详情、菜单行 ↔ 二级页的放大 / 收回。 */
+    const val Hero = 440
+
     /** 收起。比展开稍快更利落，但同样留回弹。 */
     const val Collapse = 420
 
@@ -90,6 +93,18 @@ object MotionDuration {
 object MotionCurve {
     /** 标准减速。默认无过冲，用于不做花活的位移/淡入。 */
     val Standard: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+
+    /**
+     * [Standard] 的**时间镜像**：把进度曲线左右翻转（控制点 x/y 各按 1- 取反）。
+     *
+     * 返回/收起类动画必须用它。若返回也用 Standard，运动就变成「先猛冲再慢蹭」，
+     * 与进入的收尾节奏对不上 —— 实测观感就是「打开和返回曲线完全不一样」。
+     * 镜像后，返回与进入是同一段运动的正反播放，衔接才会自然。
+     */
+    // 返回方向**不再**用 Standard 的时间镜像：镜像等于「缓入」，观感是「前半段慢、
+    // 后半段突然加快」，实测很别扭（用户反馈）。返回同样用减速曲线（快起慢收），
+    // 元素才是一路「收」回原位、末段自然落定。
+    val Reverse: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 
     /** 出入场：快出慢收。 */
     val EaseOut: Easing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
