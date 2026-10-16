@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-7.2.1-orange)]()
+[![Version](https://img.shields.io/badge/Version-7.2.2-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -266,7 +266,7 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v7.2.1.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v7.2.2.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 单测：`./gradlew :app:testDebugUnitTest`。当前 4 个测试类 —— `ItemStatusTest`（状态口径）、`HomeSortTest`（首页排序）、`UpdateUrlValidationTest`（更新链接校验）、`BackupRepositoryZipSlipTest`（备份解压的路径穿越防护）。
 
@@ -306,12 +306,18 @@ CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自�
 
 ## 更新日志
 
-### v7.2.1 (2026-10-16) 返回动画重做
+### v7.2.2 (2026-10-16) 紧急修复：v7.2.1 启动闪退
+- **修复启动闪退**：v7.2.1 装上后点图标即退。真机 tombstone 指出是 `RenderThread` 上 `android::uirenderer::computeTransformImpl` 无限自递归（`512 total frames`、`Cause: stack pointer is close to top of stack; likely stack overflow`、SIGSEGV）——液态玻璃组件被放进 `AnimatedContent` 的转场图层内部后，玻璃的图层采样与转场图层互相引用成环
+- **修法**：把底部导航、新增按钮、悬浮搜索栏移回转场图层之外，恢复 7.2.0 上验证过的结构；`transitionSpec` 保持 v7.2.1 那套整屏平移 + 方向感知不动
+- **真机验证**：前进 / 返回 / 切 Tab，以及回收站、设置、分类管理、关于等页面往返共二十余次导航，进程存活、crash 缓冲区为空
+- 与 7.2.0 的代码差异只剩转场动画本身
+
+### v7.2.1 (2026-10-16) 返回动画重做 ⚠️ 已撤回
+> ⚠️ 此版本启动即闪退，已被 v7.2.2 取代，请勿安装。
 - **返回不再整屏横切**：当前页向右滑出、上一层页面从屏幕左侧无缝跟进，两页在整段动画里始终严丝合缝。上一版转场是「两页各挪 1/10 屏宽 + 交叉淡出」，反方向看就是整块内容横向切一下
 - **返回与前进拆成两套镜像动画**：`AnimatedContent` 只认 `targetState`，同一个路由分不清是压栈进来还是弹栈回来，返回只能复用前进那套位移；现在由导航动作显式记录方向（`navForward`），返回走前进的镜像
 - **位移改成整屏、两页共用同一条时间曲线**：任一时点两页的公共边界重合在同一个 x 上，既不重叠也不留缝
-- **悬浮件跟着页面走**：首页搜索栏、新增按钮与底部导航从外层挪进页面分支，随页面一起滑进滑出，不再在动画第一帧凭空消失
-- 只改转场动画，数据与界面结构不变，直接覆盖安装即可
+- **⚠️ 悬浮件挪进页面分支（这一项就是崩溃根因）**：当时把首页搜索栏、新增按钮与底部导航从外层挪进了页面分支，想让它们跟着页面一起滑进滑出——结果玻璃组件进了转场图层，渲染线程递归爆栈。v7.2.2 已撤回这一项，动画观感不受影响
 
 ### v7.2.0 (2026-10-12) 统计页换新装
 - **统计页整页重做，改用图表说话**：资产结构环形图、资产净值趋势、月度购入、客单价分布、单品价值 TOP 5、存放位置分布 —— 六张图覆盖原来满屏的数字卡片

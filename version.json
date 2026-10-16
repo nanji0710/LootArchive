@@ -1,7 +1,7 @@
 {
-  "versionName": "7.2.1",
-  "versionCode": 7201,
+  "versionName": "7.2.2",
+  "versionCode": 7202,
   "updateDate": "2026-10-16",
-  "updateLog": "v7.2.1 返回动画重做\n- 页面返回改成整屏平移：当前页向右滑出，上一层页面从左边无缝跟进，两页始终严丝合缝，不再是原来那种「两页各挪一点、交叉淡出」的横切感\n- 前进和返回现在是镜像的两套动画（上一版的返回复用的就是前进那一套）\n- 首页的悬浮搜索栏、新增按钮和底部导航跟着页面一起滑进滑出，不再在页面还没滑完时就凭空消失\n- 只改了转场动画，数据与界面结构不变，直接覆盖安装即可",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.2.1/LootArchive-release-v7.2.1.apk"
+  "updateLog": "v7.2.2 紧急修复：v7.2.1 启动闪退\n- 修复 v7.2.1 安装后点开就闪退的问题（根因：底部导航、新增按钮、搜索栏这几个液态玻璃组件被嵌进了页面转场图层内部，玻璃的图层采样与转场图层互相引用，渲染线程计算图层变换时无限递归直到栈溢出）\n- 修法是把这些玻璃组件移回转场图层之外，回到 7.2.0 上验证过的结构\n- 返回动画保持上一版的效果：当前页向右滑出、上一层页面从左边无缝跟进，整屏平移、前后严丝合缝\n- v7.2.1 请勿使用；直接覆盖安装到 v7.2.2 即可，本地数据不受影响",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V7.2.2/LootArchive-release-v7.2.2.apk"
 }
