@@ -25,6 +25,7 @@ import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.LiquidIconButton
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import java.text.SimpleDateFormat
@@ -68,7 +69,9 @@ fun BackupScreen(
         ) {
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary()) }
+                    val topBarBrush = backgroundBrush()
+                    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
+                    LiquidIconButton(onClick = onNavigateBack, backdrop = topBarBackdrop) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp)) }
                     Text("备份与恢复", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
                 }
             }

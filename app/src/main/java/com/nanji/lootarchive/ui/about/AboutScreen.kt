@@ -32,6 +32,8 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.R
 import com.nanji.lootarchive.ui.component.GlassSurface
+import com.nanji.lootarchive.ui.component.PageTopBar
+import com.nanji.lootarchive.ui.component.PageTopBarHeight
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
 import com.nanji.lootarchive.ui.liquidglass.LiquidIconButton
@@ -73,18 +75,10 @@ fun AboutScreen(
         AnimatedOrbsBackground(Modifier.fillMaxSize())
         Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
             Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                Modifier.fillMaxSize().padding(top = PageTopBarHeight).verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 顶栏：标题（返回按钮为层外悬浮兄弟，避免自采样崩溃）
-                Row(
-                    Modifier.fillMaxWidth().statusBarsPadding().padding(top = 8.dp).padding(start = 52.dp, end = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("关于", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont, modifier = Modifier.weight(1f))
-                }
-                Spacer(Modifier.height(16.dp))
 
                 // Logo 区
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -136,17 +130,13 @@ fun AboutScreen(
             }
         }
 
-        // 返回按钮：层外兄弟（安全采样，与层内标题行分开）
-        Box(
-            Modifier
-                .align(Alignment.TopStart)
-                .statusBarsPadding()
-                .padding(start = 20.dp, top = 8.dp)
-        ) {
-            LiquidIconButton(onClick = onNavigateBack, backdrop = backdrop) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
-            }
-        }
+        // 统一顶栏：层外兄弟（玻璃按钮安全采样；按钮与标题同一 Row，天然对齐）
+        PageTopBar(
+            title = "关于",
+            onNavigateBack = onNavigateBack,
+            backdrop = backdrop,
+            modifier = Modifier.align(Alignment.TopStart)
+        )
 
         // 底部：检查更新玻璃按钮
         Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 16.dp)) {

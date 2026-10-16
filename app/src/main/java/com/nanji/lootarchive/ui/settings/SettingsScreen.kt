@@ -22,6 +22,7 @@ import android.widget.Toast
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.ui.component.ClayCard
+import com.nanji.lootarchive.ui.component.PageTopBar
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
@@ -47,7 +48,15 @@ fun SettingsScreen(
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
     var showClearCacheDialog by remember { mutableStateOf(false) }
     var editReminderDays by remember { mutableStateOf("") }
-    Scaffold(containerColor = Color.Transparent) { padding ->
+    // 顶栏专用背景图层：只画背景刷，玻璃按钮不会采样到自己所在的图层
+    val topBarBrush = backgroundBrush()
+    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            if (!isTabMode) PageTopBar(title = "设置", onNavigateBack = onNavigateBack, backdrop = topBarBackdrop)
+        }
+    ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(scrollState).padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)

@@ -23,6 +23,7 @@ import com.nanji.lootarchive.util.Feedback
 import com.nanji.lootarchive.ui.component.EmptyState
 import com.nanji.lootarchive.ui.component.GlassAlertDialog
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
+import com.nanji.lootarchive.ui.liquidglass.LiquidIconButton
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
 import com.kyant.backdrop.backdrops.layerBackdrop
@@ -63,8 +64,10 @@ fun RecycleBinScreen(
                     Modifier.fillMaxWidth().layerBackdrop(topRowBackdrop).padding(top = 2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onNavigateBack, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(22.dp))
+                    val topBarBrush = backgroundBrush()
+                    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
+                    LiquidIconButton(onClick = onNavigateBack, backdrop = topBarBackdrop) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
                     }
                     Text("回收站", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
                     Spacer(Modifier.width(90.dp))

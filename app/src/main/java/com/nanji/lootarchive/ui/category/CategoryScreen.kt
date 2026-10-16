@@ -86,8 +86,10 @@ fun CategoryScreen(
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
             Spacer(Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary())
+                val topBarBrush = backgroundBrush()
+                val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
+                LiquidIconButton(onClick = onNavigateBack, backdrop = topBarBackdrop) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
                 }
                 Text("分类管理", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
             }
