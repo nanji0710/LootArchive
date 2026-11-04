@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import com.nanji.lootarchive.ui.component.PageTopBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -60,8 +61,12 @@ fun CategoryScreen(
         drawContent()
     }
 
+    // 顶栏专用背景图层：只画背景刷，玻璃按钮不会采样到自己所在的图层
+    val topBarBrush = backgroundBrush()
+    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
     Scaffold(
         containerColor = Color.Transparent,
+        topBar = { PageTopBar(title = "分类管理", onNavigateBack = onNavigateBack, backdrop = topBarBackdrop) },
         floatingActionButton = {
             Box(Modifier.width(96.dp).height(48.dp)) {
                 Box(
@@ -85,15 +90,6 @@ fun CategoryScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
             Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                val topBarBrush = backgroundBrush()
-                val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
-                LiquidIconButton(onClick = onNavigateBack, backdrop = topBarBackdrop) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
-                }
-                Text("分类管理", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
-            }
-            Spacer(Modifier.height(10.dp))
 
             if (uiState.categories.isEmpty() && !uiState.isLoading) {
                 EmptyState(

@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import com.nanji.lootarchive.ui.component.PageTopBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,33 +51,17 @@ fun RecycleBinScreen(
         }
     }
 
-    Scaffold(containerColor = Color.Transparent) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
-        ) {
-            val topRowBrush = backgroundBrush()
-            val topRowBackdrop = rememberLayerBackdrop {
-                drawRect(brush = topRowBrush)
-                drawContent()
-            }
-            Box(Modifier.fillMaxWidth()) {
-                Row(
-                    Modifier.fillMaxWidth().layerBackdrop(topRowBackdrop).padding(top = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val topBarBrush = backgroundBrush()
-                    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
-                    LiquidIconButton(onClick = onNavigateBack, backdrop = topBarBackdrop) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp))
-                    }
-                    Text("回收站", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), modifier = Modifier.weight(1f), fontFamily = FredokaFont)
-                    Spacer(Modifier.width(90.dp))
-                }
+    // 顶栏专用背景图层：只画背景刷，玻璃件不会采样到自己所在的图层
+    val topBarBrush = backgroundBrush()
+    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            PageTopBar(title = "回收站", onNavigateBack = onNavigateBack, backdrop = topBarBackdrop) {
                 if (uiState.deletedItems.isNotEmpty()) {
                     LiquidGlassButton(
                         onClick = { viewModel.showEmptyConfirm() },
-                        backdrop = topRowBackdrop,
-                        modifier = Modifier.align(Alignment.CenterEnd),
+                        backdrop = topBarBackdrop,
                         height = 34.dp,
                         horizontalPadding = 14.dp
                     ) {
@@ -84,6 +69,11 @@ fun RecycleBinScreen(
                     }
                 }
             }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
+        ) {
 
             Surface(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),

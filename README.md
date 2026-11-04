@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-7.5.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-7.5.5-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -266,7 +266,7 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v7.5.0.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v7.5.5.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 单测：`./gradlew :app:testDebugUnitTest`。当前 4 个测试类 —— `ItemStatusTest`（状态口径）、`HomeSortTest`（首页排序）、`UpdateUrlValidationTest`（更新链接校验）、`BackupRepositoryZipSlipTest`（备份解压的路径穿越防护）。
 
@@ -305,6 +305,11 @@ CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自�
 ---
 
 ## 更新日志
+
+### v7.5.5 (2026-10-16) 修复已知问题 + 新增物品按钮扩散动画
+
+- 修复已知问题。
+- 首页「新增物品」按钮改成扩散动画：点下去从按钮所在位置向四周撑开铺满整屏，返回时原路收回按钮。起飞点用与按钮同尺寸的透明锚点提供（玻璃按钮本身不进飞行容器，避开 v7.2.1 那类玻璃图层递归）。
 
 ### v7.5.0 (2026-10-16) 点开 / 返回的动画彻底重做
 

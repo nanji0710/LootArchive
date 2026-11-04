@@ -51,7 +51,7 @@ object MotionDuration {
     const val Page = 320
 
     /** 共享元素飞行：卡片 ↔ 详情、菜单行 ↔ 二级页的放大 / 收回。 */
-    const val Hero = 440
+    const val Hero = 450
 
     /** 收起。比展开稍快更利落，但同样留回弹。 */
     const val Collapse = 420
@@ -93,6 +93,15 @@ object MotionDuration {
 object MotionCurve {
     /** 标准减速。默认无过冲，用于不做花活的位移/淡入。 */
     val Standard: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+
+    /**
+     * 共享元素飞行专用：比 [Standard] 更「慢起」。
+     *
+     * Standard 的控制点 (0.2,0,0,1) 把 61% 的位移塞进前 25% 的时间，页面上就是
+     * 「一下就到位」——用户反馈「打开动画太快」。换成前段更平、后段仍收得住的曲线，
+     * 位移在整个时长里均匀展开，观感才是「飞过去」而不是「闪过去」。
+     */
+    val Hero: Easing = CubicBezierEasing(0.33f, 0f, 0.2f, 1f)
 
     /**
      * [Standard] 的**时间镜像**：把进度曲线左右翻转（控制点 x/y 各按 1- 取反）。

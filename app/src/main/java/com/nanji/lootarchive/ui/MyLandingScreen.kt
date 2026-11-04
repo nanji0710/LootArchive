@@ -19,8 +19,6 @@ import java.text.NumberFormat
 
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.ui.component.topFade
-import com.nanji.lootarchive.ui.nav.NavKeys
-import com.nanji.lootarchive.ui.nav.navSharedElement
 
 @Composable
 fun MyLandingScreen(
@@ -109,15 +107,15 @@ fun MyLandingScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column {
-                MyMenuItem(Icons.Rounded.Settings, "设置", "主题模式、提醒", onNavigateToSettings, NavKeys.SETTINGS)
+                MyMenuItem(Icons.Rounded.Settings, "设置", "主题模式、提醒", onNavigateToSettings)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Rounded.Category, "分类管理", "管理物品分类", onNavigateToCategory, NavKeys.CATEGORY)
+                MyMenuItem(Icons.Rounded.Category, "分类管理", "管理物品分类", onNavigateToCategory)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Rounded.Backup, "备份与恢复", "导出/导入数据", onNavigateToBackup, NavKeys.BACKUP)
+                MyMenuItem(Icons.Rounded.Backup, "备份与恢复", "导出/导入数据", onNavigateToBackup)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Rounded.Delete, "回收站", "查看和还原已删除物品", onNavigateToRecycleBin, NavKeys.RECYCLEBIN)
+                MyMenuItem(Icons.Rounded.Delete, "回收站", "查看和还原已删除物品", onNavigateToRecycleBin)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = TextAuxiliary().copy(alpha = 0.10f))
-                MyMenuItem(Icons.Rounded.Info, "关于", "版本信息、检查更新", onNavigateToAbout, NavKeys.ABOUT)
+                MyMenuItem(Icons.Rounded.Info, "关于", "版本信息、检查更新", onNavigateToAbout)
             }
         }
 
@@ -131,11 +129,9 @@ private fun MyMenuItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    onClick: () -> Unit,
-    /** 与目标二级页配对的共享元素 key：飞出去的就是这一行本身。 */
-    sharedKey: String
+    onClick: () -> Unit
 ) {
-    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth().navSharedElement(sharedKey), color = Color.Transparent) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
                 Modifier.size(38.dp), AppShape.thumb,

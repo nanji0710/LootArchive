@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -52,6 +53,9 @@ object NavKeys {
     const val BACKUP = "row:backup"
     const val RECYCLEBIN = "row:recyclebin"
     const val ABOUT = "row:about"
+
+    /** 首页「新增物品」浮钮 → 新增页：从按钮位置向四周撑开铺满整屏。 */
+    const val ADD = "fab:add"
 }
 
 /** 本次导航的共享元素上下文：谁在飞、往哪个方向飞、用哪个 scope 飞。 */
@@ -130,6 +134,27 @@ fun NavSharedScope.flightProgress(): Float {
 fun navFlightProgress(): Float = LocalNavShared.current?.flightProgress() ?: 1f
 
 /**
+ * 同 [navFlightProgress]，但返回**闭包**：给 `drawBehind` / `graphicsLayer` 用。
+ *
+ * 在绘制阶段读状态，动画每帧只重绘、不重组——共享元素那种整页级别的容器如果每帧重组，
+ * 会连带整页重新布局，那就又回到「抽搐」了。
+ */
+@Composable
+fun navFlightProgressDraw(): () -> Float {
+    val nav = LocalNavShared.current ?: return { 1f }
+    val state = nav.visibility.transition.animateFloat(
+        transitionSpec = {
+            tween(
+                MotionDuration.Hero,
+                easing = if (nav.forward) MotionCurve.Standard else MotionCurve.Reverse,
+            )
+        },
+        label = "navFlightProgressDraw",
+    ) { s -> if (s == EnterExitState.Visible) 1f else 0f }
+    return { state.value }
+}
+
+/**
  * 两端唯一助手：key 匹配才接入共享元素管线。
  *
  * 位移与尺寸插值交给框架（[SharedTransitionScope.sharedBounds]），所以这里只管
@@ -168,10 +193,7 @@ fun Modifier.navSharedElement(
             boundsTransform = { _, _ ->
                 // 返回用 Standard 的时间镜像：进入是「先快后缓」，返回必须也是「先缓后快」，
                 // 否则两段运动的正反节奏对不上（用户实测原话：打开和返回曲线完全不一样）。
-                tween(
-                    MotionDuration.Hero,
-                    easing = if (nav.forward) MotionCurve.Standard else MotionCurve.Reverse,
-                )
+                tween(MotionDuration.Hero, easing = MotionCurve.Hero)
             },
             resizeMode = resizeMode,
             clipInOverlayDuringTransition = OverlayClip(shape),
@@ -217,25 +239,55 @@ fun Modifier.slideAway(progress: () -> Float, down: Boolean, extra: Dp = 0.dp): 
  * 底板只在飞行期间可见（alpha 由本页的转场进度驱动，落位即淡出），所以页面静止时的
  * 外观与改动前完全一致。
  */
+/**
+ * 「本次配对正在飞」的进度：1 = 飞行中，0 = 已落定。
+ *
+ * 返回**闭包**而不是 Float：调用方在 `drawBehind` / `graphicsLayer` 里读，状态变化只重绘、
+ * 不重组，页面与列表不会跟着动画帧重组（这正是之前「抽搐」的一个来源）。
+ */
+@Composable
+fun navFlyingAlpha(): () -> Float {
+    val nav = LocalNavShared.current ?: return { 0f }
+    val progress = nav.visibility.transition.animateFloat { state ->
+        if (state == EnterExitState.Visible) 0f else 1f
+    }
+    return { progress.value }
+}
+
 @Composable
 fun NavSharedSurface(key: String, content: @Composable () -> Unit) {
     val nav = LocalNavShared.current
-    val active = nav != null && key in nav.keys
-    // 整页作为共享体时必须 RemeasureToBounds：页面在飞行中重新排版，而不是被当成一张图放大。
+    if (nav == null || key !in nav.keys) {
+        // 没接入共享元素（非菜单行导航、或同一路由的不同来源）时零副作用。
+        content()
+        return
+    }
+    // 页面作为共享体，走**等比缩放**（ScaleToBounds(Fit)）：内容只按目标尺寸测量一次，
+    // 飞行期间只改缩放矩阵。用 RemeasureToBounds 会按「行的高度」逐帧重新布局整页
+    // （Scaffold / 列表 / 文本每帧回流），这正是用户说的「抽搐」。
+    val plateColor = CardBg()
+    val flying = navFlyingAlpha()
+    val progress = navFlightProgressDraw()
     Box(
         Modifier.fillMaxSize().navSharedElement(
             key, shape = AppShape.card,
-            resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds,
+            resizeMode = SharedTransitionScope.ResizeMode.ScaleToBounds(ContentScale.Fit),
         )
     ) {
-        if (active && nav != null) {
-            // Visible = 本页已落位；PreEnter / PostExit = 正在飞 → 底板显形
-            val plateAlpha by nav.visibility.transition.animateFloat { state ->
-                if (state == EnterExitState.Visible) 0f else 1f
-            }
-            Box(Modifier.fillMaxSize().background(CardBg().copy(alpha = plateAlpha)))
-        }
         content()
+        // 起飞 / 落地的头尾各盖一层与源端同色的板。
+        //
+        // 共享元素在飞行第一帧就把「整页缩放后的缩略图」画进行进矩形里，而源端还是一条
+        // 120dp 高的列表行 —— 两者形状与内容都不一样，这一帧就是用户看到的「抽搐」。
+        // 前 28% 用实色板盖住，观感变成「这张卡自己在撑开」，等图形长大了内容再露出来。
+        Box(
+            Modifier.fillMaxSize().drawBehind {
+                val a = flying()
+                if (a <= 0.01f) return@drawBehind
+                val cover = (1f - progress() / 0.28f).coerceIn(0f, 1f)
+                if (cover > 0f) drawRect(color = plateColor, alpha = cover * a)
+            }
+        )
     }
 }
 

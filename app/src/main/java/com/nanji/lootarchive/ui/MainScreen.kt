@@ -37,6 +37,7 @@ import com.nanji.lootarchive.ui.home.HomeScreen
 import com.nanji.lootarchive.ui.search.SearchScreen
 import com.nanji.lootarchive.ui.settings.SettingsScreen
 import com.nanji.lootarchive.ui.nav.NavKeys
+import com.nanji.lootarchive.ui.nav.navSharedElement
 import com.nanji.lootarchive.ui.nav.ProvideHomeDissolve
 import com.nanji.lootarchive.ui.nav.slideAway
 import com.nanji.lootarchive.ui.nav.NavSharedSurface
@@ -107,11 +108,10 @@ fun MainScreen() {
         Route.DETAIL -> itemId?.let {
             setOf(NavKeys.itemPhoto(it), NavKeys.itemTitle(it), NavKeys.itemPrice(it), NavKeys.itemTag(it))
         } ?: emptySet()
-        Route.SETTINGS -> setOf(NavKeys.SETTINGS)
-        Route.CATEGORY -> setOf(NavKeys.CATEGORY)
-        Route.BACKUP -> setOf(NavKeys.BACKUP)
-        Route.RECYCLEBIN -> setOf(NavKeys.RECYCLEBIN)
-        Route.ABOUT -> setOf(NavKeys.ABOUT)
+        // 「我的」页那六个入口回到整屏左右平移：共享元素在这条路径上（一行 120dp → 整页）
+        // 的起飞帧抽搐消不干净，用户决定退回原来的平移。只有详情页与新增页保留共享元素。
+        // 首页「新增物品」按钮 → 新增页：从按钮位置向四周撑开铺满整屏。
+        Route.ADD -> setOf(NavKeys.ADD)
         else -> emptySet()
     }
 
@@ -120,7 +120,9 @@ fun MainScreen() {
     fun pairsWith(host: String, keys: Set<String>): Set<String> = when {
         keys.isEmpty() -> emptySet()
         keys.first().startsWith("item:") -> keys.takeIf { host == Route.HOME || host == Route.SEARCH } ?: emptySet()
-        else -> keys.takeIf { host == Route.MY } ?: emptySet()
+        // 「新增物品」按钮只长在首页，所以新增页的源端只能是首页（从详情页点编辑进来仍走整屏平移）。
+        keys.first() == NavKeys.ADD -> keys.takeIf { host == Route.HOME } ?: emptySet()
+        else -> emptySet()
     }
 
     // 详情页的共享元素（首图 / 名称 / 金额 / 标签）要等物品数据到位才存在。数据没来就切路由，
@@ -131,28 +133,58 @@ fun MainScreen() {
     // 非 0 = 有一张卡片正在等数据、还没真正切到详情页；此时的返回键视为「取消这次展开」。
     var pendingDetailId by remember { mutableStateOf(0L) }
 
+    /**
+     * 把详情页首图按「整屏尺寸」预解码一次。
+     *
+     * Coil 的内存缓存 key 含尺寸，卡片缩略图那份用不上；冷启动后第一次点卡片时，飞行的那块
+     * 内容在头几百毫秒里还是空白的，落位那一刻图片才弹出来 —— 这是「冷启动闪现」的一半。
+     */
+    suspend fun preloadDetailCover(id: Long) {
+        val state = detailViewModel.uiState.value.itemWithPhotos ?: return
+        if (state.item.id != id) return
+        val photoPath = state.photos.firstOrNull()?.photoPath ?: return
+        runCatching {
+            val dm = mainContext.resources.displayMetrics
+            coil.Coil.imageLoader(mainContext).execute(
+                coil.request.ImageRequest.Builder(mainContext)
+                    .data(java.io.File(photoPath))
+                    .size(dm.widthPixels, dm.heightPixels)
+                    .build()
+            )
+        }
+    }
+
     fun navigate(route: String, id: Long? = null) {
         if (id != null) { if (route == Route.ADD) editItemId = id; if (route == Route.DETAIL) detailItemId = id }
-        navForward = true
         val from = currentRoute
-        navSharedKeys = pairsWith(from, pageSharedKeys(route, id ?: detailItemId))
+        val keys = pairsWith(from, pageSharedKeys(route, id ?: detailItemId))
+        // 「谁在飞 / 往哪飞」与「切到哪一页」必须在同一帧写进状态。先写状态再等数据的话，
+        // 首页会停在「以为自己正在转场、目标端却还不存在」的残缺配对里多挂几帧 —— 冷启动
+        // 读库慢，这几帧就是用户看到的「点一下先闪一下，才开始动」。
+        fun commit() {
+            navForward = true
+            navSharedKeys = keys
+            backStack = backStack + from
+            currentRoute = route
+        }
         if (route == Route.DETAIL && id != null &&
             detailViewModel.uiState.value.itemWithPhotos?.item?.id != id) {
             val target = id
             pendingDetailId = target
             navScope.launch {
                 detailViewModel.loadItem(target)
-                val ok = withTimeoutOrNull(1200) {
+                withTimeoutOrNull(1200) {
                     detailViewModel.uiState.first { it.itemWithPhotos?.item?.id == target }
                 }
+                preloadDetailCover(target)
                 if (pendingDetailId == target && currentRoute == from) {
                     pendingDetailId = 0L
-                    backStack = backStack + from; currentRoute = Route.DETAIL
+                    commit()
                 }
             }
             return
         }
-        backStack = backStack + from; currentRoute = route
+        commit()
     }
     fun goBack() {
         // 还没落定的那次展开点击：返回等于取消它（行进中打断）。
@@ -189,10 +221,7 @@ fun MainScreen() {
     // （Hero + 方向化缓动），所以和卡片 Hero 严格同步，不存在谁先谁后、谁先消失。
     val chromeProgress by animateFloatAsState(
         targetValue = if (isSubPage) 1f else 0f,
-        animationSpec = tween(
-            MotionDuration.Hero,
-            easing = if (navForward) MotionCurve.Standard else MotionCurve.Reverse
-        ),
+        animationSpec = tween(MotionDuration.Hero, easing = MotionCurve.Hero),
         label = "homeChromeSlide"
     )
 
@@ -294,12 +323,14 @@ fun MainScreen() {
                             } // close ProvideHomeDissolve
                         } else {
                             when (state) {
-                                Route.ADD -> AddItemScreen(
-                                    editItemId = editItemId,
-                                    onNavigateBack = { editItemId = null; goBack() },
-                                    onNavigateToCamera = { navigate(Route.CAMERA) },
-                                    photoSession = cameraSession
-                                )
+                                Route.ADD -> NavSharedSurface(NavKeys.ADD) {
+                                    AddItemScreen(
+                                        editItemId = editItemId,
+                                        onNavigateBack = { editItemId = null; goBack() },
+                                        onNavigateToCamera = { navigate(Route.CAMERA) },
+                                        photoSession = cameraSession
+                                    )
+                                }
                                 Route.DETAIL -> DetailScreen(
                                     itemId=detailItemId,
                                     onNavigateBack={goBack()},
@@ -309,18 +340,15 @@ fun MainScreen() {
                                     onNavigateBack={goBack()},
                                     onNavigateToDetail={navigate(Route.DETAIL, it)}
                                 )
-                                // 六个二级页整页就是共享元素的一端：从被点的那张卡片 / 那一行原地撑开，
-                                // 返回时原路收回。详情页的对端是首页（或搜索结果）里的那张卡片本身。
-                                Route.SETTINGS -> NavSharedSurface(NavKeys.SETTINGS) {
-                                    SettingsScreen(
-                                        onNavigateBack={goBack()},
-                                        onNavigateToCategory={navigate(Route.CATEGORY)}
-                                    )
-                                }
-                                Route.CATEGORY -> NavSharedSurface(NavKeys.CATEGORY) { CategoryScreen(onNavigateBack={goBack()}) }
-                                Route.BACKUP -> NavSharedSurface(NavKeys.BACKUP) { BackupScreen(onNavigateBack={goBack()}) }
-                                Route.RECYCLEBIN -> NavSharedSurface(NavKeys.RECYCLEBIN) { RecycleBinScreen(onNavigateBack={goBack()}) }
-                                Route.ABOUT -> NavSharedSurface(NavKeys.ABOUT) { AboutScreen(onNavigateBack={goBack()}) }
+                                // 二级页回到整屏左右平移（不再是整页共享元素）。
+                                Route.SETTINGS -> SettingsScreen(
+                                    onNavigateBack={goBack()},
+                                    onNavigateToCategory={navigate(Route.CATEGORY)}
+                                )
+                                Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
+                                Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
+                                Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
+                                Route.ABOUT -> AboutScreen(onNavigateBack={goBack()})
                                 Route.CAMERA -> CameraScreen(
                                     onBack = { goBack() },
                                     onPhotoTaken = { paths ->
@@ -370,6 +398,9 @@ fun MainScreen() {
 
                         // 液态玻璃 FAB（缩小版）
                         Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 90.dp).slideAway({ chromeProgress }, down = true, extra = 140.dp)) {
+                            // 共享元素的「源」锚点：与按钮同尺寸、透明的底板，只用来提供起飞的矩形。
+                            // 不把玻璃按钮本身塞进飞行容器 —— 7.2.1 的渲染线程无限递归就是玻璃件进图层链造成的。
+                            Box(Modifier.matchParentSize().navSharedElement(NavKeys.ADD))
                             LiquidGlassButton(
                                 onClick = { navigate(Route.ADD) },
                                 backdrop = backdrop,

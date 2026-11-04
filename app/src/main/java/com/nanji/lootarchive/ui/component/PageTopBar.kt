@@ -36,7 +36,8 @@ fun PageTopBar(
     title: String,
     onNavigateBack: () -> Unit,
     backdrop: Backdrop,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailing: (@Composable () -> Unit)? = null
 ) {
     Row(
         modifier
@@ -60,8 +61,13 @@ fun PageTopBar(
             fontWeight = FontWeight.Bold,
             color = TextPrimary(),
             fontFamily = FredokaFont,
-            maxLines = 1
+            maxLines = 1,
+            modifier = Modifier.weight(1f)
         )
+        if (trailing != null) {
+            Spacer(Modifier.width(8.dp))
+            trailing()
+        }
     }
 }
 

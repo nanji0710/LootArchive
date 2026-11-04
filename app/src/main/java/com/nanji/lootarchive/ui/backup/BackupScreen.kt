@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import com.nanji.lootarchive.ui.component.PageTopBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,20 +62,18 @@ fun BackupScreen(
         }
     }
 
-    Scaffold(containerColor = Color.Transparent) { padding ->
+    // 顶栏专用背景图层：只画背景刷，玻璃按钮不会采样到自己所在的图层
+    val topBarBrush = backgroundBrush()
+    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = { PageTopBar(title = "备份与恢复", onNavigateBack = onNavigateBack, backdrop = topBarBackdrop) }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    val topBarBrush = backgroundBrush()
-                    val topBarBackdrop = rememberLayerBackdrop { drawRect(brush = topBarBrush) }
-                    LiquidIconButton(onClick = onNavigateBack, backdrop = topBarBackdrop) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "返回", tint = TextPrimary(), modifier = Modifier.size(20.dp)) }
-                    Text("备份与恢复", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextPrimary(), fontFamily = FredokaFont)
-                }
-            }
             item { Text("数据备份", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = TextPrimary(), fontFamily = FredokaFont) }
             item {
                 val exportBrush = backgroundBrush()

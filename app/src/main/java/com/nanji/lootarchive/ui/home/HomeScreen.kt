@@ -265,9 +265,13 @@ fun HomeScreen(
                                 }
                             }
                             Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                                val navP = com.nanji.lootarchive.ui.nav.navProgress()
-                                val titleSz = androidx.compose.ui.unit.lerp(MaterialTheme.typography.headlineLarge.fontSize, nameSz, 1f - navP)
-                                val titleLn = androidx.compose.ui.unit.lerp(MaterialTheme.typography.headlineLarge.lineHeight, nameSz * 1.15f, 1f - navP)
+                                // 只有「正在飞的那一张」需要逐帧插值字号（它可能是返回时的落点，
+                                // 也就是飞行容器里显示的那一份内容）。其余卡片必须完全静止：
+                                // navProgress() 是动画状态，每张卡片都读它 = 每一帧整个网格重组 + 重排，
+                                // 滑动列表后可见卡片一多就掉帧、看着像抽搐（用户报的「下滑后点击抽搐」）。
+                                val navP = if (item.id == flyingId) com.nanji.lootarchive.ui.nav.navProgress() else 0f
+                                val titleSz = androidx.compose.ui.unit.lerp(nameSz, MaterialTheme.typography.headlineLarge.fontSize, navP)
+                                val titleLn = androidx.compose.ui.unit.lerp(nameSz * 1.15f, MaterialTheme.typography.headlineLarge.lineHeight, navP)
                                 Text(item.name, fontSize = titleSz, lineHeight = titleLn, color = TextPrimary(), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold, fontFamily = FredokaFont, modifier = Modifier.navSharedElement(NavKeys.itemTitle(item.id)))
                                 Spacer(Modifier.height(6.dp))
                                 if (isOwned) {
