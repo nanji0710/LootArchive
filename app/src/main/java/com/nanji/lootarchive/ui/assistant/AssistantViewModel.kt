@@ -221,17 +221,21 @@ class AssistantViewModel @Inject constructor(
             val config = remoteConfig.value
             // 长期记忆 + 本地习惯：按当前问题检索记忆，再带上常用分类/位置，注入 System Prompt
             val memoryLines = buildList {
-                memoryRepository.relevant(question).forEach { add("• ${it.content}") }
+                runCatching { memoryRepository.relevant(question) }
+                    .getOrDefault(emptyList())
+                    .forEach { add("• ${it.content}") }
                 buildHabitMemory(latest)?.let { add(it) }
             }
             val memoryText = memoryLines.joinToString("\n")
 
-            // 历史持久化：确定当前会话（新会话首条提问作为标题），并先写入用户消息
+            // 历史持久化：确定当前会话（新会话首条提问作为标题），并先写入用户消息。
+            // 落库失败不能阻断回答：内存里的消息仍要正常显示。
             val convId = _uiState.value.currentConversationId
-                ?: historyRepository.createConversation(question.take(24)).also { id ->
-                    _uiState.update { it.copy(currentConversationId = id) }
-                }
-            runCatching {
+                ?: runCatching { historyRepository.createConversation(question.take(24)) }
+                    .getOrNull()
+                    ?.also { id -> _uiState.update { it.copy(currentConversationId = id) } }
+                ?: -1L
+            if (convId > 0) runCatching {
                 val title = _uiState.value.conversations.firstOrNull { it.id == convId }?.title
                     ?: question.take(24)
                 historyRepository.touchConversation(convId, title)
@@ -272,25 +276,53 @@ class AssistantViewModel @Inject constructor(
             }
             if (safeItemAction != null && safeItemAction.action == "add") {
                 val itemAction = safeItemAction
+                val fallbackDraft = if (itemAction.itemName.isBlank()) {
+                    com.nanji.lootarchive.data.assistant.ItemDraftParser.parse(question)
+                } else null
+                val itemName = itemAction.itemName.ifBlank { fallbackDraft?.name.orEmpty() }
+                if (itemName.isBlank()) {
+                    val reply = AssistantAnswer(
+                        text = "没听清物品名称，请再说一次，例如「新增物品：牛奶，价格20元」。",
+                        fromModel = true,
+                    )
+                    _uiState.update { state ->
+                        state.copy(
+                            thinking = false,
+                            lastAnswer = reply,
+                            messages = state.messages.map { message ->
+                                if (message.id != replyId) message
+                                else ChatMessage(replyId, false, reply.text, blocks = reply.blocks)
+                            }
+                        )
+                    }
+                    runCatching { historyRepository.appendMessage(convId, false, reply.text) }
+                    return@launch
+                }
                 val now = System.currentTimeMillis()
                 val purchaseDate = parseDate(itemAction.purchaseDate)
                     ?: parseDateFromText(itemAction.purchaseDate, null)
+                    ?: fallbackDraft?.purchaseDate
                     ?: now
                 // 用户没给分类/位置时，沿用上一次操作的值（储物场景的常用值补全）
                 val categoryHint = itemAction.category.takeIf { it.isNotBlank() }
+                    ?: fallbackDraft?.categoryHint
                     ?: operateContext.lastCategory.takeIf { it.isNotBlank() }
-                val location = itemAction.location.ifBlank { operateContext.lastLocation }
-                val category = resolveCategory(categoryHint, itemAction.itemName, latest.categories)
-                val expiry = itemAction.shelfLifeDays?.let { purchaseDate + it * 24L * 60 * 60 * 1000 }
+                val location = itemAction.location.ifBlank {
+                    fallbackDraft?.location.orEmpty().ifBlank { operateContext.lastLocation }
+                }
+                val category = resolveCategory(categoryHint, itemName, latest.categories)
+                val expiry = (itemAction.shelfLifeDays ?: fallbackDraft?.shelfLifeDays)?.let { days ->
+                    purchaseDate + days * 24L * 60 * 60 * 1000
+                }
                 val item = com.nanji.lootarchive.data.local.entity.ItemEntity(
-                    name = itemAction.itemName.ifBlank { "未命名物品" },
+                    name = itemName,
                     categoryId = category?.id ?: 0L,
-                    purchasePrice = itemAction.price ?: 0.0,
+                    purchasePrice = itemAction.price ?: fallbackDraft?.price ?: 0.0,
                     purchaseDate = purchaseDate,
                     warrantyExpiryDate = expiry,
-                    warrantyPeriodDays = itemAction.shelfLifeDays,
+                    warrantyPeriodDays = itemAction.shelfLifeDays ?: fallbackDraft?.shelfLifeDays,
                     storageLocation = location,
-                    description = itemAction.note,
+                    description = itemAction.note.ifBlank { fallbackDraft?.note.orEmpty() },
                     status = "active",
                     updatedAt = now,
                 )
@@ -338,7 +370,8 @@ class AssistantViewModel @Inject constructor(
             }
             if (safeItemAction != null && safeItemAction.action == "update" && operateContext.lastItemId != null) {
                 val itemAction = safeItemAction
-                val existing = runCatching { itemRepository.getItemById(operateContext.lastItemId!!) }.getOrNull()
+                val currentId = operateContext.lastItemId
+                val existing = currentId?.let { runCatching { itemRepository.getItemById(it) }.getOrNull() }
                 if (existing != null) {
                     // 只改日期的句子绝不能碰名称：例如「是今年11月，不是25年11月」
                     val dateOnly = containsDateExpression(question) &&
@@ -353,7 +386,12 @@ class AssistantViewModel @Inject constructor(
                     val newExpiry = if (itemAction.shelfLifeDays != null) {
                         (newPurchase ?: existing.purchaseDate ?: System.currentTimeMillis()) +
                             itemAction.shelfLifeDays * 24L * 60 * 60 * 1000
-                    } else existing.warrantyExpiryDate
+                    } else if (newPurchase != null && existing.warrantyPeriodDays != null) {
+                        // 只改购买日期时，保修到期日要跟着购买日期重新算，不能保留旧日期
+                        newPurchase + existing.warrantyPeriodDays * 24L * 60 * 60 * 1000
+                    } else {
+                        existing.warrantyExpiryDate
+                    }
                     val updated = existing.copy(
                         name = newName,
                         categoryId = newCategory?.id ?: existing.categoryId,
@@ -404,10 +442,14 @@ class AssistantViewModel @Inject constructor(
                 }
             }
 
-            // 本地字段校正：只有没配置 API 或模型没给出可执行动作时才启用。
-            // 这样不会出现「显示已接入模型、实际偷偷走本地规则」的情况；模型动作有效时永远优先执行模型结果。
+            // 本地字段校正：只有没配置 API，或模型没给出可执行动作且用户确实在纠正时才启用。
+            // 普通提问（例如「这个物品是哪一年买的？」）必须继续走模型问答，不能被日期关键词劫持。
             val lastId = operateContext.lastItemId
-            if (lastId != null && (!config.isReady || safeItemAction == null)) {
+            if (lastId != null && (
+                    !config.isReady ||
+                        (safeItemAction == null && looksLikeCorrection(question))
+                    )
+            ) {
                 val edits = com.nanji.lootarchive.data.assistant.ItemDraftParser.parseEdits(question)
                 val hasDate = containsDateExpression(question)
                 if (edits != null || hasDate) {
@@ -422,6 +464,8 @@ class AssistantViewModel @Inject constructor(
                         val newPeriod = edits?.shelfLifeDays ?: existing.warrantyPeriodDays
                         val newExpiry = if (edits?.shelfLifeDays != null) {
                             (newPurchase ?: existing.purchaseDate ?: now) + edits.shelfLifeDays * 24L * 60 * 60 * 1000
+                        } else if (newPurchase != null && existing.warrantyPeriodDays != null) {
+                            newPurchase + existing.warrantyPeriodDays * 24L * 60 * 60 * 1000
                         } else existing.warrantyExpiryDate
                         val updated = existing.copy(
                             name = newName,
@@ -584,7 +628,9 @@ class AssistantViewModel @Inject constructor(
                                 remoteAssistant.extractMemories(config, turns)
                                     .onSuccess { memories ->
                                         memories.forEach { m ->
-                                            memoryRepository.remember(m.type, m.content, m.keywords, m.importance)
+                                            runCatching {
+                                                memoryRepository.remember(m.type, m.content, m.keywords, m.importance)
+                                            }
                                         }
                                     }
                             }
@@ -646,6 +692,8 @@ class AssistantViewModel @Inject constructor(
     fun startNewConversation() {
         sendJob?.cancel()
         sendJob = null
+        // 新会话不能继承上一条物品的「它/这个」指代，避免跨会话误改
+        operateContext = OperateContext()
         _uiState.update {
             it.copy(messages = emptyList(), input = "", thinking = false, lastAnswer = null, currentConversationId = null)
         }
@@ -656,6 +704,8 @@ class AssistantViewModel @Inject constructor(
         if (_uiState.value.thinking) return
         sendJob?.cancel()
         sendJob = null
+        // 打开历史会话时，旧会话的「上一条物品」不能带进来
+        operateContext = OperateContext()
         viewModelScope.launch {
             val history = runCatching { historyRepository.listMessages(conversationId) }
                 .getOrDefault(emptyList())
@@ -751,20 +801,28 @@ class AssistantViewModel @Inject constructor(
     }
 
     /** 触发模型做「新增/修改物品」语义抽取的入口词。普通提问不会走这条，避免多一次请求。 */
-    private fun looksLikeItemAction(text: String): Boolean = listOf(
-        "新增", "添加", "加个", "加一个", "买了", "入手", "记一下", "记录物品",
-        "改成", "改一下", "修改", "名字写错", "名称写错", "换个名字",
-        "分类改", "类别改", "价格改", "保质期改", "日期", "月份", "今年", "去年", "明年",
-        "不是", "名称", "名字", "年", "月", "日", "号",
-    ).any { text.contains(it) }
+    private fun looksLikeItemAction(text: String): Boolean =
+        listOf(
+            "新增", "添加", "加个", "加一个", "买了", "入手", "记一下", "记录物品",
+            "改成", "改一下", "修改", "名字写错", "名称写错", "换个名字",
+            "分类改", "类别改", "价格改", "保质期改", "日期", "月份", "今年", "去年", "明年",
+            "不是", "名称", "名字",
+        ).any { text.contains(it) } || containsDateExpression(text)
 
     private fun containsDateExpression(text: String): Boolean =
         Regex("(\\d{2,4}\\s*[年./-]|\\d{1,2}\\s*月|今天|今年|去年|明年|昨天|前天)").containsMatchIn(text)
 
+    /** 是否像「纠正上一条物品」的句子；普通问句不能触发表单式本地修改。 */
+    private fun looksLikeCorrection(text: String): Boolean {
+        if (listOf("改", "不是", "错", "纠正", "修正", "换成", "写成").any { text.contains(it) }) return true
+        val questionLike = listOf("哪", "什么", "多少", "吗", "？", "?").any { text.contains(it) }
+        return !questionLike && containsDateExpression(text)
+    }
+
     /** 只有用户表达了偏好、固定事实或明确要求记住时才提取长期记忆，避免每轮多一次请求。 */
     private fun shouldRemember(text: String): Boolean = listOf(
-        "记住", "以后", "我叫", "我是", "我喜欢", "我不喜欢", "我养", "我对",
-        "我习惯", "平时", "每次", "过敏", "生日", "家里", "我的职业", "我住",
+        "记住", "我叫", "我喜欢", "我不喜欢", "我养", "我对",
+        "我习惯", "过敏", "生日", "我的职业", "我住", "以后都",
     ).any { text.contains(it) }
 
     private fun parseDate(text: String): Long? {

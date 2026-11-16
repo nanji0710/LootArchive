@@ -5,19 +5,26 @@ import java.util.*
 
 object DateUtil {
 
-    private val fullFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    private val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+    // SimpleDateFormat 不是线程安全的；通知/导出等后台线程也会用到日期格式化。
+    private val fullFormat = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    }
+    private val dateFormat = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    }
+    private val monthFormat = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue() = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+    }
 
-    fun formatFull(date: Date): String = fullFormat.format(date)
+    fun formatFull(date: Date): String = fullFormat.get()!!.format(date)
 
-    fun formatDate(date: Date): String = dateFormat.format(date)
+    fun formatDate(date: Date): String = dateFormat.get()!!.format(date)
 
-    fun formatMonth(date: Date): String = monthFormat.format(date)
+    fun formatMonth(date: Date): String = monthFormat.get()!!.format(date)
 
-    fun formatTimestamp(timestamp: Long): String = dateFormat.format(Date(timestamp))
+    fun formatTimestamp(timestamp: Long): String = dateFormat.get()!!.format(Date(timestamp))
 
-    fun formatTimestampFull(timestamp: Long): String = fullFormat.format(Date(timestamp))
+    fun formatTimestampFull(timestamp: Long): String = fullFormat.get()!!.format(Date(timestamp))
 
     /**
      * 计算保修到期剩余天数

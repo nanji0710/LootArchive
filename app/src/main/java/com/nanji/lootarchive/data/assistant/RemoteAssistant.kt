@@ -82,21 +82,18 @@ class RemoteAssistant {
             history = history,
             systemOverride = "你是物品信息抽取器。只输出一个 JSON 对象，不要输出解释、Markdown 或代码块。",
         ).map { reply ->
-            val json = reply.content
-                .trim()
-                .removePrefix("```json").removePrefix("```")
-                .removeSuffix("```")
-                .trim()
+            val json = extractJsonObject(reply.content)
+                ?: throw IllegalStateException("模型没有返回 JSON 对象")
             val obj = JSONObject(json)
             ItemAction(
-                action = obj.optString("action", "none").lowercase(),
-                itemName = obj.optString("itemName", "").trim(),
+                action = obj.optText("action").ifBlank { "none" }.lowercase(),
+                itemName = obj.optText("itemName"),
                 price = if (obj.has("price") && !obj.isNull("price")) obj.optDouble("price") else null,
-                purchaseDate = obj.optString("purchaseDate", "").trim(),
+                purchaseDate = obj.optText("purchaseDate"),
                 shelfLifeDays = if (obj.has("shelfLifeDays") && !obj.isNull("shelfLifeDays")) obj.optInt("shelfLifeDays") else null,
-                category = obj.optString("category", "").trim(),
-                location = obj.optString("location", "").trim(),
-                note = obj.optString("note", "").trim(),
+                category = obj.optText("category"),
+                location = obj.optText("location"),
+                note = obj.optText("note"),
             )
         }
     }
@@ -173,19 +170,19 @@ class RemoteAssistant {
             inventoryDigest = "",
             systemOverride = "你是长期记忆提取器。只输出 JSON 数组，不要输出解释、Markdown 或代码块。"
         ).map { reply ->
-            val json = reply.content.trim()
-                .removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+            val json = extractJsonArray(reply.content)
+                ?: throw IllegalStateException("模型没有返回 JSON 数组")
             val array = org.json.JSONArray(json)
             buildList {
                 for (i in 0 until array.length()) {
                     val item = array.optJSONObject(i) ?: continue
-                    val content = item.optString("content").trim()
+                    val content = item.optText("content")
                     if (content.length >= 2) {
                         add(
                             MemoryCandidate(
-                                type = item.optString("type", "fact"),
+                                type = item.optText("type").ifBlank { "fact" },
                                 content = content,
-                                keywords = item.optString("keywords", ""),
+                                keywords = item.optText("keywords"),
                                 importance = item.optInt("importance", 3).coerceIn(1, 5),
                             )
                         )
@@ -320,6 +317,24 @@ class RemoteAssistant {
         append("库存摘要（JSON）：")
         append(inventoryDigest)
     }
+
+    /** 有的网关会把 JSON 包在 Markdown 代码块或解释文字里，取第一个完整对象/数组即可。 */
+    private fun extractJsonObject(raw: String): String? {
+        val text = raw.trim()
+        val start = text.indexOf('{')
+        val end = text.lastIndexOf('}')
+        return if (start >= 0 && end > start) text.substring(start, end + 1) else null
+    }
+
+    private fun extractJsonArray(raw: String): String? {
+        val text = raw.trim()
+        val start = text.indexOf('[')
+        val end = text.lastIndexOf(']')
+        return if (start >= 0 && end > start) text.substring(start, end + 1) else null
+    }
+
+    private fun JSONObject.optText(key: String): String =
+        if (has(key) && !isNull(key)) optString(key, "").trim() else ""
 
     /** 解析 `choices[0].message.content` 与 `reasoning_content`（不同网关也可能叫 reasoning）。 */
     private fun parseReply(raw: String): RemoteReply? = runCatching {

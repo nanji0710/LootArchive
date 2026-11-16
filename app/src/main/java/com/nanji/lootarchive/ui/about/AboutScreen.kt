@@ -88,9 +88,11 @@ fun AboutScreen(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Image(
-                    painter = painterResource(R.mipmap.ic_launcher),
+                    painter = painterResource(
+                        if (LocalDarkTheme.current) R.mipmap.ic_launcher_dark else R.mipmap.ic_launcher
+                    ),
                     contentDescription = null,
-                    modifier = Modifier.size(52.dp).clip(RoundedCornerShape(14.dp)),
+                    modifier = Modifier.size(100.dp).clip(RoundedCornerShape(20.dp)),
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(

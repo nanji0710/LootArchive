@@ -184,10 +184,10 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("""
                     CREATE TABLE IF NOT EXISTS assistant_memories (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        type TEXT NOT NULL DEFAULT 'fact',
+                        type TEXT NOT NULL,
                         content TEXT NOT NULL,
-                        keywords TEXT NOT NULL DEFAULT '',
-                        importance INTEGER NOT NULL DEFAULT 3,
+                        keywords TEXT NOT NULL,
+                        importance INTEGER NOT NULL,
                         createdAt INTEGER NOT NULL,
                         updatedAt INTEGER NOT NULL
                     )

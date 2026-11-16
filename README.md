@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-8.0.6-orange)]()
+[![Version](https://img.shields.io/badge/Version-8.0.7-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -266,7 +266,7 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v8.0.6.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v8.0.7.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 单测：`./gradlew :app:testDebugUnitTest`。当前 4 个测试类 —— `ItemStatusTest`（状态口径）、`HomeSortTest`（首页排序）、`UpdateUrlValidationTest`（更新链接校验）、`BackupRepositoryZipSlipTest`（备份解压的路径穿越防护）。
 
@@ -306,7 +306,26 @@ CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自�
 
 ## 更新日志
 
-### v8.0.2 (2026-11-16) 更新`r`n`r`n- 历史更新日志改为直接读取 GitHub Releases，发版后自动出现。`r`n- AI 助手增加上下文理解和记忆：能记住最近对话和刚新增的物品，支持「名字写错了」「改成…」这类追问，并由模型根据分类列表选择分类。`r`n`r`n### v8.0.1 (2026-11-16) 修复更新体验`r`n`r`n- 下载进度条改为从左往右填充。`r`n- 更新说明与历史日志补上 8.0.0 记录。`r`n- 修复输入法弹出/收起时输入框与聊天内容遮挡、跳动。`r`n- 关闭 AI 助理后底栏按钮立即隐藏。`r`n- 思考强度直接使用接口返回档位；修复 OpenCode Go 的 HTTP 400。`r`n`r`n### v8.0.0 (2026-11-16) 大版本更新
+### v8.0.7 (2026-11-16) 深色模式与稳定性更新
+
+- 修复设置页图标、检查更新页、更新说明和历史更新日志的深色模式配色。
+- 设置页图标改为统一主题配色，顶部应用图标新增深色版本。
+- 优化 AI 助手的会话上下文隔离、记忆读取异常兜底和购买日期/保修日期联动。
+- 优化下载失败清理、日期工具线程安全和数据库升级结构。
+
+### v8.0.2 (2026-11-16) 更新
+
+- 历史更新日志改为直接读取 GitHub Releases，发版后自动出现。
+- AI 助手增加上下文理解和记忆：能记住最近对话和刚新增的物品，支持「名字写错了」「改成…」这类追问，并由模型根据分类列表选择分类。
+
+### v8.0.1 (2026-11-16) 修复更新体验
+
+- 下载进度条改为从左往右填充。
+- 更新说明与历史日志补上 8.0.0 记录。
+- 修复输入法弹出/收起时输入框与聊天内容遮挡、跳动。
+- 关闭 AI 助理后底栏按钮立即隐藏。
+- 思考强度直接使用接口返回档位；修复 OpenCode Go 的 HTTP 400。
+### v8.0.0 (2026-11-16) 大版本更新
 
 - 设置页重新整理：常用入口集中到一页，点顶部应用卡可以查看版本、检查更新。
 - 新增 AI 助理：可以问东西放哪、值多少钱、哪些快过期，也能一句话记物品。

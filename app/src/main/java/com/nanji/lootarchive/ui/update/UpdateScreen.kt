@@ -64,9 +64,13 @@ import com.nanji.lootarchive.ui.theme.AppIcon
 import com.nanji.lootarchive.ui.theme.AppIconVariants
 import com.nanji.lootarchive.ui.theme.AppIcons
 import com.nanji.lootarchive.ui.theme.FredokaFont
+import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalGlassColors
 import com.nanji.lootarchive.ui.theme.MotionCurve
 import com.nanji.lootarchive.ui.theme.Primary
 import com.nanji.lootarchive.ui.theme.TextAuxiliary
+import com.nanji.lootarchive.ui.theme.TextPrimary
+import com.nanji.lootarchive.ui.theme.TextSecondary
 
 /**
  * 软件更新页 —— 布局照 SleepDown，背景用拾物集自己的品牌画面。
@@ -76,10 +80,20 @@ import com.nanji.lootarchive.ui.theme.TextAuxiliary
  * 而不是瞬间换页。参考 `ImmersiveSoftwareUpdateContent.kt` 的
  * `fadeIn(tween(230, delayMillis = 65)) togetherWith fadeOut(tween(155))`。
  */
-private val WarmBgTop = Color(0xFFFFF8EE)
-private val WarmBgBottom = Color(0xFFFFE2C0)
-private val Ink = Color(0xFF3D1A00)
-private val InkSoft = Color(0xFF8A5A2B)
+private val WarmBgTop: Color
+    @Composable get() = if (LocalDarkTheme.current) Color(0xFF0C0C10) else Color(0xFFFFF8EE)
+private val WarmBgBottom: Color
+    @Composable get() = if (LocalDarkTheme.current) Color(0xFF171118) else Color(0xFFFFE2C0)
+private val Ink: Color
+    @Composable get() = TextPrimary()
+private val InkSoft: Color
+    @Composable get() = TextSecondary()
+
+/** 更新页卡片/浮层底色：浅色为白卡，深色跟随玻璃主题的卡片色。 */
+@Composable
+private fun UpdateCardColor(alpha: Float = 0.96f): Color =
+    if (LocalDarkTheme.current) LocalGlassColors.current.cardBg.copy(alpha = alpha)
+    else Color.White.copy(alpha = alpha)
 
 /** 日志页的两种模式：本次更新说明 / 全部历史版本日志。 */
 private enum class ChangelogMode { CURRENT, HISTORY }
@@ -250,6 +264,11 @@ private fun UpdateMainPage(
                             // 而不是一张不透明白卡。Popup 是独立窗口，不会采到自己。
                             val pageBackdrop = com.nanji.lootarchive.ui.liquidglass.LocalPageBackdrop.current
                             val menuShape = com.kyant.capsule.ContinuousRoundedRectangle(18.dp)
+                            val menuSurface = if (LocalDarkTheme.current) {
+                                Color.White.copy(alpha = 0.12f)
+                            } else {
+                                Color.White.copy(alpha = 0.40f)
+                            }
                             Column(
                                 Modifier
                                     .width(180.dp)
@@ -265,14 +284,14 @@ private fun UpdateMainPage(
                                                 },
                                                 highlight = { com.kyant.backdrop.highlight.Highlight.Plain },
                                                 onDrawSurface = {
-                                                    drawRect(Color.White.copy(alpha = 0.40f))
+                                                    drawRect(menuSurface)
                                                 },
                                             )
                                         } else {
                                             Modifier
                                                 .shadow(20.dp, menuShape)
                                                 .clip(menuShape)
-                                                .background(Color.White.copy(alpha = 0.96f))
+                                                .background(UpdateCardColor(0.96f))
                                         }
                                     )
                                     .padding(vertical = 4.dp),
@@ -353,7 +372,7 @@ private fun StatusCard(
     Surface(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp),
         shape = RoundedCornerShape(28.dp),
-        color = Color.White.copy(alpha = 0.90f),
+        color = UpdateCardColor(0.90f),
         shadowElevation = 10.dp,
     ) {
         Column(Modifier.padding(24.dp)) {
@@ -363,7 +382,11 @@ private fun StatusCard(
 
             if (!download.error.isNullOrBlank()) {
                 Spacer(Modifier.height(10.dp))
-                Text(download.error, fontSize = 13.sp, color = Color(0xFFB3261E))
+                Text(
+                    download.error,
+                    fontSize = 13.sp,
+                    color = if (LocalDarkTheme.current) Color(0xFFFF8A80) else Color(0xFFB3261E),
+                )
             }
 
             Spacer(Modifier.height(20.dp))
@@ -516,7 +539,7 @@ private fun CircleIconButton(onClick: () -> Unit, content: @Composable () -> Uni
     )
     Box(
         Modifier.size(44.dp).graphicsLayer { scaleX = scale; scaleY = scale }.clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.78f))
+            .background(UpdateCardColor(0.78f))
             .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { content() }
@@ -611,7 +634,7 @@ private fun CurrentVersionCard(remoteLog: String?) {
     )
     Surface(
         shape = RoundedCornerShape(24.dp),
-        color = Color.White.copy(alpha = 0.92f),
+        color = UpdateCardColor(0.92f),
         shadowElevation = 6.dp,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -684,7 +707,7 @@ private fun VersionHistoryList(entries: List<VersionChangelog>) {
         )
         Surface(
             shape = RoundedCornerShape(24.dp),
-            color = Color.White.copy(alpha = 0.92f),
+            color = UpdateCardColor(0.92f),
             shadowElevation = 4.dp,
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -782,6 +805,27 @@ private fun compareVersion(a: String, b: String): Int {
 
 /** 全部历史版本日志：菜单「历史更新日志」展示这里的所有版本。 */
 private val VersionChangelogs = listOf(
+    VersionChangelog(
+        "8.0.7", "2026-11-16",
+        listOf(
+            "深色模式" to listOf(
+                "设置页图标改为统一的主题配色，顶部应用图标新增深色版本。",
+                "检查更新页、更新说明和历史更新日志的页面背景、卡片、文字全部跟随主题切换。",
+                "设置卡片阴影和图标底色在深色模式下不再使用白色。",
+            ),
+            "AI 助手与稳定性" to listOf(
+                "新会话不再串用上一条物品的上下文，打开历史会话时也会清空旧的操作上下文。",
+                "历史记录写入失败不会阻断回答；长期记忆检索异常时按无记忆处理。",
+                "修复修改购买日期时保修到期日没有跟着变化的问题。",
+                "修复模型返回 JSON 带代码块或 null 时解析失败的问题。",
+            ),
+            "其他优化" to listOf(
+                "下载失败会清理半成品 APK，下载百分比限制在 0–100。",
+                "日期格式化改为线程安全实现，避免后台任务与页面同时格式化时出错。",
+                "数据库 v8→v9 升级的表结构与 Room 期望保持一致，避免升级校验失败。",
+            ),
+        ),
+    ),
     VersionChangelog(
         "8.0.6", "2026-11-16",
         listOf(

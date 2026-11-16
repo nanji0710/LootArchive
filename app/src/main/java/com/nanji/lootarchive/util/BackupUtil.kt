@@ -17,7 +17,10 @@ import java.util.zip.ZipOutputStream
 object BackupUtil {
 
     private const val TAG = "BackupUtil"
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    // 备份/导出可能在后台线程执行，SimpleDateFormat 不能跨线程共用
+    private val dateFormat = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    }
 
     data class ExportCategory(
         val id: Long,
@@ -153,7 +156,7 @@ object BackupUtil {
             // 4. manifest.json
             val manifest = JSONObject().apply {
                 put("version", 4)
-                put("exportDate", dateFormat.format(Date()))
+                put("exportDate", dateFormat.get()!!.format(Date()))
                 put("appVersion", com.nanji.lootarchive.BuildConfig.VERSION_NAME)
                 put("itemCount", items.size)
                 put("categoryCount", categories.size)

@@ -37,6 +37,7 @@ class ApkDownloadManager(private val context: Context) {
         onProgress: (Progress) -> Unit
     ): Result<File> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
+        var file: File? = null
         try {
             if (!isValidDownloadUrl(url)) {
                 throw IllegalArgumentException("非允许的下载域名: $url")
@@ -47,7 +48,8 @@ class ApkDownloadManager(private val context: Context) {
             dir.listFiles()?.filter { it.name.startsWith("LootArchive-v") && it.name.endsWith(".apk") }
                 ?.forEach { it.delete() }
 
-            val file = File(dir, fileName)
+            val target = File(dir, fileName)
+            file = target
 
             connection = URL(url).openConnection() as HttpURLConnection
             connection.instanceFollowRedirects = true
@@ -67,7 +69,7 @@ class ApkDownloadManager(private val context: Context) {
             var lastUpdateBytes = 0L
 
             connection.inputStream.use { input ->
-                FileOutputStream(file).use { output ->
+                FileOutputStream(target).use { output ->
                     var bytesRead: Int
                     while (input.read(buffer).also { bytesRead = it } != -1) {
                         output.write(buffer, 0, bytesRead)
@@ -79,7 +81,9 @@ class ApkDownloadManager(private val context: Context) {
                             val speed = if (elapsed > 0) {
                                 ((downloaded - lastUpdateBytes).toDouble() / 1024) / (elapsed / 1000.0)
                             } else 0.0
-                            val pct = if (totalSize > 0) ((downloaded * 100) / totalSize).toInt() else 0
+                            val pct = if (totalSize > 0) {
+                                ((downloaded * 100) / totalSize).toInt().coerceIn(0, 100)
+                            } else 0
                             onProgress(Progress(downloaded, totalSize, pct, speed))
                             lastUpdateTime = now
                             lastUpdateBytes = downloaded
@@ -88,12 +92,14 @@ class ApkDownloadManager(private val context: Context) {
                 }
             }
             connection.disconnect()
+            connection = null
 
             // 最终进度
-            val total = if (totalSize > 0) totalSize else file.length()
-            onProgress(Progress(file.length(), total, 100, 0.0))
-            Result.success(file)
+            val total = if (totalSize > 0) totalSize else target.length()
+            onProgress(Progress(target.length(), total, 100, 0.0))
+            Result.success(target)
         } catch (e: Exception) {
+            runCatching { file?.delete() }
             connection?.disconnect()
             Result.failure(e)
         }

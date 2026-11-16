@@ -73,16 +73,16 @@ fun SettingsScreen(
         listOf(
             SettingsGroup(
                 rows = listOf(
-                    SettingsEntry("通用设置", "价格 货币 保修 提醒 备份 缓存 单位 外观 视效 图标", AppIcons.settings, IosBlue, onNavigateToGeneral),
-                    SettingsEntry("分类管理", "分类 新增 重命名 排序", AppIcons.category, IosOrange, onNavigateToCategory),
-                    SettingsEntry("备份与恢复", "备份 恢复 ZIP 导出 导入", AppIcons.backup, IosGreen, onNavigateToBackup),
-                    SettingsEntry("回收站", "删除 还原 清空", AppIcons.trash, IosPurple, onNavigateToRecycleBin),
+                    SettingsEntry("通用设置", "价格 货币 保修 提醒 备份 缓存 单位 外观 视效 图标", AppIcons.settings, onNavigateToGeneral),
+                    SettingsEntry("分类管理", "分类 新增 重命名 排序", AppIcons.category, onNavigateToCategory),
+                    SettingsEntry("备份与恢复", "备份 恢复 ZIP 导出 导入", AppIcons.backup, onNavigateToBackup),
+                    SettingsEntry("回收站", "删除 还原 清空", AppIcons.trash, onNavigateToRecycleBin),
                 )
             ),
             SettingsGroup(
                 rows = listOf(
-                    SettingsEntry("AI 设置", "AI 助理 模型 接口 Key 开关", AppIcons.assistant, IosPink, onNavigateToAssistantSettings),
-                    SettingsEntry("AI 助理", "助手 对话 问答 库存", AppIcons.chat, IosTeal, onNavigateToAssistant),
+                    SettingsEntry("AI 设置", "AI 助理 模型 接口 Key 开关", AppIcons.assistant, onNavigateToAssistantSettings),
+                    SettingsEntry("AI 助理", "助手 对话 问答 库存", AppIcons.chat, onNavigateToAssistant),
                 )
             ),
         )
@@ -138,9 +138,11 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Image(
-                        painter = painterResource(R.mipmap.ic_launcher),
+                        painter = painterResource(
+                            if (LocalDarkTheme.current) R.mipmap.ic_launcher_dark else R.mipmap.ic_launcher
+                        ),
                         contentDescription = null,
-                        modifier = Modifier.size(48.dp),
+                        modifier = Modifier.size(56.dp),
                     )
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
@@ -188,21 +190,10 @@ private data class SettingsEntry(
     val title: String,
     val keywords: String,
     val icon: AppIconVariants,
-    val tint: Color,
     val onClick: () -> Unit,
 )
 
 private data class SettingsGroup(val rows: List<SettingsEntry>)
-
-/** iOS 系统色板：SleepDown 设置页同款，彩色图标才有"可扫读"的分组感。 */
-private val IosBlue = Color(0xFF0A84FF)
-private val IosOrange = Color(0xFFFF9500)
-private val IosGreen = Color(0xFF34C759)
-private val IosPurple = Color(0xFF5856D6)
-private val IosPink = Color(0xFFFF2D55)
-private val IosTeal = Color(0xFF00A9C7)
-private val IosIndigo = Color(0xFF5E5CE6)
-private val IosGray = Color(0xFF8E8E93)
 
 /**
  * 设置导航行：彩色图标 + 标题 + 箭头，52dp 行高。
@@ -230,7 +221,16 @@ private fun SettingsNavRow(row: SettingsEntry) {
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AppIcon(row.icon, null, Modifier.size(22.dp), tint = row.tint)
+        Surface(
+            Modifier.size(38.dp),
+            AppShape.thumb,
+            color = Primary().copy(alpha = 0.10f),
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                AppIcon(row.icon, null, Modifier.size(20.dp), tint = Primary())
+            }
+        }
+        Spacer(Modifier.width(14.dp))
         Spacer(Modifier.width(16.dp))
         Text(
             row.title,

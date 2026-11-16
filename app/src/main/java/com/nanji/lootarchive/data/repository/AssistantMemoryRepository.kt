@@ -55,8 +55,9 @@ class AssistantMemoryRepository @Inject constructor(
         keywords: String = "",
         importance: Int = 3,
     ) {
-        val clean = content.trim().trimEnd('。', '，', ',', '.')
+        val clean = content.trim().take(200).trimEnd('。', '，', ',', '.')
         if (clean.length < 2) return
+        val safeKeywords = keywords.trim().take(200)
         val existing = dao.getAll().firstOrNull { memory ->
             val old = normalize(memory.content)
             old == normalize(clean) || old.contains(normalize(clean)) || normalize(clean).contains(old)
@@ -67,7 +68,7 @@ class AssistantMemoryRepository @Inject constructor(
             dao.update(
                 existing.copy(
                     content = mergedContent,
-                    keywords = (existing.keywords + "," + keywords).trim(','),
+                    keywords = (existing.keywords + "," + safeKeywords).trim(',').take(400),
                     importance = maxOf(existing.importance, importance),
                     updatedAt = now,
                 )
@@ -77,7 +78,7 @@ class AssistantMemoryRepository @Inject constructor(
                 AssistantMemoryEntity(
                     type = type,
                     content = clean,
-                    keywords = keywords,
+                    keywords = safeKeywords,
                     importance = importance.coerceIn(1, 5),
                     createdAt = now,
                     updatedAt = now,

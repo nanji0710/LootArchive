@@ -73,6 +73,7 @@ import com.nanji.lootarchive.ui.theme.AppShape
 import com.nanji.lootarchive.ui.theme.AppSpacing
 import com.nanji.lootarchive.ui.theme.CardBg
 import com.nanji.lootarchive.ui.theme.FredokaFont
+import com.nanji.lootarchive.ui.theme.LocalDarkTheme
 import com.nanji.lootarchive.ui.theme.LocalGlassColors
 import com.nanji.lootarchive.ui.theme.MotionDuration
 import com.nanji.lootarchive.ui.theme.Primary
@@ -142,7 +143,12 @@ fun SettingsCard(
     Column(
         modifier
             .fillMaxWidth()
-            .shadow(6.dp, AppShape.card, ambientColor = Color.White.copy(alpha = 0.35f), spotColor = glass.shadow)
+            .shadow(
+                6.dp,
+                AppShape.card,
+                ambientColor = if (LocalDarkTheme.current) Color.Transparent else Color.White.copy(alpha = 0.35f),
+                spotColor = glass.shadow,
+            )
             .clip(AppShape.card)
             .background(
                 androidx.compose.ui.graphics.Brush.verticalGradient(
