@@ -257,7 +257,21 @@ class AssistantViewModel @Inject constructor(
             } else {
                 null
             }
-            if (itemAction != null && itemAction.action == "add") {
+            // 模型偶尔会把「纠正上一条」误判成 add；这种错误会新建一个垃圾物品，必须拦住
+            val correctionCue = containsDateExpression(question) || listOf(
+                "改", "不是", "错", "名称", "名字", "分类", "价格"
+            ).any { question.contains(it) }
+            val safeItemAction = if (
+                itemAction != null && itemAction.action == "add" &&
+                operateContext.lastItemId != null && correctionCue
+            ) {
+                Log.w(logTag, "模型把修改请求误判为新增，已忽略，改走字段校正")
+                null
+            } else {
+                itemAction
+            }
+            if (safeItemAction != null && safeItemAction.action == "add") {
+                val itemAction = safeItemAction
                 val now = System.currentTimeMillis()
                 val purchaseDate = parseDate(itemAction.purchaseDate)
                     ?: parseDateFromText(itemAction.purchaseDate, null)
@@ -307,6 +321,7 @@ class AssistantViewModel @Inject constructor(
                         )
                     ),
                     suggestions = listOf("我的东西一共值多少钱？", "最近添加了什么？"),
+                    fromModel = true,
                 )
                 _uiState.update { state ->
                     state.copy(
@@ -321,7 +336,8 @@ class AssistantViewModel @Inject constructor(
                 runCatching { historyRepository.appendMessage(convId, false, reply.text, reply.blocks, reply.suggestions) }
                 return@launch
             }
-            if (itemAction != null && itemAction.action == "update" && operateContext.lastItemId != null) {
+            if (safeItemAction != null && safeItemAction.action == "update" && operateContext.lastItemId != null) {
+                val itemAction = safeItemAction
                 val existing = runCatching { itemRepository.getItemById(operateContext.lastItemId!!) }.getOrNull()
                 if (existing != null) {
                     // 只改日期的句子绝不能碰名称：例如「是今年11月，不是25年11月」
@@ -371,6 +387,7 @@ class AssistantViewModel @Inject constructor(
                             )
                         ) else emptyList(),
                         suggestions = listOf("我的东西一共值多少钱？", "最近添加了什么？"),
+                        fromModel = true,
                     )
                     _uiState.update { state ->
                         state.copy(
@@ -387,9 +404,10 @@ class AssistantViewModel @Inject constructor(
                 }
             }
 
-            // 本地兜底：API 不可用或模型没给出动作时，仍能按字段修改上一条新增记录。
+            // 本地字段校正：只有没配置 API 或模型没给出可执行动作时才启用。
+            // 这样不会出现「显示已接入模型、实际偷偷走本地规则」的情况；模型动作有效时永远优先执行模型结果。
             val lastId = operateContext.lastItemId
-            if (lastId != null) {
+            if (lastId != null && (!config.isReady || safeItemAction == null)) {
                 val edits = com.nanji.lootarchive.data.assistant.ItemDraftParser.parseEdits(question)
                 val hasDate = containsDateExpression(question)
                 if (edits != null || hasDate) {
@@ -737,7 +755,7 @@ class AssistantViewModel @Inject constructor(
         "新增", "添加", "加个", "加一个", "买了", "入手", "记一下", "记录物品",
         "改成", "改一下", "修改", "名字写错", "名称写错", "换个名字",
         "分类改", "类别改", "价格改", "保质期改", "日期", "月份", "今年", "去年", "明年",
-        "不是", "名称", "名字",
+        "不是", "名称", "名字", "年", "月", "日", "号",
     ).any { text.contains(it) }
 
     private fun containsDateExpression(text: String): Boolean =

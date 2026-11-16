@@ -1,7 +1,7 @@
 {
-  "versionName": "8.0.5",
-  "versionCode": 8005,
+  "versionName": "8.0.6",
+  "versionCode": 8006,
   "updateDate": "2026-11-16",
-  "updateLog": "v8.0.5 更新\n- 上下文记忆增强：新增操作上下文，记住最近操作的物品、分类、位置\n- 用户说「它/这个/刚才那个」时能定位到上一条物品，改日期、名称、分类时按字段识别\n- 长期记忆会保存常用分类、常用位置和用户偏好，之后聊天自动参考\n- 修复把日期当成名称修改的问题\n- 历史更新日志继续直接读取 GitHub Releases，发版后自动出现",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.5/LootArchive-release-v8.0.5.apk"
+  "updateLog": "v8.0.6 更新\n- 修复 AI 助手改日期时误改名称的问题，日期和名称按字段分别处理\n- 配置了 API 时优先使用模型的语义解析，模型返回无效动作时不会再静默套用本地分类规则\n- 模型生成的新增/修改结果会在消息上标注「模型回答」，方便确认实际走的是 API\n- 继续保留最近对话和操作上下文，支持「它/这个/刚才那个」指代\n- 历史更新日志继续直接读取 GitHub Releases",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.6/LootArchive-release-v8.0.6.apk"
 }
