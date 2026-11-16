@@ -19,7 +19,9 @@ import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.capsule.ContinuousCapsule
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalGlassColors
 import com.nanji.lootarchive.ui.theme.LocalReduceMotion
+import com.nanji.lootarchive.ui.theme.LocalVisualEffect
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -46,9 +48,12 @@ fun LiquidGlassButton(
     content: @Composable RowScope.() -> Unit
 ) {
     val dark = LocalDarkTheme.current
-    val containerColor =
-        if (dark) Color(0xFF121212).copy(alpha = 0.40f)
-        else Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    // 「省电」视效模式：玻璃退化为实色面板 —— 不采样、不模糊，按钮看起来是一块实心色块。
+    val containerColor = when {
+        !LocalVisualEffect.current.glassBlurEnabled -> LocalGlassColors.current.cardBg
+        dark -> Color(0xFF121212).copy(alpha = 0.40f)
+        else -> Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    }
     val animationScope = rememberCoroutineScope()
     // 减弱动效时按压高光不再跟手（见 InteractiveHighlight.reduceMotion）
     val reduceMotion = LocalReduceMotion.current

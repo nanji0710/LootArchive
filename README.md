@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-7.5.5-orange)]()
+[![Version](https://img.shields.io/badge/Version-8.0.0-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -266,7 +266,7 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v7.5.5.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v8.0.0.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 单测：`./gradlew :app:testDebugUnitTest`。当前 4 个测试类 —— `ItemStatusTest`（状态口径）、`HomeSortTest`（首页排序）、`UpdateUrlValidationTest`（更新链接校验）、`BackupRepositoryZipSlipTest`（备份解压的路径穿越防护）。
 
@@ -305,6 +305,17 @@ CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自�
 ---
 
 ## 更新日志
+
+### v8.0.0 (2026-11-16) 大版本更新
+
+- 设置页重新整理：常用入口集中到一页，点顶部应用卡可以查看版本、检查更新。
+- 新增 AI 助理：可以问东西放哪、值多少钱、哪些快过期，也能一句话记物品。
+- AI 助理聊天记录保存在手机本地，随时能翻看，也可以在历史沟通里勾选删除。
+- AI 设置：填好接口地址和 API Key 后能拉取全部可用模型，模型和思考强度按接口返回的档位选择。
+- 检查更新页重做：有新版本时按钮变「下载」，下载时按钮本身变成进度条，能看到百分比和速度。
+- 更新说明按版本整理成历史日志，旧版本也能查。
+- 设置页新增视效模式、图标风格，卡片、菜单、弹窗统一成玻璃效果。
+- 修复若干已知问题，优化页面切换动画和部分机型显示。
 
 ### v7.5.5 (2026-10-16) 修复已知问题 + 新增物品按钮扩散动画
 

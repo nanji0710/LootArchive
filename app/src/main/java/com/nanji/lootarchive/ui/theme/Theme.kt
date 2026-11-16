@@ -106,6 +106,8 @@ private fun brighten(c: Color): Color {
 fun LootArchiveTheme(
     themeMode: String = "system",
     primaryColor: Int = 0xFFE8782A.toInt(),
+    visualEffectMode: String = "balanced",
+    iconStyle: String = "rounded",
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -121,12 +123,42 @@ fun LootArchiveTheme(
             }
         }
     }
+    val effect = VisualEffectMode.fromKey(visualEffectMode)
+    val icons = IconStyle.fromKey(iconStyle)
+    // 视效模式只有一处出口：玻璃色板。LITE 下把半透明玻璃换成实色面板，
+    // 所有玻璃件（底栏/按钮/开关/弹窗）自动跟着变实，页面无需各自判断。
+    val glassColors = when {
+        darkTheme && effect.glassBlurEnabled -> DarkGlassColors
+        darkTheme -> DarkGlassColors.toOpaque()
+        effect.glassBlurEnabled -> LightGlassColors
+        else -> LightGlassColors.toOpaque()
+    }
     CompositionLocalProvider(
         LocalDarkTheme provides darkTheme,
         LocalPrimaryColor provides Color(primaryColor),
-        LocalGlassColors provides if (darkTheme) DarkGlassColors else LightGlassColors
+        LocalGlassColors provides glassColors,
+        LocalVisualEffect provides effect,
+        LocalIconStyle provides icons
     ) {
         val cs = if (darkTheme) DarkColorScheme else LightColorScheme
         MaterialTheme(colorScheme = cs, typography = AppTypography, content = content)
     }
 }
+
+/**
+ * 半透明玻璃色板 → 实色面板色板（「省电」视效模式用）。
+ *
+ * 只改「底」不改「字」：卡片/导航底换成与页面背景同族的实色，
+ * 高光与描边归零，这样玻璃件不再需要背景采样也能读作一块完整面板。
+ */
+private fun GlassColorScheme.toOpaque(): GlassColorScheme = copy(
+    glassBg = cardBg,
+    navGlassBg = cardBg,
+    glassBorder = textAuxiliary.copy(alpha = 0.10f),
+    highlight = Color.Transparent,
+    shadow = Color.Black.copy(alpha = if (textPrimary.luminanceSafe() < 0.3f) 0.25f else 0.06f),
+)
+
+/** 极简亮度判断：luminance 公式的近似，只用于选阴影透明度。 */
+private fun Color.luminanceSafe(): Float =
+    0.299f * red + 0.587f * green + 0.114f * blue

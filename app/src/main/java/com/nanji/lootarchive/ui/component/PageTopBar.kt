@@ -15,10 +15,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.Backdrop
 import com.nanji.lootarchive.ui.liquidglass.LiquidIconButton
+import com.nanji.lootarchive.ui.theme.AppIcon
+import com.nanji.lootarchive.ui.theme.AppIcons
+import com.nanji.lootarchive.ui.theme.CardBg
 import com.nanji.lootarchive.ui.theme.FredokaFont
 import com.nanji.lootarchive.ui.theme.TextPrimary
 
@@ -39,16 +45,28 @@ fun PageTopBar(
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null
 ) {
+    val scrimColor = CardBg()
     Row(
         modifier
             .fillMaxWidth()
+            // 顶部压暗层：页面滚动时，正文会从悬浮顶栏底下穿过。
+            // 没有这层 scrim 时，「外观与视效」这类长标题会和下方行文字叠在一起（实测）。
+            .drawBehind {
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        0f to scrimColor.copy(alpha = 0.96f),
+                        0.72f to scrimColor.copy(alpha = 0.88f),
+                        1f to Color.Transparent,
+                    ),
+                )
+            }
             .statusBarsPadding()
             .padding(start = 20.dp, top = 8.dp, end = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         LiquidIconButton(onClick = onNavigateBack, backdrop = backdrop) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
+            AppIcon(
+                AppIcons.arrowBack,
                 contentDescription = "返回",
                 tint = TextPrimary(),
                 modifier = Modifier.size(20.dp)

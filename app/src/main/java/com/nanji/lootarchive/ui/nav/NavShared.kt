@@ -341,3 +341,36 @@ fun navFlyingItemId(): Long? {
         ?.substringBefore(':')
         ?.toLongOrNull()
 }
+
+/**
+ * 目标页内容的「上浮落位」：共享元素飞行的后段，页面内容从下方 [enterOffset] 处
+ * 轻轻升到原位。
+ *
+ * 为什么用**布局位移**而不是 graphicsLayer 的 translationY：
+ * 新增页里有液态玻璃按钮（采样局部 backdrop），再给它套一层图形图层会重演
+ * 7.2.1 那种「图层互相引用 → 渲染线程递归」的闪退；布局位移不产生图层。
+ * 进度在 layout 阶段读取，动画每帧只重新摆放、不重组整张表单。
+ *
+ * 只能在有共享元素配对时使用（其余导航 `LocalNavShared` 为 null，直接返回原 Modifier，
+ * 不会把页面永久推下去）。
+ */
+@Composable
+fun Modifier.navRiseIn(enterOffset: Dp = 16.dp, startFraction: Float = 0.12f): Modifier {
+    val nav = LocalNavShared.current ?: return this
+    val progress = LocalNavProgress.current
+    return this.then(
+        Modifier.layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            // 密度必须在 measure 作用域里取：placement 段的接收者是 PlacementScope，拿不到 density。
+            val densityValue = density
+            layout(placeable.width, placeable.height) {
+                val p = progress().coerceIn(0f, 1f)
+                // smoothstep：起步慢、收尾稳，避免位移在最后一帧"啪"地贴齐。
+                val t = ((p - startFraction) / (1f - startFraction)).coerceIn(0f, 1f)
+                val eased = t * t * (3f - 2f * t)
+                val offsetPx = (enterOffset.value * (1f - eased) * densityValue).toInt()
+                placeable.place(0, offsetPx)
+            }
+        }
+    )
+}

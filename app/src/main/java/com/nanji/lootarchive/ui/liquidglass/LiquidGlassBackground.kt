@@ -22,6 +22,13 @@ fun ProvidePageBackdrop(backdrop: Backdrop, content: @Composable () -> Unit) {
 @Composable
 fun backgroundBrush(): Brush {
     val dark = LocalDarkTheme.current
+    // 「省电」视效模式：渐变本身也是每帧重绘的整屏着色，换成同色系纯色。
+    if (LocalVisualEffect.current == VisualEffectMode.LITE) {
+        return Brush.verticalGradient(
+            listOf(if (dark) _BackgroundDark else _BackgroundLight) +
+                listOf(if (dark) _BackgroundDark else _BackgroundLight)
+        )
+    }
     return Brush.verticalGradient(
         if (dark) listOf(_BackgroundGradientDarkStart, _BackgroundGradientDarkEnd)
         else listOf(_BackgroundGradientLightStart, _BackgroundGradientLightEnd)

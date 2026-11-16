@@ -49,13 +49,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeMode by settingsRepository.themeMode.collectAsState(initial = "system")
             val primaryColor by settingsRepository.primaryColor.collectAsState(initial = 0xFFFFA500.toInt())
+            // v7.6 外观：视效模式与图标风格同样在根部注入，界面里读 CompositionLocal 即可，
+            // 不必再逐层传参（见 ui/theme/Appearance.kt）。
+            val visualEffectMode by settingsRepository.visualEffectMode.collectAsState(initial = "balanced")
+            val iconStyle by settingsRepository.iconStyle.collectAsState(initial = "rounded")
+            val assistantEnabled by settingsRepository.assistantEnabled.collectAsState(initial = true)
             // 用 first() 读取 DataStore 真实值（非 collectAsState 的 initial 默认值）
             // remember 初始为 false → 第一帧直接显示 MainScreen，读完 DataStore 后按需切换
             var showOnboarding by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
                 showOnboarding = !settingsRepository.onboardingCompleted.first()
             }
-            LootArchiveTheme(themeMode = themeMode, primaryColor = primaryColor) {
+            LootArchiveTheme(
+                themeMode = themeMode,
+                primaryColor = primaryColor,
+                visualEffectMode = visualEffectMode,
+                iconStyle = iconStyle
+            ) {
                 // 减弱动效状态挂在根部：系统开了"减弱动效"时，
                 // 各处弹簧物理（底栏拖拽镜头、按压形变、高光）会用
                 // LocalReduceMotion 退化成瞬时，见 theme/Motion.kt。
@@ -76,7 +86,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         } else {
-                            key("main") { MainScreen() }
+                            key("main") { MainScreen(assistantEnabled = assistantEnabled) }
                         }
                     }
                 }

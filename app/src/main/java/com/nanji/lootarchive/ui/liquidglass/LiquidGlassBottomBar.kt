@@ -78,7 +78,9 @@ import com.kyant.backdrop.shadow.InnerShadow
 import com.kyant.backdrop.shadow.Shadow
 import com.kyant.capsule.ContinuousCapsule
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalGlassColors
 import com.nanji.lootarchive.ui.theme.LocalReduceMotion
+import com.nanji.lootarchive.ui.theme.LocalVisualEffect
 import com.nanji.lootarchive.ui.theme.MotionSpec
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
@@ -135,9 +137,12 @@ internal fun LiquidBottomTabs(
 ) {
     val dark = LocalDarkTheme.current
     val accentColor = MaterialTheme.colorScheme.primary
-    val containerColor =
-        if (dark) Color(0xFF121212).copy(alpha = 0.14f)
-        else Color(0xFFFBF9F6).copy(alpha = 0.14f)
+    // 「省电」视效模式：底栏改成不透明的导航底板，不再采样模糊。
+    val containerColor = when {
+        !LocalVisualEffect.current.glassBlurEnabled -> LocalGlassColors.current.navGlassBg
+        dark -> Color(0xFF121212).copy(alpha = 0.14f)
+        else -> Color(0xFFFBF9F6).copy(alpha = 0.14f)
+    }
 
     val tabsBackdrop = rememberLayerBackdrop()
 

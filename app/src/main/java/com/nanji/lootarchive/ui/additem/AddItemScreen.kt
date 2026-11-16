@@ -39,6 +39,7 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.nanji.lootarchive.domain.model.ItemStatus
 import com.nanji.lootarchive.ui.component.ClayCard
 import com.nanji.lootarchive.ui.component.WheelDatePickerDialog
+import com.nanji.lootarchive.ui.nav.navRiseIn
 import com.nanji.lootarchive.ui.liquidglass.LiquidGlassButton
 import com.nanji.lootarchive.ui.liquidglass.backgroundBrush
 import com.nanji.lootarchive.ui.theme.*
@@ -132,7 +133,7 @@ fun AddItemScreen(
 
     Scaffold(
         topBar = {
-            Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 6.dp, vertical = 8.dp)) {
+            Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 6.dp, vertical = 8.dp).navRiseIn(enterOffset = (-8).dp, startFraction = 0.0f)) {
                 Row(
                     Modifier.fillMaxWidth().layerBackdrop(topRowBackdrop),
                     verticalAlignment = Alignment.CenterVertically
@@ -169,7 +170,10 @@ fun AddItemScreen(
         containerColor = Color.Transparent
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
+                // 「撑开 → 内容上浮」：共享元素把整页从按钮位置放大到位的同时，
+                // 表单内容从下方 18dp 处升到原位，两段动作错开一点，页面才不像一张贴图。
+                .navRiseIn(enterOffset = 18.dp, startFraction = 0.28f),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (uiState.errorMessage != null) {

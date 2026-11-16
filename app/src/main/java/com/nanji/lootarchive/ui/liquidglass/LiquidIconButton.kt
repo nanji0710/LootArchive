@@ -19,7 +19,9 @@ import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.capsule.ContinuousCapsule
 import com.nanji.lootarchive.ui.theme.LocalDarkTheme
+import com.nanji.lootarchive.ui.theme.LocalGlassColors
 import com.nanji.lootarchive.ui.theme.LocalReduceMotion
+import com.nanji.lootarchive.ui.theme.LocalVisualEffect
 
 /**
  * 圆形液态玻璃图标按钮 —— 返回/编辑/删除等 40dp 小圆钮。
@@ -35,9 +37,12 @@ fun LiquidIconButton(
     content: @Composable BoxScope.() -> Unit
 ) {
     val dark = LocalDarkTheme.current
-    val containerColor =
-        if (dark) Color(0xFF121212).copy(alpha = 0.35f)
-        else Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    // 「省电」视效模式：实色面板（与 LiquidGlassButton 同一规则）。
+    val containerColor = when {
+        !LocalVisualEffect.current.glassBlurEnabled -> LocalGlassColors.current.cardBg
+        dark -> Color(0xFF121212).copy(alpha = 0.35f)
+        else -> Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    }
     val animationScope = rememberCoroutineScope()
     // 减弱动效时按压高光不再跟手（见 InteractiveHighlight.reduceMotion）
     val reduceMotion = LocalReduceMotion.current

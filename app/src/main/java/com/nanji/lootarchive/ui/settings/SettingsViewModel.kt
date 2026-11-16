@@ -25,8 +25,22 @@ data class SettingsUiState(
     val cacheSizeFormatted: String = "计算中...",
     val isClearing: Boolean = false,
     val isCalculatingCache: Boolean = true,
-    val message: String? = null
-)
+    val message: String? = null,
+    // ── v7.6 外观 ──
+    val visualEffectMode: String = "balanced",
+    val iconStyle: String = "rounded",
+    val autoCheckUpdate: Boolean = true,
+    // ── v7.6 AI 助理 ──
+    val assistantEnabled: Boolean = true,
+    val assistantEndpoint: String = "",
+    val assistantApiKey: String = "",
+    val assistantModel: String = "",
+    val assistantReasoningEffort: String = "medium",
+) {
+    /** 是否已经配好可用的模型服务（决定设置页显示"已接入"还是"仅本地"）。 */
+    val assistantRemoteReady: Boolean
+        get() = assistantEndpoint.isNotBlank() && assistantApiKey.isNotBlank() && assistantModel.isNotBlank()
+}
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -76,6 +90,85 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(trashItemCount = deleted.size) }
             }
         }
+        // ── v7.6 外观 / AI 助理 ──
+        viewModelScope.launch {
+            settingsRepository.visualEffectMode.collect { mode ->
+                _uiState.update { it.copy(visualEffectMode = mode) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.iconStyle.collect { style ->
+                _uiState.update { it.copy(iconStyle = style) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.autoCheckUpdate.collect { enabled ->
+                _uiState.update { it.copy(autoCheckUpdate = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.assistantEnabled.collect { enabled ->
+                _uiState.update { it.copy(assistantEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.assistantEndpoint.collect { endpoint ->
+                _uiState.update { it.copy(assistantEndpoint = endpoint) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.assistantApiKey.collect { key ->
+                _uiState.update { it.copy(assistantApiKey = key) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.assistantModel.collect { model ->
+                _uiState.update { it.copy(assistantModel = model) }
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.assistantReasoningEffort.collect { effort ->
+                _uiState.update { it.copy(assistantReasoningEffort = effort) }
+            }
+        }
+    }
+
+    // ── v7.6 外观 ──
+    fun setVisualEffectMode(mode: String) {
+        // 先写本地 state：CompositionLocal 由 MainActivity 统一下发，
+        // DataStore 回写有一帧延迟，直接读 Flow 会让分段控件的选中态"慢半拍"。
+        _uiState.update { it.copy(visualEffectMode = mode) }
+        viewModelScope.launch { settingsRepository.setVisualEffectMode(mode) }
+    }
+
+    fun setIconStyle(style: String) {
+        _uiState.update { it.copy(iconStyle = style) }
+        viewModelScope.launch { settingsRepository.setIconStyle(style) }
+    }
+
+    fun setAutoCheckUpdate(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setAutoCheckUpdate(enabled) }
+    }
+
+    // ── v7.6 AI 助理 ──
+    fun setAssistantEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setAssistantEnabled(enabled) }
+    }
+
+    fun setAssistantEndpoint(endpoint: String) {
+        viewModelScope.launch { settingsRepository.setAssistantEndpoint(endpoint) }
+    }
+
+    fun setAssistantApiKey(key: String) {
+        viewModelScope.launch { settingsRepository.setAssistantApiKey(key) }
+    }
+
+    fun setAssistantModel(model: String) {
+        viewModelScope.launch { settingsRepository.setAssistantModel(model) }
+    }
+
+    fun setAssistantReasoningEffort(effort: String) {
+        viewModelScope.launch { settingsRepository.setAssistantReasoningEffort(effort) }
     }
 
     fun setCurrency(currency: String) {

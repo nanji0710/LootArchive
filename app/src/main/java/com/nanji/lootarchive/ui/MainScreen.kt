@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nanji.lootarchive.ui.additem.AddItemScreen
 import com.nanji.lootarchive.ui.about.AboutScreen
+import com.nanji.lootarchive.ui.assistant.AssistantScreen
 import com.nanji.lootarchive.ui.backup.BackupScreen
 import com.nanji.lootarchive.ui.camera.CameraScreen
 import com.nanji.lootarchive.ui.recyclebin.RecycleBinScreen
@@ -35,7 +37,10 @@ import com.nanji.lootarchive.ui.detail.DetailScreen
 import com.nanji.lootarchive.ui.detail.DetailViewModel
 import com.nanji.lootarchive.ui.home.HomeScreen
 import com.nanji.lootarchive.ui.search.SearchScreen
+import com.nanji.lootarchive.ui.settings.AssistantSettingsScreen
+import com.nanji.lootarchive.ui.settings.GeneralSettingsScreen
 import com.nanji.lootarchive.ui.settings.SettingsScreen
+import com.nanji.lootarchive.ui.update.UpdateScreen
 import com.nanji.lootarchive.ui.nav.NavKeys
 import com.nanji.lootarchive.ui.nav.navSharedElement
 import com.nanji.lootarchive.ui.nav.ProvideHomeDissolve
@@ -49,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import com.nanji.lootarchive.ui.component.AmbientOrbsBackground
 import com.nanji.lootarchive.ui.component.CategoryDrawerViewModel
 import com.nanji.lootarchive.ui.theme.*
 import com.nanji.lootarchive.util.PhotoQueue
@@ -56,10 +62,24 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.nanji.lootarchive.ui.liquidglass.*
 
-enum class MainTab(val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector) {
-    HOME("首页", Icons.Rounded.Home, Icons.Outlined.Home),
-    STATS("统计", Icons.Rounded.PieChart, Icons.Outlined.PieChart),
-    MY("我的", Icons.Rounded.Person, Icons.Outlined.Person)
+enum class MainTab(val label: String, val icon: AppIconVariants) {
+    HOME("首页", AppIcons.home),
+    STATS("统计", AppIcons.stats),
+    // v7.6：助理从「藏在设置里的开关」升级为一等入口。
+    ASSISTANT("助手", AppIcons.assistant),
+    // v7.6.1：底栏第四项由「我的」改为「设置」——设置页直接承担一级页面，
+    // 不再经过「我的」中转，避免同一个功能在两级页面各出现一次。
+    SETTINGS("设置", AppIcons.settings)
+}
+
+/** 底栏单个 Tab 的图标：跟随「图标风格」设置，三档必须**肉眼可区分**。 */
+private fun AppIconVariants.tabIcon(selected: Boolean, style: IconStyle): ImageVector = when (style) {
+    // 圆润：全部实心，选中与否只靠底垫高亮区分
+    IconStyle.ROUNDED -> rounded
+    // 线性：全部线框
+    IconStyle.OUTLINED -> outlined
+    // 双色：选中实心 + 未选线框，形成层次（底栏无法叠两层，取最接近的表达）
+    IconStyle.DUOTONE -> if (selected) rounded else outlined
 }
 
 private object Route {
@@ -68,12 +88,19 @@ private object Route {
     const val SETTINGS="settings"; const val CATEGORY="category"
     const val BACKUP="backup"; const val CAMERA="camera"; const val RECYCLEBIN="recyclebin"
     const val ABOUT="about"
+    // v7.6 新增二级页
+    const val GENERAL="general"
+    const val ASSISTANT_SETTINGS="assistant_settings"; const val UPDATE="update"
+    /** 助理 Tab 的路由名（与二级页区分开：它在 tabStateHolder 里，不走二级页转场）。 */
+    const val ASSISTANT="assistant"
 }
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
-fun MainScreen() {
-    var currentTab by rememberSaveable { mutableIntStateOf(0) }
+fun MainScreen(assistantEnabled: Boolean = true) {
+    // key 带版本号：v7.6 的 Tab 顺序从 3 个变 4 个，旧存档里的 index=2 会从「我的」变成「助手」。
+    // 换一个 key 让老的 savedInstanceState 失效，升级后统一回到首页。
+    var currentTab by rememberSaveable("mainTab_v76") { mutableIntStateOf(0) }
     var currentRoute by rememberSaveable { mutableStateOf(Route.HOME) }
     var detailItemId by rememberSaveable { mutableStateOf(0L) }
     var editItemId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -90,6 +117,11 @@ fun MainScreen() {
     }
     val hostState = rememberLiquidDialogHostState()
     var backStack by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+
+    // 「视效模式」目前只影响两件事：共享元素飞行是否启用、玻璃是否走模糊。
+    // 玻璃部分在主题层统一下发（LootArchiveTheme 选色板），这里负责前者。
+    val visualEffect = LocalVisualEffect.current
+    val iconStyle = LocalIconStyle.current
 
     // 这一跳是「进」还是「出」。AnimatedContent 只认 targetState，
     // 同一个路由既可能是压栈进来的、也可能是弹栈回来的，它自己分不清；
@@ -119,6 +151,8 @@ fun MainScreen() {
     // 我的页那几个菜单行只在「我的」页。不满足就返回空集，走原来的整屏平移。
     fun pairsWith(host: String, keys: Set<String>): Set<String> = when {
         keys.isEmpty() -> emptySet()
+        // 「省电」视效模式：共享元素飞行整条管线不参与，退回整屏平移（见 ui/theme/Appearance.kt）。
+        !visualEffect.heroMotionEnabled -> emptySet()
         keys.first().startsWith("item:") -> keys.takeIf { host == Route.HOME || host == Route.SEARCH } ?: emptySet()
         // 「新增物品」按钮只长在首页，所以新增页的源端只能是首页（从详情页点编辑进来仍走整屏平移）。
         keys.first() == NavKeys.ADD -> keys.takeIf { host == Route.HOME } ?: emptySet()
@@ -205,10 +239,15 @@ fun MainScreen() {
         cameraSession = 0
         pendingDetailId = 0L
         navSharedKeys = emptySet()
-        currentRoute = when(tab) { 0->Route.HOME; 1->Route.STATS; 2->Route.MY; else->Route.HOME }
+        currentRoute = when(tab) { 0->Route.HOME; 1->Route.STATS; 2->Route.ASSISTANT; else->Route.MY }
     }
 
-    val isSubPage = currentRoute !in listOf(Route.HOME, Route.STATS, Route.MY)
+    // 关闭 AI 助理后，助手 Tab 立即消失；如果当前正停在助手页，退回首页
+    LaunchedEffect(assistantEnabled) {
+        if (!assistantEnabled && currentTab == 2) switchTab(0)
+    }
+
+    val isSubPage = currentRoute !in listOf(Route.HOME, Route.STATS, Route.ASSISTANT, Route.MY)
     val tabStateHolder = rememberSaveableStateHolder()
 
     // ── 三主页切换 ──
@@ -237,6 +276,11 @@ fun MainScreen() {
             ProvidePageBackdrop(backdrop) {
                 ProvideLiquidDialogHost(hostState) {
                     Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
+                    // 「沉浸」视效模式：全屏暖色光斑缓慢漂移，作为玻璃的活画布。
+                    // 放在捕获层内部，玻璃采样到的就是「渐变 + 光斑」，而不是静态底色。
+                    if (visualEffect.ambientEnabled) {
+                        AmbientOrbsBackground(Modifier.fillMaxSize())
+                    }
                     // 共享元素作用域：卡片 ↔ 详情、菜单行 ↔ 二级页的「从哪来到哪去」都在这里发生。
                     // SharedTransitionLayout 只做两端测量配对，不新建绘制层，所以碰不到液态玻璃的图层红线。
                     SharedTransitionLayout {
@@ -303,18 +347,27 @@ fun MainScreen() {
                                             onNavigateToCategory = { navigate(Route.CATEGORY) },
                                             onExportExcel = { navigate(Route.BACKUP) },
                                             onImportExcel = { navigate(Route.BACKUP) },
-                                            onBackupData = { navigate(Route.BACKUP) }
+                                            onBackupData = { navigate(Route.BACKUP) },
+                                            onNavigateToAssistant = { switchTab(2) }
                                         )
                                         1 -> StatisticsScreen(
                                             onNavigateBack={goBack()},
                                             onNavigateToDetail={navigate(Route.DETAIL, it)},
                                             isTabMode=true
                                         )
-                                        else -> MyLandingScreen(
-                                            onNavigateToSettings = { navigate(Route.SETTINGS) },
+                                        2 -> AssistantScreen(
+                                            isTabMode = true,
+                                            onNavigateToDetail = { navigate(Route.DETAIL, it) },
+                                        )
+                                        else -> SettingsScreen(
+                                            isTabMode = true,
                                             onNavigateToCategory = { navigate(Route.CATEGORY) },
+                                            onNavigateToGeneral = { navigate(Route.GENERAL) },
+                                            onNavigateToAssistantSettings = { navigate(Route.ASSISTANT_SETTINGS) },
+                                            onNavigateToAssistant = { switchTab(2) },
                                             onNavigateToBackup = { navigate(Route.BACKUP) },
                                             onNavigateToRecycleBin = { navigate(Route.RECYCLEBIN) },
+                                            onNavigateToUpdate = { navigate(Route.UPDATE) },
                                             onNavigateToAbout = { navigate(Route.ABOUT) }
                                         )
                                     }
@@ -323,8 +376,7 @@ fun MainScreen() {
                             } // close ProvideHomeDissolve
                         } else {
                             when (state) {
-                                Route.ADD -> NavSharedSurface(NavKeys.ADD) {
-                                    AddItemScreen(
+                                Route.ADD -> NavSharedSurface(NavKeys.ADD) {                                    AddItemScreen(
                                         editItemId = editItemId,
                                         onNavigateBack = { editItemId = null; goBack() },
                                         onNavigateToCamera = { navigate(Route.CAMERA) },
@@ -341,14 +393,16 @@ fun MainScreen() {
                                     onNavigateToDetail={navigate(Route.DETAIL, it)}
                                 )
                                 // 二级页回到整屏左右平移（不再是整页共享元素）。
-                                Route.SETTINGS -> SettingsScreen(
-                                    onNavigateBack={goBack()},
-                                    onNavigateToCategory={navigate(Route.CATEGORY)}
-                                )
+                                Route.GENERAL -> GeneralSettingsScreen(onNavigateBack = { goBack() })
+                                Route.ASSISTANT_SETTINGS -> AssistantSettingsScreen(onNavigateBack={goBack()})
+                                Route.UPDATE -> UpdateScreen(onNavigateBack = { goBack() })
                                 Route.CATEGORY -> CategoryScreen(onNavigateBack={goBack()})
                                 Route.BACKUP -> BackupScreen(onNavigateBack={goBack()})
                                 Route.RECYCLEBIN -> RecycleBinScreen(onNavigateBack={goBack()})
-                                Route.ABOUT -> AboutScreen(onNavigateBack={goBack()})
+                                Route.ABOUT -> AboutScreen(
+                                    onNavigateBack = { goBack() },
+                                    onNavigateToUpdate = { navigate(Route.UPDATE) },
+                                )
                                 Route.CAMERA -> CameraScreen(
                                     onBack = { goBack() },
                                     onPhotoTaken = { paths ->
@@ -395,41 +449,80 @@ fun MainScreen() {
                                 Text("搜索物品...", style = MaterialTheme.typography.bodyMedium, color = TextAuxiliary())
                             }
                         }
-
-                        // 液态玻璃 FAB（缩小版）
-                        Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 90.dp).slideAway({ chromeProgress }, down = true, extra = 140.dp)) {
-                            // 共享元素的「源」锚点：与按钮同尺寸、透明的底板，只用来提供起飞的矩形。
-                            // 不把玻璃按钮本身塞进飞行容器 —— 7.2.1 的渲染线程无限递归就是玻璃件进图层链造成的。
-                            Box(Modifier.matchParentSize().navSharedElement(NavKeys.ADD))
-                            LiquidGlassButton(
-                                onClick = { navigate(Route.ADD) },
-                                backdrop = backdrop,
-                                height = 40.dp,
-                                horizontalPadding = 18.dp
-                            ) {
-                                Icon(Icons.Rounded.Add, "新增物品", Modifier.size(18.dp), tint = Primary())
-                                Spacer(Modifier.width(4.dp))
-                                Text("新增物品", color = TextPrimary(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
-                            }
-                        }
                     }
                 }
 
-                // ── v5.0 液态玻璃可拖拽底部导航 ──
+                // ── 液态玻璃底部导航 + 独立「新增物品」按钮（同一行最右侧）──
+                // 参考 SleepDown 的底栏：导航胶囊与圆形加号是两个独立控件。
+                // 加号不占 Tab 位、不参与选中态 —— 点它永远只有「新增物品」一个含义，
+                // 不再像上一版那样把 FAB 悬浮在内容之上、和底栏视觉打架。
                 if (!isSubPage || chromeFlying) {
                     val backdrop = LocalPageBackdrop.current
                     if (backdrop != null) {
-                        LiquidGlassBottomBar(
-                            tabs = MainTab.entries.map { LiquidGlassTab(it.label, it.unselectedIcon, it.selectedIcon) },
-                            selectedTabIndex = currentTab,
-                            onTabSelected = ::switchTab,
-                            backdrop = backdrop,
-                            modifier = Modifier
+                        Row(
+                            Modifier
                                 .align(Alignment.BottomCenter)
                                 .navigationBarsPadding()
-                                .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
-                                .slideAway({ chromeProgress }, down = true, extra = 96.dp)
-                        )
+                                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                                .fillMaxWidth()
+                                .slideAway({ chromeProgress }, down = true, extra = 96.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(Modifier.weight(1f)) {
+                                val visibleTabs = MainTab.entries.filter {
+                                    it != MainTab.ASSISTANT || assistantEnabled
+                                }
+                                val selectedIndex = visibleTabs.indexOfFirst { it.ordinal == currentTab }
+                                    .coerceAtLeast(0)
+                                LiquidGlassBottomBar(
+                                    tabs = visibleTabs.map {
+                                        LiquidGlassTab(
+                                            it.label,
+                                            it.icon.tabIcon(false, iconStyle),
+                                            it.icon.tabIcon(true, iconStyle),
+                                        )
+                                    },
+                                    selectedTabIndex = selectedIndex,
+                                    onTabSelected = { index ->
+                                        visibleTabs.getOrNull(index)?.let { switchTab(it.ordinal) }
+                                    },
+                                    backdrop = backdrop,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Box(Modifier.size(56.dp)) {
+                                // 扩散光环：新增页撑开时从加号位置荡开两圈（纯绘制，不建图层）。
+                                if (navSharedKeys.contains(NavKeys.ADD)) {
+                                    val haloColor = Primary()
+                                    Box(Modifier.matchParentSize().drawBehind {
+                                        val p = chromeProgress.coerceIn(0f, 1f)
+                                        if (p <= 0f || p >= 1f) return@drawBehind
+                                        val baseRadius = size.height * 0.5f
+                                        listOf(0f, 0.16f).forEach { delay ->
+                                            val t = ((p - delay) / (1f - delay)).coerceIn(0f, 1f)
+                                            if (t <= 0f) return@forEach
+                                            drawCircle(
+                                                color = haloColor.copy(alpha = (1f - t) * 0.20f),
+                                                radius = baseRadius + t * size.width * 2.4f,
+                                                center = center,
+                                            )
+                                        }
+                                    })
+                                }
+                                // 共享元素的「源」锚点：与按钮同尺寸的透明底板，只提供起飞矩形。
+                                // 玻璃按钮本身不进飞行容器 —— 7.2.1 的渲染线程递归就是玻璃件进图层链造成的。
+                                Box(Modifier.matchParentSize().navSharedElement(NavKeys.ADD))
+                                LiquidIconButton(
+                                    onClick = { navigate(Route.ADD) },
+                                    backdrop = backdrop,
+                                    modifier = Modifier.matchParentSize(),
+                                    size = 56.dp,
+                                ) {
+                                    Icon(Icons.Rounded.Add, "新增物品", Modifier.size(26.dp), tint = Primary())
+                                }
+                            }
+                        }
                     }
                 }
                 LiquidDialogHost(hostState, backdrop)

@@ -37,7 +37,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_3_4,
                 AppDatabase.MIGRATION_4_5,
                 AppDatabase.MIGRATION_5_6,
-                AppDatabase.MIGRATION_6_7
+                AppDatabase.MIGRATION_6_7,
+                AppDatabase.MIGRATION_7_8
             )
             .build()
     }
@@ -63,4 +64,10 @@ object DatabaseModule {
 
     @Provides
     fun provideBackupRecordDao(db: AppDatabase): BackupRecordDao = db.backupRecordDao()
+
+    @Provides
+    fun provideConversationDao(db: AppDatabase): ConversationDao = db.conversationDao()
+
+    @Provides
+    fun provideAssistantMessageDao(db: AppDatabase): AssistantMessageDao = db.assistantMessageDao()
 }

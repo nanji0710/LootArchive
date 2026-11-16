@@ -73,6 +73,7 @@ fun HomeScreen(
     onExportExcel: () -> Unit = {},
     onImportExcel: () -> Unit = {},
     onBackupData: () -> Unit = {},
+    onNavigateToAssistant: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -120,7 +121,25 @@ fun HomeScreen(
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(Modifier.fillMaxWidth().dissolveOut(dissolve).clip(AppShape.sheet).background(if (LocalDarkTheme.current) _CardDark else HeroCardLight).padding(20.dp)) {
                     Column {
-                        Text("当前拥有", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary())
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text("当前拥有", style = MaterialTheme.typography.bodySmall, color = TextAuxiliary(), modifier = Modifier.weight(1f))
+                            // 助理入口：首页也给一条最短路径（底部导航之外的第二入口），
+                            // 因为「问一句现在值多少钱」是最高频的诉求，比翻到「我的」快得多。
+                            Surface(
+                                shape = AppShape.pill,
+                                color = Primary().copy(alpha = 0.10f),
+                                modifier = Modifier.clickable(onClick = onNavigateToAssistant),
+                            ) {
+                                Row(
+                                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    AppIcon(AppIcons.sparkle, null, Modifier.size(13.dp), tint = Primary())
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("问助手", style = MaterialTheme.typography.labelSmall, color = Primary(), fontWeight = FontWeight.Medium)
+                                }
+                            }
+                        }
                         Spacer(Modifier.height(4.dp))
                         Text("¥${numberFormat.format(animValue)}", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = Primary(), fontFamily = MonoFont)
                         Spacer(Modifier.height(14.dp))

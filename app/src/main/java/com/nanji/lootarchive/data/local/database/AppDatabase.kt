@@ -15,9 +15,11 @@ import com.nanji.lootarchive.data.local.entity.*
         BackupRecordEntity::class,
         UserProfileEntity::class,
         AchievementEntity::class,
-        ExperienceLogEntity::class
+        ExperienceLogEntity::class,
+        ConversationEntity::class,
+        AssistantMessageEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +31,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun achievementDao(): AchievementDao
     abstract fun experienceLogDao(): ExperienceLogDao
+    abstract fun conversationDao(): ConversationDao
+    abstract fun assistantMessageDao(): AssistantMessageDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -168,6 +172,34 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_items_name ON items (name)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_items_isDeleted ON items (isDeleted)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_items_status ON items (status)")
+            }
+        }
+
+        /** v7 → v8：AI 沟通历史（会话 + 消息）。 */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS assistant_conversations (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        title TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """)
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS assistant_messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        conversationId INTEGER NOT NULL,
+                        fromUser INTEGER NOT NULL,
+                        text TEXT NOT NULL,
+                        blocksJson TEXT NOT NULL DEFAULT '',
+                        suggestionsJson TEXT NOT NULL DEFAULT '',
+                        error INTEGER NOT NULL DEFAULT 0,
+                        createdAt INTEGER NOT NULL,
+                        FOREIGN KEY(conversationId) REFERENCES assistant_conversations(id) ON DELETE CASCADE
+                    )
+                """)
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_assistant_messages_conversationId ON assistant_messages (conversationId)")
             }
         }
     }
