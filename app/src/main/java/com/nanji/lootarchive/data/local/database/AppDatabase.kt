@@ -17,9 +17,10 @@ import com.nanji.lootarchive.data.local.entity.*
         AchievementEntity::class,
         ExperienceLogEntity::class,
         ConversationEntity::class,
-        AssistantMessageEntity::class
+        AssistantMessageEntity::class,
+        AssistantMemoryEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun experienceLogDao(): ExperienceLogDao
     abstract fun conversationDao(): ConversationDao
     abstract fun assistantMessageDao(): AssistantMessageDao
+    abstract fun assistantMemoryDao(): AssistantMemoryDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -176,6 +178,22 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /** v7 → v8：AI 沟通历史（会话 + 消息）。 */
+        /** v8 → v9：跨会话长期记忆（用户偏好 / 固定事实）。 */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS assistant_memories (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        type TEXT NOT NULL DEFAULT 'fact',
+                        content TEXT NOT NULL,
+                        keywords TEXT NOT NULL DEFAULT '',
+                        importance INTEGER NOT NULL DEFAULT 3,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """)
+            }
+        }
         val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""

@@ -75,7 +75,13 @@ class RemoteAssistant {
             }
             append("用户原话：$question")
         }
-        return ask(config, instruction, "", history).map { reply ->
+        return ask(
+            config = config,
+            question = instruction,
+            inventoryDigest = "",
+            history = history,
+            systemOverride = "你是物品信息抽取器。只输出一个 JSON 对象，不要输出解释、Markdown 或代码块。",
+        ).map { reply ->
             val json = reply.content
                 .trim()
                 .removePrefix("```json").removePrefix("```")
@@ -132,16 +138,75 @@ class RemoteAssistant {
      *
      * 返回的字段里只有用户明确提到的项才会非空；name 为空表示只改分类/价格等。
      */
+    /** 模型从对话中提取出的长期记忆候选。 */
+    data class MemoryCandidate(
+        val type: String = "fact",
+        val content: String = "",
+        val keywords: String = "",
+        val importance: Int = 3,
+    )
+
+    /**
+     * 从最近对话中提取可以跨会话保留的用户信息。
+     * 只提取偏好、固定事实、重要事件；物品本身不进来（物品已经在数据库里）。
+     */
+    suspend fun extractMemories(
+        config: Config,
+        history: List<ChatTurn>,
+    ): Result<List<MemoryCandidate>> {
+        if (history.isEmpty()) return Result.success(emptyList())
+        val instruction = buildString {
+            append("请从下面的对话中提取需要长期记住的用户信息。只输出 JSON 数组，不要输出解释或代码块。\n")
+            append("格式：[{\"type\":\"preference|fact|event\",\"content\":\"一句话\",\"keywords\":\"逗号分隔关键词\",\"importance\":1-5}]\n")
+            append("只提取用户明确说过的稳定偏好、固定事实、重要事件；不要提取物品清单、价格、一次性的闲聊。\n")
+            append("没有可记住的内容就输出 []。\n")
+            append("对话：\n")
+            history.takeLast(12).forEach { turn ->
+                append(if (turn.fromUser) "用户：" else "助手：")
+                append(turn.text.take(500))
+                append('\n')
+            }
+        }
+        return ask(
+            config = config,
+            question = instruction,
+            inventoryDigest = "",
+            systemOverride = "你是长期记忆提取器。只输出 JSON 数组，不要输出解释、Markdown 或代码块。"
+        ).map { reply ->
+            val json = reply.content.trim()
+                .removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+            val array = org.json.JSONArray(json)
+            buildList {
+                for (i in 0 until array.length()) {
+                    val item = array.optJSONObject(i) ?: continue
+                    val content = item.optString("content").trim()
+                    if (content.length >= 2) {
+                        add(
+                            MemoryCandidate(
+                                type = item.optString("type", "fact"),
+                                content = content,
+                                keywords = item.optString("keywords", ""),
+                                importance = item.optInt("importance", 3).coerceIn(1, 5),
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     suspend fun ask(
         config: Config,
         question: String,
         inventoryDigest: String,
         history: List<ChatTurn> = emptyList(),
+        memoryText: String = "",
+        systemOverride: String? = null,
     ): Result<RemoteReply> = withContext(Dispatchers.IO) {
         if (!config.isReady) {
             return@withContext Result.failure(IllegalStateException("未配置模型接口"))
         }
-        val body = buildRequestBody(config.model, question, inventoryDigest, config.reasoningEffort, history)
+        val body = buildRequestBody(config.model, question, inventoryDigest, config.reasoningEffort, history, memoryText, systemOverride)
         var lastError: Exception? = null
         // 先按用户填的地址请求；失败再试补 /v1 的地址（兼容 Magpie、Ollama、LM Studio 等本地网关）
         for (urlText in EndpointUtils.completionsUrls(config.endpoint)) {
@@ -202,9 +267,16 @@ class RemoteAssistant {
         inventoryDigest: String,
         reasoningEffort: String,
         history: List<ChatTurn>,
+        memoryText: String,
+        systemOverride: String? = null,
     ): String {
         val messages = JSONArray()
-        messages.put(JSONObject().put("role", "system").put("content", systemPrompt(inventoryDigest)))
+        messages.put(
+            JSONObject().put("role", "system").put(
+                "content",
+                systemOverride ?: systemPrompt(inventoryDigest, memoryText)
+            )
+        )
         // 最近几轮对话一起带上，模型才能理解「改成刚刚那个」「它不是食品」这类追问
         history.takeLast(8).forEach { turn ->
             if (turn.text.isBlank()) return@forEach
@@ -234,12 +306,17 @@ class RemoteAssistant {
      * 明确写「不要编造摘要里没有的物品」很关键：模型手里没有照片、没有备注，
      * 一旦开始自由发挥，用户会看到不存在的物品名，反而比本地规则更糟。
      */
-    private fun systemPrompt(inventoryDigest: String): String = buildString {
+    private fun systemPrompt(inventoryDigest: String, memoryText: String): String = buildString {
         append("你是「拾物集」App 里的物品管理助手。")
         append("用户的所有数据都保存在这台手机上，下面这份库存摘要是你唯一可用的资料，")
         append("不要编造摘要里没有的物品，也不要猜测摘要里没有的字段。")
         append("只回答与物品、资产、保修、存放位置、整理建议相关的问题；与物品无关的话题，简短说明你只懂物品管理。")
         append("用简体中文、口语化回答，尽量简短（不超过 120 字），金额写成 ¥1,234 这种千分位格式，不要输出 Markdown 表格。")
+        if (memoryText.isNotBlank()) {
+            append("\n【用户背景记忆，请自然参考，不要刻意逐条复述】\n")
+            append(memoryText)
+            append('\n')
+        }
         append("库存摘要（JSON）：")
         append(inventoryDigest)
     }

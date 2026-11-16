@@ -64,4 +64,17 @@ class ItemDraftParserTest {
         assertEquals(Calendar.NOVEMBER, cal.get(Calendar.MONTH))
         assertEquals(20, cal.get(Calendar.DAY_OF_MONTH))
     }
+
+    @Test
+    fun `name correction reads name after the word name`() {
+        val draft = ItemDraftParser.parseEdits("名称联想学习试用平板呀，你为什么改成了时间？")
+        assertNotNull(draft)
+        assertEquals("联想学习试用平板", draft!!.name)
+    }
+
+    @Test
+    fun `date correction is not treated as a name change`() {
+        val draft = ItemDraftParser.parseEdits("是今年11月，不是25年11月")
+        assertNull(draft?.name?.takeIf { it.isNotBlank() })
+    }
 }

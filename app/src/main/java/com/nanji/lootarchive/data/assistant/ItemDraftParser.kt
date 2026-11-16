@@ -137,10 +137,10 @@ object ItemDraftParser {
             val candidates = listOf(
                 Regex("(?:名字|名称)\\s*[：:]\\s*([^，,。；;\\n]+)"),
                 Regex("(?:名字|名称)[^，,。；;]*(?:改成|改为|换成|写成|是|叫)\\s*[：:]?\\s*([^，,。；;\\n]+)"),
+                Regex("(?:名字|名称)[：:]?\\s*([^，,。；;\\n]+)"),
                 Regex("(?:是|叫)\\s*[：:]?\\s*([^，,。；;\\n]+)"),
                 Regex("(?:改成|改为|换成|写成)\\s*[：:]?\\s*([^，,。；;\\n]+)"),
                 Regex("(?:名字|名称)\\s+([^，,。；;\\n]+)"),
-                Regex("(?:名字|名称)[：:]?\\s*([^，,。；;\\n]+)"),
             )
             candidates.asSequence()
                 .mapNotNull { it.find(text)?.groupValues?.get(1)?.trim() }
@@ -149,7 +149,7 @@ object ItemDraftParser {
                     value.length <= 40 &&
                         !value.contains("价") && !value.contains("元") &&
                         !value.contains("分类") && !value.contains("类别") &&
-                        !value.contains("错") &&
+                        !value.contains("错") && !value.contains("时间") && !value.contains("日期") &&
                         !Regex("(\\d|年|月|日|号|今年|去年|明年)").containsMatchIn(value)
                 }
         }

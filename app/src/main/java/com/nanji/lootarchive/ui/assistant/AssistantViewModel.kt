@@ -14,6 +14,7 @@ import com.nanji.lootarchive.data.local.entity.AssistantMessageEntity
 import com.nanji.lootarchive.data.local.entity.CategoryEntity
 import com.nanji.lootarchive.data.local.entity.ConversationEntity
 import com.nanji.lootarchive.data.repository.AssistantHistoryRepository
+import com.nanji.lootarchive.data.repository.AssistantMemoryRepository
 import com.nanji.lootarchive.data.repository.CategoryRepository
 import com.nanji.lootarchive.data.repository.ItemRepository
 import com.nanji.lootarchive.data.repository.SettingsRepository
@@ -75,6 +76,7 @@ class AssistantViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val settingsRepository: SettingsRepository,
     private val historyRepository: AssistantHistoryRepository,
+    private val memoryRepository: AssistantMemoryRepository,
 ) : ViewModel() {
 
     private val engine = AssistantEngine()
@@ -136,6 +138,8 @@ class AssistantViewModel @Inject constructor(
     private var nextMessageId = 0L
 
     init {
+        // 清掉很久没被用到的低重要度记忆，避免越存越多
+        viewModelScope.launch { runCatching { memoryRepository.prune() } }
         // 顶栏副标题（件数 / 合计金额）跟着物品数据走；用 update 合并，避免覆盖聊天状态
         viewModelScope.launch {
             snapshot.collect { current ->
@@ -205,6 +209,10 @@ class AssistantViewModel @Inject constructor(
 
             val latest = refreshSnapshot()
             val config = remoteConfig.value
+            // 长期记忆：按当前问题做本地关键词检索，只注入最相关的几条
+            val memoryText = runCatching { memoryRepository.relevant(question) }
+                .getOrDefault(emptyList())
+                .joinToString("\n") { "• ${it.content}" }
 
             // 历史持久化：确定当前会话（新会话首条提问作为标题），并先写入用户消息
             val convId = _uiState.value.currentConversationId
@@ -238,7 +246,9 @@ class AssistantViewModel @Inject constructor(
             }
             if (itemAction != null && itemAction.action == "add") {
                 val now = System.currentTimeMillis()
-                val purchaseDate = parseDate(itemAction.purchaseDate) ?: now
+                val purchaseDate = parseDate(itemAction.purchaseDate)
+                    ?: parseDateFromText(itemAction.purchaseDate, null)
+                    ?: now
                 val category = resolveCategory(itemAction.category.takeIf { it.isNotBlank() }, itemAction.itemName, latest.categories)
                 val expiry = itemAction.shelfLifeDays?.let { purchaseDate + it * 24L * 60 * 60 * 1000 }
                 val item = com.nanji.lootarchive.data.local.entity.ItemEntity(
@@ -517,9 +527,22 @@ class AssistantViewModel @Inject constructor(
                 localAnswer
             } else {
                 val digest = engine.buildInventoryDigest(latest)
-                remoteAssistant.ask(config, question, digest, historyForModel).fold(
+                remoteAssistant.ask(config, question, digest, historyForModel, memoryText).fold(
                     onSuccess = { reply ->
                         Log.d(logTag, "模型回答成功：content=${reply.content.length}字, reasoning=${reply.reasoning.length}字")
+                        if (shouldRemember(question)) {
+                            viewModelScope.launch {
+                                val turns = historyForModel +
+                                    RemoteAssistant.ChatTurn(true, question) +
+                                    RemoteAssistant.ChatTurn(false, reply.content)
+                                remoteAssistant.extractMemories(config, turns)
+                                    .onSuccess { memories ->
+                                        memories.forEach { m ->
+                                            memoryRepository.remember(m.type, m.content, m.keywords, m.importance)
+                                        }
+                                    }
+                            }
+                        }
                         // 模型话术为主，本地结构化块保留（物品条目仍可点进详情）；
                         // 兜底说明块丢掉 —— 模型已经正常回答了，不需要再解释「我能做什么」。
                         AssistantAnswer(
@@ -672,6 +695,12 @@ class AssistantViewModel @Inject constructor(
     private fun containsDateExpression(text: String): Boolean =
         Regex("(\\d{2,4}\\s*[年./-]|\\d{1,2}\\s*月|今天|今年|去年|明年|昨天|前天)").containsMatchIn(text)
 
+    /** 只有用户表达了偏好、固定事实或明确要求记住时才提取长期记忆，避免每轮多一次请求。 */
+    private fun shouldRemember(text: String): Boolean = listOf(
+        "记住", "以后", "我叫", "我是", "我喜欢", "我不喜欢", "我养", "我对",
+        "我习惯", "平时", "每次", "过敏", "生日", "家里", "我的职业", "我住",
+    ).any { text.contains(it) }
+
     private fun parseDate(text: String): Long? {
         if (text.isBlank()) return null
         return runCatching {
@@ -696,6 +725,13 @@ class AssistantViewModel @Inject constructor(
         val full = Regex("(\\d{4})\\s*[年./-]\\s*(\\d{1,2})(?:\\s*[月./-]\\s*(\\d{1,2})\\s*[日号]?)?").find(text)
         val shortYear = Regex("(\\d{2})\\s*年\\s*(\\d{1,2})\\s*月(?:\\s*(\\d{1,2})\\s*[日号]?)?").find(text)
         val monthOnly = Regex("(\\d{1,2})\\s*月(?:\\s*(\\d{1,2})\\s*[日号]?)?").find(text)
+        // 「今年11月，不是25年11月」以「今年」为准，不能被后面的旧年份抢走
+        if (text.contains("今年") && full == null) {
+            val m = monthOnly ?: return null
+            val (month, day) = m.destructured
+            cal.clear(); cal.set(currentYear, month.toInt() - 1, day.toIntOrNull() ?: baseDay, 12, 0, 0)
+            return cal.timeInMillis
+        }
         return when {
             full != null -> {
                 val (y, m, d) = full.destructured
