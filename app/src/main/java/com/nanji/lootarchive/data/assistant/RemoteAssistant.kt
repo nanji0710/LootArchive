@@ -28,6 +28,68 @@ class RemoteAssistant {
     /** OpenCode Go 要求每个会话带上稳定的 x-opencode-session，用随机 UUID 作本进程会话 ID。 */
     private val sessionId = java.util.UUID.randomUUID().toString()
 
+    /** 模型从一句话里抽取出的新增/修改动作。 */
+    data class ItemAction(
+        val action: String = "none",
+        val itemName: String = "",
+        val price: Double? = null,
+        val purchaseDate: String = "",
+        val shelfLifeDays: Int? = null,
+        val category: String = "",
+        val location: String = "",
+        val note: String = "",
+    )
+
+    /**
+     * 让模型做「物品信息抽取」：新增还是修改、名称/价格/日期/保质期/分类/位置。
+     * 分类不写死映射，直接把用户真实分类列表交给模型选。
+     */
+    suspend fun extractItemAction(
+        config: Config,
+        question: String,
+        categories: List<String>,
+        lastItemName: String?,
+        history: List<ChatTurn> = emptyList(),
+    ): Result<ItemAction> {
+        val instruction = buildString {
+            append("你是物品信息抽取器。只输出一个 JSON 对象，不要输出任何解释、Markdown 或代码块。\n")
+            append("判断用户这句话是在【新增物品】、【修改上一条物品】还是【普通提问】。\n")
+            append("JSON 字段：\n")
+            append("action: add | update | none\n")
+            append("itemName: 物品名称（修改时如果没提新名字就留空）\n")
+            append("price: 数字，没有就 null\n")
+            append("purchaseDate: yyyy-MM-dd，没有就空字符串\n")
+            append("shelfLifeDays: 整数天，没有就 null\n")
+            append("category: 必须从这些分类里选一个最合适的：${categories.joinToString("、")}；都不合适选「其他」\n")
+            append("location: 存放位置，没有就空字符串\n")
+            append("note: 备注，没有就空字符串\n")
+            append("规则：用户说「名字写错了/改成/不是…是…」属于 update；用户说「新增/添加/买了/记一下」属于 add；普通提问 action=none。\n")
+            if (!lastItemName.isNullOrBlank()) {
+                append("上一条刚新增的物品是：$lastItemName\n")
+                append("如果用户说「它/这个/刚刚那个/名字错了」，默认就是修改这条。\n")
+            }
+            append("用户原话：$question")
+        }
+        return ask(config, instruction, "", history).map { reply ->
+            val json = reply.content
+                .trim()
+                .removePrefix("```json").removePrefix("```")
+                .removeSuffix("```")
+                .trim()
+            val obj = JSONObject(json)
+            ItemAction(
+                action = obj.optString("action", "none").lowercase(),
+                itemName = obj.optString("itemName", "").trim(),
+                price = if (obj.has("price") && !obj.isNull("price")) obj.optDouble("price") else null,
+                purchaseDate = obj.optString("purchaseDate", "").trim(),
+                shelfLifeDays = if (obj.has("shelfLifeDays") && !obj.isNull("shelfLifeDays")) obj.optInt("shelfLifeDays") else null,
+                category = obj.optString("category", "").trim(),
+                location = obj.optString("location", "").trim(),
+                note = obj.optString("note", "").trim(),
+            )
+        }
+    }
+
     /** 模型的一次回复：最终回答 + 可选思考过程（reasoning_content）。 */
     data class RemoteReply(
         val content: String,
@@ -51,15 +113,30 @@ class RemoteAssistant {
      * @param inventoryDigest 紧凑库存摘要 JSON，由 [AssistantEngine.buildInventoryDigest] 生成
      * @return 成功时是模型返回的正文（已 trim）；失败原因不包含密钥
      */
+    /** 历史对话的一轮，用于让模型理解「改成那个」之类的追问。 */
+    data class ChatTurn(
+        val fromUser: Boolean,
+        val text: String,
+    )
+
+    /**
+     * 解析「修改」类指令，例如：
+     * - 名字写错了，是平板
+     * - 把名字改成 iPad
+     * - 价格改成 2599
+     *
+     * 返回的字段里只有用户明确提到的项才会非空；name 为空表示只改分类/价格等。
+     */
     suspend fun ask(
         config: Config,
         question: String,
         inventoryDigest: String,
+        history: List<ChatTurn> = emptyList(),
     ): Result<RemoteReply> = withContext(Dispatchers.IO) {
         if (!config.isReady) {
             return@withContext Result.failure(IllegalStateException("未配置模型接口"))
         }
-        val body = buildRequestBody(config.model, question, inventoryDigest, config.reasoningEffort)
+        val body = buildRequestBody(config.model, question, inventoryDigest, config.reasoningEffort, history)
         var lastError: Exception? = null
         // 先按用户填的地址请求；失败再试补 /v1 的地址（兼容 Magpie、Ollama、LM Studio 等本地网关）
         for (urlText in EndpointUtils.completionsUrls(config.endpoint)) {
@@ -119,9 +196,19 @@ class RemoteAssistant {
         question: String,
         inventoryDigest: String,
         reasoningEffort: String,
+        history: List<ChatTurn>,
     ): String {
         val messages = JSONArray()
         messages.put(JSONObject().put("role", "system").put("content", systemPrompt(inventoryDigest)))
+        // 最近几轮对话一起带上，模型才能理解「改成刚刚那个」「它不是食品」这类追问
+        history.takeLast(8).forEach { turn ->
+            if (turn.text.isBlank()) return@forEach
+            messages.put(
+                JSONObject()
+                    .put("role", if (turn.fromUser) "user" else "assistant")
+                    .put("content", turn.text.take(2000))
+            )
+        }
         messages.put(JSONObject().put("role", "user").put("content", question))
         val body = JSONObject()
             .put("model", model.trim())

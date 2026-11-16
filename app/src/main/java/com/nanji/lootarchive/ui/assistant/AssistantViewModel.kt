@@ -8,8 +8,10 @@ import com.nanji.lootarchive.data.assistant.AnswerBlock
 import com.nanji.lootarchive.data.assistant.AssistantAnswer
 import com.nanji.lootarchive.data.assistant.AssistantEngine
 import com.nanji.lootarchive.data.assistant.ChatHistoryCodec
+import com.nanji.lootarchive.data.assistant.ItemCategoryGuesser
 import com.nanji.lootarchive.data.assistant.RemoteAssistant
 import com.nanji.lootarchive.data.local.entity.AssistantMessageEntity
+import com.nanji.lootarchive.data.local.entity.CategoryEntity
 import com.nanji.lootarchive.data.local.entity.ConversationEntity
 import com.nanji.lootarchive.data.repository.AssistantHistoryRepository
 import com.nanji.lootarchive.data.repository.CategoryRepository
@@ -122,6 +124,10 @@ class AssistantViewModel @Inject constructor(
 
     private var sendJob: Job? = null
 
+    /** 最近一次通过助手新增的物品，用来理解「名字写错了」「改成…」这类追问。 */
+    private var lastAddedItemId: Long? = null
+    private var lastAddedItemName: String? = null
+
     /** 消息 id 自增，只用于 LazyColumn 的 key 与「原地替换占位气泡」。 */
     /**
      * 运行时消息 id 用负数，数据库消息 id 是正数。
@@ -182,6 +188,11 @@ class AssistantViewModel @Inject constructor(
         sendJob = viewModelScope.launch {
             val userId = nextId()
             val replyId = nextId()
+            // 先记住发送前的上下文，远程模型才能理解「它」「刚刚那个」指的是什么
+            val historyForModel = _uiState.value.messages
+                .filter { !it.pending && it.text.isNotBlank() }
+                .takeLast(8)
+                .map { RemoteAssistant.ChatTurn(fromUser = it.fromUser, text = it.text) }
             _uiState.update { state ->
                 state.copy(
                     input = "",
@@ -193,6 +204,7 @@ class AssistantViewModel @Inject constructor(
             }
 
             val latest = refreshSnapshot()
+            val config = remoteConfig.value
 
             // 历史持久化：确定当前会话（新会话首条提问作为标题），并先写入用户消息
             val convId = _uiState.value.currentConversationId
@@ -206,13 +218,217 @@ class AssistantViewModel @Inject constructor(
                 historyRepository.appendMessage(convId, true, question)
             }
 
+            // 有 API 时先让模型做语义抽取：它能结合上下文判断是「新增」还是「修改上一条」，
+            // 并按真实分类列表选分类，不靠本地关键词写死。
+            val itemAction = if (config.isReady && looksLikeItemAction(question)) {
+                remoteAssistant.extractItemAction(
+                    config = config,
+                    question = question,
+                    categories = latest.categories.map { it.name },
+                    lastItemName = lastAddedItemName,
+                    history = historyForModel,
+                ).getOrNull()
+            } else {
+                null
+            }
+            if (itemAction != null && itemAction.action == "add") {
+                val now = System.currentTimeMillis()
+                val purchaseDate = parseDate(itemAction.purchaseDate) ?: now
+                val category = resolveCategory(itemAction.category.takeIf { it.isNotBlank() }, itemAction.itemName, latest.categories)
+                val expiry = itemAction.shelfLifeDays?.let { purchaseDate + it * 24L * 60 * 60 * 1000 }
+                val item = com.nanji.lootarchive.data.local.entity.ItemEntity(
+                    name = itemAction.itemName.ifBlank { "未命名物品" },
+                    categoryId = category?.id ?: 0L,
+                    purchasePrice = itemAction.price ?: 0.0,
+                    purchaseDate = purchaseDate,
+                    warrantyExpiryDate = expiry,
+                    warrantyPeriodDays = itemAction.shelfLifeDays,
+                    storageLocation = itemAction.location,
+                    description = itemAction.note,
+                    status = "active",
+                    updatedAt = now,
+                )
+                val savedId = runCatching { itemRepository.saveItemWithPhotos(item, emptyList()) }.getOrNull()
+                if (savedId != null) {
+                    lastAddedItemId = savedId
+                    lastAddedItemName = item.name
+                }
+                val reply = AssistantAnswer(
+                    text = if (savedId != null) "已新增「${item.name}」，分类是「${category?.name ?: "其他"}」。"
+                    else "新增「${item.name}」失败，请稍后再试。",
+                    blocks = listOf(
+                        AnswerBlock(
+                            kind = AnswerBlock.Kind.SUMMARY,
+                            title = if (savedId != null) "已新增物品" else "保存失败",
+                            lines = buildList {
+                                add("名称|${item.name}")
+                                itemAction.price?.let { add("价格|¥${"%.2f".format(it)}") }
+                                add("购买日期|${com.nanji.lootarchive.util.DateUtil.formatTimestamp(purchaseDate)}")
+                                itemAction.shelfLifeDays?.let { add("保质期|$it 天") }
+                                expiry?.let { add("到期日|${com.nanji.lootarchive.util.DateUtil.formatTimestamp(it)}") }
+                                category?.let { add("分类|${it.name}") }
+                                if (itemAction.location.isNotBlank()) add("位置|${itemAction.location}")
+                            },
+                        )
+                    ),
+                    suggestions = listOf("我的东西一共值多少钱？", "最近添加了什么？"),
+                )
+                _uiState.update { state ->
+                    state.copy(
+                        thinking = false,
+                        lastAnswer = reply,
+                        messages = state.messages.map { message ->
+                            if (message.id != replyId) message
+                            else ChatMessage(replyId, false, reply.text, reply.blocks, suggestions = reply.suggestions)
+                        }
+                    )
+                }
+                runCatching { historyRepository.appendMessage(convId, false, reply.text, reply.blocks, reply.suggestions) }
+                return@launch
+            }
+            if (itemAction != null && itemAction.action == "update" && lastAddedItemId != null) {
+                val existing = runCatching { itemRepository.getItemById(lastAddedItemId!!) }.getOrNull()
+                if (existing != null) {
+                    val newName = itemAction.itemName.ifBlank { existing.name }
+                    val newCategory = if (itemAction.category.isNotBlank()) {
+                        resolveCategory(itemAction.category, newName, latest.categories)
+                    } else null
+                    val newPurchase = parseDate(itemAction.purchaseDate)
+                    val newPeriod = itemAction.shelfLifeDays ?: existing.warrantyPeriodDays
+                    val newExpiry = if (itemAction.shelfLifeDays != null) {
+                        (newPurchase ?: existing.purchaseDate ?: System.currentTimeMillis()) +
+                            itemAction.shelfLifeDays * 24L * 60 * 60 * 1000
+                    } else existing.warrantyExpiryDate
+                    val updated = existing.copy(
+                        name = newName,
+                        categoryId = newCategory?.id ?: existing.categoryId,
+                        purchasePrice = itemAction.price ?: existing.purchasePrice,
+                        purchaseDate = newPurchase ?: existing.purchaseDate,
+                        storageLocation = itemAction.location.ifBlank { existing.storageLocation },
+                        warrantyPeriodDays = newPeriod,
+                        warrantyExpiryDate = newExpiry,
+                        description = itemAction.note.ifBlank { existing.description },
+                        updatedAt = System.currentTimeMillis(),
+                    )
+                    val ok = runCatching { itemRepository.updateItem(updated) }.isSuccess
+                    lastAddedItemName = newName
+                    val reply = AssistantAnswer(
+                        text = if (ok) "已把「${existing.name}」改成「$newName」，其他信息保持不变。"
+                        else "修改失败，请稍后再试。",
+                        blocks = if (ok) listOf(
+                            AnswerBlock(
+                                kind = AnswerBlock.Kind.SUMMARY,
+                                title = "已修改物品",
+                                lines = buildList {
+                                    add("名称|$newName")
+                                    newCategory?.let { add("分类|${it.name}") }
+                                    itemAction.price?.let { add("价格|¥${"%.2f".format(it)}") }
+                                    itemAction.shelfLifeDays?.let { add("保质期|$it 天") }
+                                    if (itemAction.location.isNotBlank()) add("位置|${itemAction.location}")
+                                },
+                            )
+                        ) else emptyList(),
+                        suggestions = listOf("我的东西一共值多少钱？", "最近添加了什么？"),
+                    )
+                    _uiState.update { state ->
+                        state.copy(
+                            thinking = false,
+                            lastAnswer = reply,
+                            messages = state.messages.map { message ->
+                                if (message.id != replyId) message
+                                else ChatMessage(replyId, false, reply.text, reply.blocks, suggestions = reply.suggestions)
+                            }
+                        )
+                    }
+                    runCatching { historyRepository.appendMessage(convId, false, reply.text, reply.blocks, reply.suggestions) }
+                    return@launch
+                }
+            }
+
+            // 先看是不是「修改上一条新增记录」：名字写错、改价格、改分类都走这里。
+            val lastId = lastAddedItemId
+            if (lastId != null) {
+                val edits = com.nanji.lootarchive.data.assistant.ItemDraftParser.parseEdits(question)
+                if (edits != null) {
+                    val existing = runCatching { itemRepository.getItemById(lastId) }.getOrNull()
+                    if (existing != null) {
+                        val newName = edits.name.ifBlank { existing.name }
+                        val newCategoryId = if (edits.categoryHint != null) {
+                            resolveCategoryId(edits.categoryHint, newName, latest.categories)
+                        } else {
+                            existing.categoryId
+                        }
+                        val newPeriod = edits.shelfLifeDays ?: existing.warrantyPeriodDays
+                        val newExpiry = if (edits.shelfLifeDays != null) {
+                            (existing.purchaseDate ?: System.currentTimeMillis()) +
+                                edits.shelfLifeDays * 24L * 60 * 60 * 1000
+                        } else {
+                            existing.warrantyExpiryDate
+                        }
+                        val updated = existing.copy(
+                            name = newName,
+                            categoryId = newCategoryId,
+                            purchasePrice = edits.price ?: existing.purchasePrice,
+                            storageLocation = edits.location ?: existing.storageLocation,
+                            warrantyPeriodDays = newPeriod,
+                            warrantyExpiryDate = newExpiry,
+                            description = edits.note ?: existing.description,
+                            updatedAt = System.currentTimeMillis(),
+                        )
+                        val ok = runCatching { itemRepository.updateItem(updated) }.isSuccess
+                        lastAddedItemName = newName
+                        val categoryName = latest.categories.firstOrNull { it.id == newCategoryId }?.name
+                        val reply = AssistantAnswer(
+                            text = if (ok) {
+                                "已把「${existing.name}」改成「$newName」，其他信息保持不变。"
+                            } else {
+                                "修改失败了，请稍后再试。"
+                            },
+                            blocks = if (ok) listOf(
+                                AnswerBlock(
+                                    kind = AnswerBlock.Kind.SUMMARY,
+                                    title = "已修改物品",
+                                    lines = buildList {
+                                        add("名称|$newName")
+                                        categoryName?.let { add("分类|$it") }
+                                        edits.price?.let { add("价格|¥${"%.2f".format(it)}") }
+                                        edits.shelfLifeDays?.let { add("保质期|$it 天") }
+                                        if (!edits.location.isNullOrBlank()) add("位置|${edits.location}")
+                                    },
+                                )
+                            ) else emptyList(),
+                            suggestions = listOf("我的东西一共值多少钱？", "最近添加了什么？"),
+                        )
+                        _uiState.update { state ->
+                            state.copy(
+                                thinking = false,
+                                lastAnswer = reply,
+                                messages = state.messages.map { message ->
+                                    if (message.id != replyId) message
+                                    else ChatMessage(
+                                        id = replyId,
+                                        fromUser = false,
+                                        text = reply.text,
+                                        blocks = reply.blocks,
+                                        suggestions = reply.suggestions,
+                                    )
+                                }
+                            )
+                        }
+                        runCatching {
+                            historyRepository.appendMessage(
+                                convId, false, reply.text, reply.blocks, reply.suggestions
+                            )
+                        }
+                        return@launch
+                    }
+                }
+            }
+
             // 先看是不是「一句话新增物品」：是就直接落库并返回结果，不再走问答/远程模型。
             val draft = com.nanji.lootarchive.data.assistant.ItemDraftParser.parse(question)
-            if (draft != null) {
-                val category = latest.categories.firstOrNull { c ->
-                    val hint = draft.categoryHint
-                    hint != null && (c.name == hint || c.name.contains(hint) || hint.contains(c.name))
-                } ?: latest.categories.firstOrNull()
+            if (draft != null && !config.isReady) {
+                val category = resolveCategory(draft.categoryHint, draft.name, latest.categories)
                 val now = System.currentTimeMillis()
                 val item = com.nanji.lootarchive.data.local.entity.ItemEntity(
                     name = draft.name,
@@ -227,6 +443,10 @@ class AssistantViewModel @Inject constructor(
                     updatedAt = now,
                 )
                 val savedId = runCatching { itemRepository.saveItemWithPhotos(item, emptyList()) }.getOrNull()
+                if (savedId != null) {
+                    lastAddedItemId = savedId
+                    lastAddedItemName = draft.name
+                }
                 val lines = buildList {
                     add("名称|${draft.name}")
                     draft.price?.let { add("价格|¥${"%.2f".format(it)}") }
@@ -279,14 +499,13 @@ class AssistantViewModel @Inject constructor(
             }
 
             val localAnswer = engine.answer(question, latest)
-            val config = remoteConfig.value
             var remoteFailed = false
             val answer: AssistantAnswer = if (!config.isReady) {
                 Log.d(logTag, "未配置远程模型，使用本地回答")
                 localAnswer
             } else {
                 val digest = engine.buildInventoryDigest(latest)
-                remoteAssistant.ask(config, question, digest).fold(
+                remoteAssistant.ask(config, question, digest, historyForModel).fold(
                     onSuccess = { reply ->
                         Log.d(logTag, "模型回答成功：content=${reply.content.length}字, reasoning=${reply.reasoning.length}字")
                         // 模型话术为主，本地结构化块保留（物品条目仍可点进详情）；
@@ -407,6 +626,41 @@ class AssistantViewModel @Inject constructor(
         val photoIds = runCatching { itemRepository.getAllFirstPhotos().keys }
             .getOrElse { emptySet() }
         return base.copy(photoItemIds = photoIds, now = System.currentTimeMillis())
+    }
+
+    /** 分类解析：明确写了分类就用分类名；否则按物品名猜，最后回退到「其他」。 */
+    private fun resolveCategory(
+        hint: String?,
+        name: String,
+        categories: List<CategoryEntity>,
+    ): CategoryEntity? {
+        val wanted = hint?.trim()?.takeIf { it.isNotBlank() } ?: ItemCategoryGuesser.guess(name)
+        val matched = categories.firstOrNull { c ->
+            wanted != null && (c.name == wanted || c.name.contains(wanted) || wanted.contains(c.name))
+        }
+        return matched
+            ?: categories.firstOrNull { it.name == "其他" }
+            ?: categories.firstOrNull()
+    }
+
+    private fun resolveCategoryId(
+        hint: String?,
+        name: String,
+        categories: List<CategoryEntity>,
+    ): Long = resolveCategory(hint, name, categories)?.id ?: 0L
+
+    /** 触发模型做「新增/修改物品」语义抽取的入口词。普通提问不会走这条，避免多一次请求。 */
+    private fun looksLikeItemAction(text: String): Boolean = listOf(
+        "新增", "添加", "加个", "加一个", "买了", "入手", "记一下", "记录物品",
+        "改成", "改一下", "修改", "名字写错", "名称写错", "换个名字",
+        "分类改", "类别改", "价格改", "保质期改",
+    ).any { text.contains(it) }
+
+    private fun parseDate(text: String): Long? {
+        if (text.isBlank()) return null
+        return runCatching {
+            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.CHINA).parse(text)?.time
+        }.getOrNull()
     }
 
     /** 模型失败时的提示块：明确告诉用户「不是没回答，是改用本地分析」。 */

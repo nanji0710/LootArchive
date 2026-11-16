@@ -115,6 +115,63 @@ object ItemDraftParser {
         )
     }
 
+    /**
+     * 解析「修改」类指令，例如：
+     * - 名字写错了，是平板
+     * - 把名字改成 iPad
+     * - 价格改成 2599
+     * - 分类改成数码电子
+     *
+     * 返回的字段里只有用户明确提到的项才会非空；name 为空表示只改分类/价格等。
+     */
+    fun parseEdits(raw: String): ParsedItemDraft? {
+        val text = raw.trim()
+        if (text.isEmpty()) return null
+        if (listOf("改", "换", "不是", "错", "修正").none { text.contains(it) }) return null
+
+        val categoryOnly = (text.contains("分类") || text.contains("类别")) &&
+            !text.contains("名字") && !text.contains("名称")
+        val name = if (categoryOnly) {
+            null
+        } else {
+            Regex("(?:改成|改为|换成|写成|叫做|叫|是)\\s*[：:]?\\s*([^，,。；;\\n]+)")
+                .findAll(text)
+                .lastOrNull()
+                ?.groupValues?.get(1)
+                ?.trim()
+                ?.takeIf {
+                    it.length <= 40 &&
+                        !it.contains("价") && !it.contains("元") &&
+                        !it.contains("分类") && !it.contains("类别")
+                }
+        }
+        val price = PRICE_LABEL.find(text)?.groupValues?.get(1)?.toDoubleOrNull()
+            ?: PRICE_YUAN.find(text)?.groupValues?.get(1)?.toDoubleOrNull()
+            ?: PRICE_WITH_UNIT.find(text)?.groupValues?.get(1)?.toDoubleOrNull()
+        val shelfLifeDays = SHELF_LIFE.find(text)?.let { m ->
+            val amount = m.groupValues[1].toIntOrNull() ?: return@let null
+            when (m.groupValues[2]) {
+                "个月", "月" -> amount * 30
+                "年" -> amount * 365
+                else -> amount
+            }
+        }
+        val categoryHint = CATEGORY_LABEL.find(text)?.groupValues?.get(1)?.trim()
+        val location = LOCATION_LABEL.find(text)?.groupValues?.get(1)?.trim()
+        val note = NOTE_LABEL.find(text)?.groupValues?.get(1)?.trim()
+        if (name.isNullOrBlank() && price == null && shelfLifeDays == null &&
+            categoryHint == null && location == null && note == null
+        ) return null
+        return ParsedItemDraft(
+            name = name.orEmpty(),
+            price = price,
+            shelfLifeDays = shelfLifeDays,
+            categoryHint = categoryHint,
+            location = location,
+            note = note,
+        )
+    }
+
     private fun parseDate(segment: String?): Long? {
         if (segment.isNullOrBlank()) return null
         val m = DATE_FULL.find(segment) ?: return null

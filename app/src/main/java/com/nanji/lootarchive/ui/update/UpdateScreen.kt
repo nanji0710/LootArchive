@@ -577,10 +577,12 @@ private fun ChangelogPage(onBack: () -> Unit, showAllVersions: Boolean, remoteLo
                             modifier = Modifier.padding(vertical = 12.dp),
                         )
                     }
-                    val entries = remoteReleases
+                    val remoteEntries = remoteReleases
                         ?.map { it.toVersionChangelog() }
-                        ?.takeIf { it.isNotEmpty() }
-                        ?: VersionChangelogs
+                        .orEmpty()
+                    val entries = (remoteEntries + VersionChangelogs.filter { local ->
+                        remoteEntries.none { it.version == local.version }
+                    }).sortedWith { a, b -> compareVersion(b.version, a.version) }
                     VersionHistoryList(entries)
                     if (releaseFailed && remoteReleases == null) {
                         Spacer(Modifier.height(8.dp))
@@ -766,8 +768,35 @@ private fun GitHubReleaseLog.toVersionChangelog(): VersionChangelog {
     )
 }
 
+/** 8.0.1 / 8.0.0 / 7.5.5 这种版本号按数字比较，避免字符串排序把 8.0.1 排到 7.x 后面。 */
+private fun compareVersion(a: String, b: String): Int {
+    val pa = a.split('.').map { it.toIntOrNull() ?: 0 }
+    val pb = b.split('.').map { it.toIntOrNull() ?: 0 }
+    val size = maxOf(pa.size, pb.size)
+    for (i in 0 until size) {
+        val diff = (pa.getOrElse(i) { 0 }) - (pb.getOrElse(i) { 0 })
+        if (diff != 0) return diff
+    }
+    return 0
+}
+
 /** 全部历史版本日志：菜单「历史更新日志」展示这里的所有版本。 */
 private val VersionChangelogs = listOf(
+    VersionChangelog(
+        "8.0.2", "2026-11-16",
+        listOf(
+            "历史更新日志" to listOf(
+                "历史更新日志改为直接读取 GitHub Releases。",
+                "以后每次发版，App 会自动拿到这一版的日志，不再依赖本地写死的版本记录。",
+                "即使本地没有录入新版本，发版后也能在历史日志里看到。",
+            ),
+            "AI 助手上下文理解和记忆" to listOf(
+                "AI 助手会记住最近的对话和刚新增的物品。",
+                "名字写错了、价格或分类要改时，直接说「改成…」就能找到对应物品并修改。",
+                "新增物品时的分类交给模型根据名称从你的分类列表里选，不再写死分类关键词。",
+            ),
+        ),
+    ),
     VersionChangelog(
         "8.0.1", "2026-11-16",
         listOf(
