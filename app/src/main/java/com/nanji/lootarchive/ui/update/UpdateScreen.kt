@@ -56,6 +56,8 @@ import com.kyant.backdrop.effects.colorControls
 import com.kyant.backdrop.effects.lens
 import com.nanji.lootarchive.BuildConfig
 import com.nanji.lootarchive.R
+import com.nanji.lootarchive.data.update.GitHubReleaseLog
+import com.nanji.lootarchive.data.update.GitHubReleaseLogs
 import com.nanji.lootarchive.ui.component.IconTile
 import com.nanji.lootarchive.ui.liquidglass.LiquidDialog
 import com.nanji.lootarchive.ui.theme.AppIcon
@@ -522,6 +524,18 @@ private fun CircleIconButton(onClick: () -> Unit, content: @Composable () -> Uni
 
 @Composable
 private fun ChangelogPage(onBack: () -> Unit, showAllVersions: Boolean, remoteLog: String?) {
+    var remoteReleases by remember { mutableStateOf<List<GitHubReleaseLog>?>(null) }
+    var releaseLoading by remember { mutableStateOf(false) }
+    var releaseFailed by remember { mutableStateOf(false) }
+    LaunchedEffect(showAllVersions) {
+        if (showAllVersions && remoteReleases == null) {
+            releaseLoading = true
+            GitHubReleaseLogs.fetch()
+                .onSuccess { remoteReleases = it }
+                .onFailure { releaseFailed = true }
+            releaseLoading = false
+        }
+    }
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(WarmBgTop, WarmBgBottom)))) {
         Image(
             painter = painterResource(R.mipmap.ic_launcher),
@@ -555,7 +569,27 @@ private fun ChangelogPage(onBack: () -> Unit, showAllVersions: Boolean, remoteLo
                 Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
             ) {
                 if (showAllVersions) {
-                    VersionHistoryList()
+                    if (releaseLoading && remoteReleases == null) {
+                        Text(
+                            "正在从 GitHub 获取发版日志…",
+                            fontSize = 13.sp,
+                            color = InkSoft,
+                            modifier = Modifier.padding(vertical = 12.dp),
+                        )
+                    }
+                    val entries = remoteReleases
+                        ?.map { it.toVersionChangelog() }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?: VersionChangelogs
+                    VersionHistoryList(entries)
+                    if (releaseFailed && remoteReleases == null) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "暂时连不上 GitHub，先显示内置日志。",
+                            fontSize = 12.sp,
+                            color = InkSoft,
+                        )
+                    }
                 } else {
                     CurrentVersionCard(remoteLog)
                 }
@@ -638,8 +672,8 @@ private fun CurrentVersionCard(remoteLog: String?) {
 }
 
 @Composable
-private fun VersionHistoryList() {
-    VersionChangelogs.forEachIndexed { index, entry ->
+private fun VersionHistoryList(entries: List<VersionChangelog>) {
+    entries.forEachIndexed { index, entry ->
         var expanded by remember(entry.version) { mutableStateOf(index == 0) }
         val rotation by animateFloatAsState(
             targetValue = if (expanded) 0f else 180f,
@@ -716,6 +750,21 @@ private data class VersionChangelog(
     val date: String,
     val sections: List<Pair<String, List<String>>>,
 )
+
+/** GitHub Release 的 body（Markdown）转成页面用的分段结构。 */
+private fun GitHubReleaseLog.toVersionChangelog(): VersionChangelog {
+    val lines = body.lines()
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+        .map { line ->
+            line.removePrefix("- ").removePrefix("* ").removePrefix("# ").trim()
+        }
+    return VersionChangelog(
+        version = version,
+        date = date,
+        sections = listOf("更新内容" to lines),
+    )
+}
 
 /** 全部历史版本日志：菜单「历史更新日志」展示这里的所有版本。 */
 private val VersionChangelogs = listOf(
