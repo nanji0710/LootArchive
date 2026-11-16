@@ -1,7 +1,7 @@
 {
-  "versionName": "8.0.0",
-  "versionCode": 8000,
+  "versionName": "8.0.1",
+  "versionCode": 8001,
   "updateDate": "2026-11-16",
-  "updateLog": "v8.0.0 大版本更新\n- 设置页重新整理：常用入口集中到一页，点顶部应用卡可以查看版本、检查更新\n- 新增 AI 助理：可以直接问东西放哪、值多少钱、哪些快过期，也能一句话记物品\n- AI 助理聊天记录保存在手机本地，随时能翻看，也可以在历史沟通里勾选删除\n- AI 设置：填好接口地址和 API Key 后能拉取全部可用模型，模型和思考强度按接口返回的档位选择\n- 检查更新页重做：有新版本时按钮变「下载」，下载时按钮本身变成进度条，能看到百分比和速度\n- 更新说明按版本整理成历史日志，旧版本也能查\n- 设置页新增视效模式、图标风格，卡片、菜单、弹窗统一成玻璃效果\n- 修复若干已知问题，优化页面切换动画和部分机型显示",
-  "apkDownloadUrl": "https://raw.githubusercontent.com/nanji0710/LootArchive/main/releases/LootArchive-release-v8.0.0.apk"
+  "updateLog": "v8.0.1 小更新\n- 修复下载进度条从中间向两边填充的问题，现在改为从左往右填充\n- 更新说明和历史更新日志补上 8.0.0 版本的完整记录\n- 修复输入法键盘弹出/收起时输入框和聊天内容被遮挡、跳动的问题\n- 修复关闭「启用 AI 助理」后底栏助手按钮仍然显示的问题\n- AI 思考强度改为直接使用接口返回的档位（low / high / max 等）\n- 修复 OpenCode Go 接口缺少会话头导致的 HTTP 400",
+  "apkDownloadUrl": "https://raw.githubusercontent.com/nanji0710/LootArchive/main/releases/LootArchive-release-v8.0.1.apk"
 }

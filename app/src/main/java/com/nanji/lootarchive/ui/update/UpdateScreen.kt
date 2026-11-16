@@ -410,6 +410,7 @@ private fun DownloadProgressPill(progress: com.nanji.lootarchive.util.ApkDownloa
         ) {
             Box(
                 Modifier
+                    .align(Alignment.CenterStart)
                     .fillMaxHeight()
                     .fillMaxWidth(fraction)
                     .background(Primary())
@@ -718,6 +719,43 @@ private data class VersionChangelog(
 
 /** 全部历史版本日志：菜单「历史更新日志」展示这里的所有版本。 */
 private val VersionChangelogs = listOf(
+    VersionChangelog(
+        "8.0.1", "2026-11-16",
+        listOf(
+            "修复" to listOf(
+                "下载进度条改为从左往右填充，不再从中间向两边展开。",
+                "更新说明和历史更新日志补上 8.0.0 的完整记录。",
+                "修复输入法弹出、收起时输入框和聊天内容被遮挡、跳动的问题。",
+                "关闭「启用 AI 助理」后，底栏助手按钮会立即隐藏。",
+                "AI 思考强度直接使用接口返回的档位（low / high / max 等）。",
+                "修复 OpenCode Go 接口缺少 x-opencode-session 导致的 HTTP 400。",
+            ),
+        ),
+    ),
+    VersionChangelog(
+        "8.0.0", "2026-11-16",
+        listOf(
+            "设置与界面" to listOf(
+                "设置页重新整理，常用入口集中到一页；点顶部应用卡可以查看版本、检查更新。",
+                "新增视效模式、图标风格切换；卡片、菜单、弹窗统一成玻璃效果。",
+                "「我的」页改为「设置」，底栏新增独立圆形新增按钮。",
+            ),
+            "AI 助理" to listOf(
+                "新增 AI 助理：可以问东西放哪、值多少钱、哪些快过期。",
+                "支持一句话记物品：说清名称、价格、购买时间、保质期等，就能自动录入。",
+                "聊天记录保存在手机本地，随时能翻看；历史沟通里可以勾选删除。",
+                "AI 设置：填好接口地址和 API Key 后能拉取全部可用模型，思考强度按接口返回的档位选择。",
+            ),
+            "检查更新" to listOf(
+                "检查更新页重做：有新版本时按钮变「下载」。",
+                "下载时按钮本身变成进度条，从左往右填充，能看到百分比和速度。",
+                "更新说明按版本整理成历史日志，旧版本也能查。",
+            ),
+            "修复与优化" to listOf(
+                "修复若干已知问题，优化页面切换动画和部分机型的显示问题。",
+            ),
+        ),
+    ),
     VersionChangelog(
         "7.5.5", "2026-10-16",
         listOf(

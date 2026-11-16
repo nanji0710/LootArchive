@@ -5,7 +5,7 @@
 [![Android](https://img.shields.io/badge/Android-12%2B-brightgreen)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material3-orange)](https://developer.android.com/compose)
-[![Version](https://img.shields.io/badge/Version-8.0.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-8.0.1-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -266,7 +266,7 @@ app/src/main/java/com/nanji/lootarchive/
 ./gradlew assembleRelease
 ```
 
-APK 输出：`LootArchive-release-v8.0.0.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
+APK 输出：`LootArchive-release-v8.0.1.apk`（约 7.7 MB，arm64-v8a + armeabi-v7a + x86_64，R8 压缩 + 资源缩减）
 
 单测：`./gradlew :app:testDebugUnitTest`。当前 4 个测试类 —— `ItemStatusTest`（状态口径）、`HomeSortTest`（首页排序）、`UpdateUrlValidationTest`（更新链接校验）、`BackupRepositoryZipSlipTest`（备份解压的路径穿越防护）。
 
@@ -306,7 +306,7 @@ CI 里的 Release 构建带 `-x lintVitalRelease`：本项目会命中 lint 自�
 
 ## 更新日志
 
-### v8.0.0 (2026-11-16) 大版本更新
+### v8.0.1 (2026-11-16) 修复更新体验`r`n`r`n- 下载进度条改为从左往右填充。`r`n- 更新说明与历史日志补上 8.0.0 记录。`r`n- 修复输入法弹出/收起时输入框与聊天内容遮挡、跳动。`r`n- 关闭 AI 助理后底栏按钮立即隐藏。`r`n- 思考强度直接使用接口返回档位；修复 OpenCode Go 的 HTTP 400。`r`n`r`n### v8.0.0 (2026-11-16) 大版本更新
 
 - 设置页重新整理：常用入口集中到一页，点顶部应用卡可以查看版本、检查更新。
 - 新增 AI 助理：可以问东西放哪、值多少钱、哪些快过期，也能一句话记物品。
