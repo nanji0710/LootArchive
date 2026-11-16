@@ -126,9 +126,19 @@ class AssistantViewModel @Inject constructor(
 
     private var sendJob: Job? = null
 
-    /** 最近一次通过助手新增的物品，用来理解「名字写错了」「改成…」这类追问。 */
-    private var lastAddedItemId: Long? = null
-    private var lastAddedItemName: String? = null
+    /**
+     * 当前会话的操作上下文（对应文档里的 OperateContext）。
+     * 只存结构化字段，不把整段聊天当记忆：指代「它/这个」直接看 lastItemId，参数补全看 lastCategory/lastLocation。
+     */
+    private data class OperateContext(
+        var lastItemId: Long? = null,
+        var lastItemName: String? = null,
+        var lastCategory: String = "",
+        var lastLocation: String = "",
+        var lastOperationAt: Long = 0L,
+    )
+
+    private var operateContext = OperateContext()
 
     /** 消息 id 自增，只用于 LazyColumn 的 key 与「原地替换占位气泡」。 */
     /**
@@ -209,10 +219,12 @@ class AssistantViewModel @Inject constructor(
 
             val latest = refreshSnapshot()
             val config = remoteConfig.value
-            // 长期记忆：按当前问题做本地关键词检索，只注入最相关的几条
-            val memoryText = runCatching { memoryRepository.relevant(question) }
-                .getOrDefault(emptyList())
-                .joinToString("\n") { "• ${it.content}" }
+            // 长期记忆 + 本地习惯：按当前问题检索记忆，再带上常用分类/位置，注入 System Prompt
+            val memoryLines = buildList {
+                memoryRepository.relevant(question).forEach { add("• ${it.content}") }
+                buildHabitMemory(latest)?.let { add(it) }
+            }
+            val memoryText = memoryLines.joinToString("\n")
 
             // 历史持久化：确定当前会话（新会话首条提问作为标题），并先写入用户消息
             val convId = _uiState.value.currentConversationId
@@ -228,16 +240,17 @@ class AssistantViewModel @Inject constructor(
 
             // 有 API 时先让模型做语义抽取：它能结合上下文判断是「新增」还是「修改上一条」，
             // 并按真实分类列表选分类，不靠本地关键词写死。
-            val currentItem = latest.items.firstOrNull { it.id == lastAddedItemId }
+            val currentItem = latest.items.firstOrNull { it.id == operateContext.lastItemId }
             val currentItemSummary = currentItem?.let {
-                "名称=${it.name}，价格=${it.purchasePrice}，购买日期=${it.purchaseDate?.let { d -> com.nanji.lootarchive.util.DateUtil.formatTimestamp(d) } ?: "未填"}，保修天数=${it.warrantyPeriodDays ?: "未填"}，分类=${latest.categories.firstOrNull { c -> c.id == it.categoryId }?.name ?: "未分类"}"
+                val currentCategory = latest.categories.firstOrNull { c -> c.id == it.categoryId }?.name ?: "未分类"
+                "名称=${it.name}，价格=${it.purchasePrice}，购买日期=${it.purchaseDate?.let { d -> com.nanji.lootarchive.util.DateUtil.formatTimestamp(d) } ?: "未填"}，保修天数=${it.warrantyPeriodDays ?: "未填"}，分类=$currentCategory，位置=${it.storageLocation.ifBlank { "未填" }}"
             }
             val itemAction = if (config.isReady && looksLikeItemAction(question)) {
                 remoteAssistant.extractItemAction(
                     config = config,
                     question = question,
                     categories = latest.categories.map { it.name },
-                    lastItemName = lastAddedItemName,
+                    lastItemName = operateContext.lastItemName,
                     currentItemSummary = currentItemSummary,
                     history = historyForModel,
                 ).getOrNull()
@@ -249,7 +262,11 @@ class AssistantViewModel @Inject constructor(
                 val purchaseDate = parseDate(itemAction.purchaseDate)
                     ?: parseDateFromText(itemAction.purchaseDate, null)
                     ?: now
-                val category = resolveCategory(itemAction.category.takeIf { it.isNotBlank() }, itemAction.itemName, latest.categories)
+                // 用户没给分类/位置时，沿用上一次操作的值（储物场景的常用值补全）
+                val categoryHint = itemAction.category.takeIf { it.isNotBlank() }
+                    ?: operateContext.lastCategory.takeIf { it.isNotBlank() }
+                val location = itemAction.location.ifBlank { operateContext.lastLocation }
+                val category = resolveCategory(categoryHint, itemAction.itemName, latest.categories)
                 val expiry = itemAction.shelfLifeDays?.let { purchaseDate + it * 24L * 60 * 60 * 1000 }
                 val item = com.nanji.lootarchive.data.local.entity.ItemEntity(
                     name = itemAction.itemName.ifBlank { "未命名物品" },
@@ -258,15 +275,18 @@ class AssistantViewModel @Inject constructor(
                     purchaseDate = purchaseDate,
                     warrantyExpiryDate = expiry,
                     warrantyPeriodDays = itemAction.shelfLifeDays,
-                    storageLocation = itemAction.location,
+                    storageLocation = location,
                     description = itemAction.note,
                     status = "active",
                     updatedAt = now,
                 )
                 val savedId = runCatching { itemRepository.saveItemWithPhotos(item, emptyList()) }.getOrNull()
                 if (savedId != null) {
-                    lastAddedItemId = savedId
-                    lastAddedItemName = item.name
+                    operateContext.lastItemId = savedId
+                    operateContext.lastItemName = item.name
+                    operateContext.lastCategory = category?.name.orEmpty()
+                    operateContext.lastLocation = location
+                    operateContext.lastOperationAt = now
                 }
                 val reply = AssistantAnswer(
                     text = if (savedId != null) "已新增「${item.name}」，分类是「${category?.name ?: "其他"}」。"
@@ -301,8 +321,8 @@ class AssistantViewModel @Inject constructor(
                 runCatching { historyRepository.appendMessage(convId, false, reply.text, reply.blocks, reply.suggestions) }
                 return@launch
             }
-            if (itemAction != null && itemAction.action == "update" && lastAddedItemId != null) {
-                val existing = runCatching { itemRepository.getItemById(lastAddedItemId!!) }.getOrNull()
+            if (itemAction != null && itemAction.action == "update" && operateContext.lastItemId != null) {
+                val existing = runCatching { itemRepository.getItemById(operateContext.lastItemId!!) }.getOrNull()
                 if (existing != null) {
                     // 只改日期的句子绝不能碰名称：例如「是今年11月，不是25年11月」
                     val dateOnly = containsDateExpression(question) &&
@@ -330,7 +350,10 @@ class AssistantViewModel @Inject constructor(
                         updatedAt = System.currentTimeMillis(),
                     )
                     val ok = runCatching { itemRepository.updateItem(updated) }.isSuccess
-                    lastAddedItemName = newName
+                    operateContext.lastItemName = newName
+                    newCategory?.let { operateContext.lastCategory = it.name }
+                    if (itemAction.location.isNotBlank()) operateContext.lastLocation = itemAction.location
+                    operateContext.lastOperationAt = System.currentTimeMillis()
                     val reply = AssistantAnswer(
                         text = if (ok) "已把「${existing.name}」改成「$newName」，其他信息保持不变。"
                         else "修改失败，请稍后再试。",
@@ -365,7 +388,7 @@ class AssistantViewModel @Inject constructor(
             }
 
             // 本地兜底：API 不可用或模型没给出动作时，仍能按字段修改上一条新增记录。
-            val lastId = lastAddedItemId
+            val lastId = operateContext.lastItemId
             if (lastId != null) {
                 val edits = com.nanji.lootarchive.data.assistant.ItemDraftParser.parseEdits(question)
                 val hasDate = containsDateExpression(question)
@@ -394,7 +417,7 @@ class AssistantViewModel @Inject constructor(
                             updatedAt = now,
                         )
                         val ok = runCatching { itemRepository.updateItem(updated) }.isSuccess
-                        lastAddedItemName = newName
+                        operateContext.lastItemName = newName
                         val categoryName = latest.categories.firstOrNull { it.id == newCategoryId }?.name
                         val changed = buildList {
                             if (newName != existing.name) add("名称改为「$newName」")
@@ -450,7 +473,9 @@ class AssistantViewModel @Inject constructor(
             // 先看是不是「一句话新增物品」：是就直接落库并返回结果，不再走问答/远程模型。
             val draft = com.nanji.lootarchive.data.assistant.ItemDraftParser.parse(question)
             if (draft != null && !config.isReady) {
-                val category = resolveCategory(draft.categoryHint, draft.name, latest.categories)
+                val categoryHint = draft.categoryHint ?: operateContext.lastCategory.takeIf { it.isNotBlank() }
+                val category = resolveCategory(categoryHint, draft.name, latest.categories)
+                val location = draft.location.orEmpty().ifBlank { operateContext.lastLocation }
                 val now = System.currentTimeMillis()
                 val item = com.nanji.lootarchive.data.local.entity.ItemEntity(
                     name = draft.name,
@@ -459,15 +484,18 @@ class AssistantViewModel @Inject constructor(
                     purchaseDate = draft.purchaseDate ?: now,
                     warrantyExpiryDate = draft.expiryDate,
                     warrantyPeriodDays = draft.shelfLifeDays,
-                    storageLocation = draft.location.orEmpty(),
+                    storageLocation = location,
                     description = listOfNotNull("由 AI 助理添加", draft.note).joinToString("；"),
                     status = "active",
                     updatedAt = now,
                 )
                 val savedId = runCatching { itemRepository.saveItemWithPhotos(item, emptyList()) }.getOrNull()
                 if (savedId != null) {
-                    lastAddedItemId = savedId
-                    lastAddedItemName = draft.name
+                    operateContext.lastItemId = savedId
+                    operateContext.lastItemName = draft.name
+                    operateContext.lastCategory = category?.name.orEmpty()
+                    operateContext.lastLocation = location
+                    operateContext.lastOperationAt = now
                 }
                 val lines = buildList {
                     add("名称|${draft.name}")
@@ -683,6 +711,26 @@ class AssistantViewModel @Inject constructor(
         name: String,
         categories: List<CategoryEntity>,
     ): Long = resolveCategory(hint, name, categories)?.id ?: 0L
+
+    /** 从本地物品统计常用分类/位置，作为跨会话的习惯记忆注入（只取前 3 个）。 */
+    private fun buildHabitMemory(snapshot: AssistantEngine.Snapshot): String? {
+        if (snapshot.items.isEmpty()) return null
+        val categoryCounts = snapshot.items
+            .mapNotNull { item -> snapshot.categories.firstOrNull { it.id == item.categoryId }?.name }
+            .groupingBy { it }.eachCount()
+            .entries.sortedByDescending { it.value }.take(3).map { it.key }
+        val locationCounts = snapshot.items
+            .map { it.storageLocation.trim() }
+            .filter { it.isNotBlank() }
+            .groupingBy { it }.eachCount()
+            .entries.sortedByDescending { it.value }.take(3).map { it.key }
+        if (categoryCounts.isEmpty() && locationCounts.isEmpty()) return null
+        return buildString {
+            if (categoryCounts.isNotEmpty()) append("用户常用分类：${categoryCounts.joinToString("、")}")
+            if (categoryCounts.isNotEmpty() && locationCounts.isNotEmpty()) append('\n')
+            if (locationCounts.isNotEmpty()) append("用户常用位置：${locationCounts.joinToString("、")}")
+        }
+    }
 
     /** 触发模型做「新增/修改物品」语义抽取的入口词。普通提问不会走这条，避免多一次请求。 */
     private fun looksLikeItemAction(text: String): Boolean = listOf(

@@ -783,6 +783,18 @@ private fun compareVersion(a: String, b: String): Int {
 /** 全部历史版本日志：菜单「历史更新日志」展示这里的所有版本。 */
 private val VersionChangelogs = listOf(
     VersionChangelog(
+        "8.0.5", "2026-11-16",
+        listOf(
+            "上下文记忆" to listOf(
+                "新增操作上下文：记住最近操作的物品、分类、位置。",
+                "用户说「它/这个/刚才那个」时能定位到上一条物品，改日期、名称、分类时按字段识别。",
+                "长期记忆会保存常用分类、常用位置和用户偏好，之后聊天自动参考。",
+                "修复把日期当成名称修改的问题。",
+            ),
+            "历史更新日志" to listOf("继续直接读取 GitHub Releases，发版后自动出现。"),
+        ),
+    ),
+    VersionChangelog(
         "8.0.4", "2026-11-16",
         listOf(
             "AI 上下文记忆" to listOf(

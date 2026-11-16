@@ -1,7 +1,7 @@
 {
-  "versionName": "8.0.4",
-  "versionCode": 8004,
+  "versionName": "8.0.5",
+  "versionCode": 8005,
   "updateDate": "2026-11-16",
-  "updateLog": "v8.0.4 更新\n- AI 助手增加长期记忆：会从对话里提取并保存你的偏好、固定事实，之后聊天自动参考\n- 上下文记忆增强：保留最近对话和刚新增的物品，改日期、名称、分类时能识别对应字段，不再把日期当成名称\n- 新增物品时分类交给模型根据你的真实分类列表选择\n- 历史更新日志继续直接读取 GitHub Releases，发版后自动出现",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.4/LootArchive-release-v8.0.4.apk"
+  "updateLog": "v8.0.5 更新\n- 上下文记忆增强：新增操作上下文，记住最近操作的物品、分类、位置\n- 用户说「它/这个/刚才那个」时能定位到上一条物品，改日期、名称、分类时按字段识别\n- 长期记忆会保存常用分类、常用位置和用户偏好，之后聊天自动参考\n- 修复把日期当成名称修改的问题\n- 历史更新日志继续直接读取 GitHub Releases，发版后自动出现",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.5/LootArchive-release-v8.0.5.apk"
 }
