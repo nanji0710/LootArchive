@@ -134,15 +134,23 @@ object ItemDraftParser {
         val name = if (categoryOnly) {
             null
         } else {
-            Regex("(?:改成|改为|换成|写成|叫做|叫|是)\\s*[：:]?\\s*([^，,。；;\\n]+)")
-                .findAll(text)
-                .lastOrNull()
-                ?.groupValues?.get(1)
-                ?.trim()
-                ?.takeIf {
-                    it.length <= 40 &&
-                        !it.contains("价") && !it.contains("元") &&
-                        !it.contains("分类") && !it.contains("类别")
+            val candidates = listOf(
+                Regex("(?:名字|名称)\\s*[：:]\\s*([^，,。；;\\n]+)"),
+                Regex("(?:名字|名称)[^，,。；;]*(?:改成|改为|换成|写成|是|叫)\\s*[：:]?\\s*([^，,。；;\\n]+)"),
+                Regex("(?:是|叫)\\s*[：:]?\\s*([^，,。；;\\n]+)"),
+                Regex("(?:改成|改为|换成|写成)\\s*[：:]?\\s*([^，,。；;\\n]+)"),
+                Regex("(?:名字|名称)\\s+([^，,。；;\\n]+)"),
+                Regex("(?:名字|名称)[：:]?\\s*([^，,。；;\\n]+)"),
+            )
+            candidates.asSequence()
+                .mapNotNull { it.find(text)?.groupValues?.get(1)?.trim() }
+                .map { it.trimEnd('呀', '啊', '。', '，', ',') }
+                .firstOrNull { value ->
+                    value.length <= 40 &&
+                        !value.contains("价") && !value.contains("元") &&
+                        !value.contains("分类") && !value.contains("类别") &&
+                        !value.contains("错") &&
+                        !Regex("(\\d|年|月|日|号|今年|去年|明年)").containsMatchIn(value)
                 }
         }
         val price = PRICE_LABEL.find(text)?.groupValues?.get(1)?.toDoubleOrNull()

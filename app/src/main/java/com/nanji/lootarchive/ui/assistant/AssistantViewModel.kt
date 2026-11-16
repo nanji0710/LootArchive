@@ -220,12 +220,17 @@ class AssistantViewModel @Inject constructor(
 
             // 有 API 时先让模型做语义抽取：它能结合上下文判断是「新增」还是「修改上一条」，
             // 并按真实分类列表选分类，不靠本地关键词写死。
+            val currentItem = latest.items.firstOrNull { it.id == lastAddedItemId }
+            val currentItemSummary = currentItem?.let {
+                "名称=${it.name}，价格=${it.purchasePrice}，购买日期=${it.purchaseDate?.let { d -> com.nanji.lootarchive.util.DateUtil.formatTimestamp(d) } ?: "未填"}，保修天数=${it.warrantyPeriodDays ?: "未填"}，分类=${latest.categories.firstOrNull { c -> c.id == it.categoryId }?.name ?: "未分类"}"
+            }
             val itemAction = if (config.isReady && looksLikeItemAction(question)) {
                 remoteAssistant.extractItemAction(
                     config = config,
                     question = question,
                     categories = latest.categories.map { it.name },
                     lastItemName = lastAddedItemName,
+                    currentItemSummary = currentItemSummary,
                     history = historyForModel,
                 ).getOrNull()
             } else {
@@ -289,11 +294,15 @@ class AssistantViewModel @Inject constructor(
             if (itemAction != null && itemAction.action == "update" && lastAddedItemId != null) {
                 val existing = runCatching { itemRepository.getItemById(lastAddedItemId!!) }.getOrNull()
                 if (existing != null) {
-                    val newName = itemAction.itemName.ifBlank { existing.name }
-                    val newCategory = if (itemAction.category.isNotBlank()) {
+                    // 只改日期的句子绝不能碰名称：例如「是今年11月，不是25年11月」
+                    val dateOnly = containsDateExpression(question) &&
+                        !question.contains("名字") && !question.contains("名称")
+                    val newName = if (dateOnly) existing.name else itemAction.itemName.ifBlank { existing.name }
+                    val newCategory = if (itemAction.category.isNotBlank() && !dateOnly) {
                         resolveCategory(itemAction.category, newName, latest.categories)
                     } else null
                     val newPurchase = parseDate(itemAction.purchaseDate)
+                        ?: if (dateOnly) parseDateFromText(question, existing.purchaseDate) else null
                     val newPeriod = itemAction.shelfLifeDays ?: existing.warrantyPeriodDays
                     val newExpiry = if (itemAction.shelfLifeDays != null) {
                         (newPurchase ?: existing.purchaseDate ?: System.currentTimeMillis()) +
@@ -345,45 +354,50 @@ class AssistantViewModel @Inject constructor(
                 }
             }
 
-            // 先看是不是「修改上一条新增记录」：名字写错、改价格、改分类都走这里。
+            // 本地兜底：API 不可用或模型没给出动作时，仍能按字段修改上一条新增记录。
             val lastId = lastAddedItemId
             if (lastId != null) {
                 val edits = com.nanji.lootarchive.data.assistant.ItemDraftParser.parseEdits(question)
-                if (edits != null) {
+                val hasDate = containsDateExpression(question)
+                if (edits != null || hasDate) {
                     val existing = runCatching { itemRepository.getItemById(lastId) }.getOrNull()
                     if (existing != null) {
-                        val newName = edits.name.ifBlank { existing.name }
-                        val newCategoryId = if (edits.categoryHint != null) {
-                            resolveCategoryId(edits.categoryHint, newName, latest.categories)
-                        } else {
-                            existing.categoryId
-                        }
-                        val newPeriod = edits.shelfLifeDays ?: existing.warrantyPeriodDays
-                        val newExpiry = if (edits.shelfLifeDays != null) {
-                            (existing.purchaseDate ?: System.currentTimeMillis()) +
-                                edits.shelfLifeDays * 24L * 60 * 60 * 1000
-                        } else {
-                            existing.warrantyExpiryDate
-                        }
+                        val now = System.currentTimeMillis()
+                        val newName = edits?.name?.takeIf { it.isNotBlank() } ?: existing.name
+                        val newCategoryId = edits?.categoryHint?.let { resolveCategoryId(it, newName, latest.categories) }
+                            ?: existing.categoryId
+                        val newPurchase = edits?.purchaseDate
+                            ?: if (hasDate) parseDateFromText(question, existing.purchaseDate) else null
+                        val newPeriod = edits?.shelfLifeDays ?: existing.warrantyPeriodDays
+                        val newExpiry = if (edits?.shelfLifeDays != null) {
+                            (newPurchase ?: existing.purchaseDate ?: now) + edits.shelfLifeDays * 24L * 60 * 60 * 1000
+                        } else existing.warrantyExpiryDate
                         val updated = existing.copy(
                             name = newName,
                             categoryId = newCategoryId,
-                            purchasePrice = edits.price ?: existing.purchasePrice,
-                            storageLocation = edits.location ?: existing.storageLocation,
+                            purchasePrice = edits?.price ?: existing.purchasePrice,
+                            purchaseDate = newPurchase ?: existing.purchaseDate,
+                            storageLocation = edits?.location ?: existing.storageLocation,
                             warrantyPeriodDays = newPeriod,
                             warrantyExpiryDate = newExpiry,
-                            description = edits.note ?: existing.description,
-                            updatedAt = System.currentTimeMillis(),
+                            description = edits?.note ?: existing.description,
+                            updatedAt = now,
                         )
                         val ok = runCatching { itemRepository.updateItem(updated) }.isSuccess
                         lastAddedItemName = newName
                         val categoryName = latest.categories.firstOrNull { it.id == newCategoryId }?.name
+                        val changed = buildList {
+                            if (newName != existing.name) add("名称改为「$newName」")
+                            if (newPurchase != null && newPurchase != existing.purchaseDate) {
+                                add("购买日期改为 ${com.nanji.lootarchive.util.DateUtil.formatTimestamp(newPurchase)}")
+                            }
+                            if (edits?.price != null) add("价格改为 ¥${"%.2f".format(edits.price)}")
+                            if (edits?.shelfLifeDays != null) add("保质期改为 ${edits.shelfLifeDays} 天")
+                            if (!edits?.location.isNullOrBlank()) add("位置改为 ${edits.location}")
+                            if (edits?.categoryHint != null) add("分类改为「${categoryName ?: edits.categoryHint}」")
+                        }.ifEmpty { listOf("信息未变化") }
                         val reply = AssistantAnswer(
-                            text = if (ok) {
-                                "已把「${existing.name}」改成「$newName」，其他信息保持不变。"
-                            } else {
-                                "修改失败了，请稍后再试。"
-                            },
+                            text = if (ok) "已修改「${existing.name}」：${changed.joinToString("，")}。" else "修改失败了，请稍后再试。",
                             blocks = if (ok) listOf(
                                 AnswerBlock(
                                     kind = AnswerBlock.Kind.SUMMARY,
@@ -391,9 +405,10 @@ class AssistantViewModel @Inject constructor(
                                     lines = buildList {
                                         add("名称|$newName")
                                         categoryName?.let { add("分类|$it") }
-                                        edits.price?.let { add("价格|¥${"%.2f".format(it)}") }
-                                        edits.shelfLifeDays?.let { add("保质期|$it 天") }
-                                        if (!edits.location.isNullOrBlank()) add("位置|${edits.location}")
+                                        newPurchase?.let { add("购买日期|${com.nanji.lootarchive.util.DateUtil.formatTimestamp(it)}") }
+                                        edits?.price?.let { add("价格|¥${"%.2f".format(it)}") }
+                                        edits?.shelfLifeDays?.let { add("保质期|$it 天") }
+                                        if (!edits?.location.isNullOrBlank()) add("位置|${edits.location}")
                                     },
                                 )
                             ) else emptyList(),
@@ -416,15 +431,12 @@ class AssistantViewModel @Inject constructor(
                             )
                         }
                         runCatching {
-                            historyRepository.appendMessage(
-                                convId, false, reply.text, reply.blocks, reply.suggestions
-                            )
+                            historyRepository.appendMessage(convId, false, reply.text, reply.blocks, reply.suggestions)
                         }
                         return@launch
                     }
                 }
             }
-
             // 先看是不是「一句话新增物品」：是就直接落库并返回结果，不再走问答/远程模型。
             val draft = com.nanji.lootarchive.data.assistant.ItemDraftParser.parse(question)
             if (draft != null && !config.isReady) {
@@ -653,14 +665,57 @@ class AssistantViewModel @Inject constructor(
     private fun looksLikeItemAction(text: String): Boolean = listOf(
         "新增", "添加", "加个", "加一个", "买了", "入手", "记一下", "记录物品",
         "改成", "改一下", "修改", "名字写错", "名称写错", "换个名字",
-        "分类改", "类别改", "价格改", "保质期改",
+        "分类改", "类别改", "价格改", "保质期改", "日期", "月份", "今年", "去年", "明年",
+        "不是", "名称", "名字",
     ).any { text.contains(it) }
+
+    private fun containsDateExpression(text: String): Boolean =
+        Regex("(\\d{2,4}\\s*[年./-]|\\d{1,2}\\s*月|今天|今年|去年|明年|昨天|前天)").containsMatchIn(text)
 
     private fun parseDate(text: String): Long? {
         if (text.isBlank()) return null
         return runCatching {
             java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.CHINA).parse(text)?.time
         }.getOrNull()
+    }
+
+    /** 解析「今年11月」「26年11月10号」这类不完整日期；日缺省时沿用原购买日。 */
+    private fun parseDateFromText(rawText: String, base: Long?): Long? {
+        val text = rawText
+            .replace("十一月", "11").replace("十二月", "12")
+            .replace("十月", "10").replace("九月", "9")
+            .replace("八月", "8").replace("七月", "7")
+            .replace("六月", "6").replace("五月", "5")
+            .replace("四月", "4").replace("三月", "3")
+            .replace("二月", "2").replace("一月", "1")
+        val cal = java.util.Calendar.getInstance().apply {
+            timeInMillis = base ?: System.currentTimeMillis()
+        }
+        val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        val baseDay = cal.get(java.util.Calendar.DAY_OF_MONTH)
+        val full = Regex("(\\d{4})\\s*[年./-]\\s*(\\d{1,2})(?:\\s*[月./-]\\s*(\\d{1,2})\\s*[日号]?)?").find(text)
+        val shortYear = Regex("(\\d{2})\\s*年\\s*(\\d{1,2})\\s*月(?:\\s*(\\d{1,2})\\s*[日号]?)?").find(text)
+        val monthOnly = Regex("(\\d{1,2})\\s*月(?:\\s*(\\d{1,2})\\s*[日号]?)?").find(text)
+        return when {
+            full != null -> {
+                val (y, m, d) = full.destructured
+                cal.clear(); cal.set(y.toInt(), m.toInt() - 1, d.toIntOrNull() ?: baseDay, 12, 0, 0); cal.timeInMillis
+            }
+            shortYear != null -> {
+                val (y, m, d) = shortYear.destructured
+                cal.clear(); cal.set(2000 + y.toInt(), m.toInt() - 1, d.toIntOrNull() ?: baseDay, 12, 0, 0); cal.timeInMillis
+            }
+            monthOnly != null -> {
+                val (m, d) = monthOnly.destructured
+                val year = when {
+                    text.contains("去年") -> currentYear - 1
+                    text.contains("明年") -> currentYear + 1
+                    else -> currentYear
+                }
+                cal.clear(); cal.set(year, m.toInt() - 1, d.toIntOrNull() ?: baseDay, 12, 0, 0); cal.timeInMillis
+            }
+            else -> null
+        }
     }
 
     /** 模型失败时的提示块：明确告诉用户「不是没回答，是改用本地分析」。 */

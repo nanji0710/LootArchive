@@ -1,7 +1,7 @@
 {
-  "versionName": "8.0.2",
-  "versionCode": 8002,
+  "versionName": "8.0.3",
+  "versionCode": 8003,
   "updateDate": "2026-11-16",
-  "updateLog": "v8.0.2 更新\n- 历史更新日志改为直接读取 GitHub Releases：以后每次发版，App 会自动拿到这一版的日志，不再依赖本地写死的版本记录\n- 新增 AI 助手上下文理解和记忆：会记住最近的对话和刚新增的物品，名字写错了、价格或分类要改时，直接说「改成…」就能找到对应物品并修改\n- 新增物品时的分类也交给模型根据名称从你的分类列表里选，不再写死分类关键词",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.2/LootArchive-release-v8.0.2.apk"
+  "updateLog": "v8.0.3 更新\n- AI 助手上下文记忆修复：改日期时不会再误改名称，能理解「今年11月」「26年11月」等说法\n- 新增物品时分类由模型根据你的分类列表选择，不再写死分类关键词\n- 历史更新日志继续直接读取 GitHub Releases，发版后自动出现",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.3/LootArchive-release-v8.0.3.apk"
 }

@@ -49,6 +49,7 @@ class RemoteAssistant {
         question: String,
         categories: List<String>,
         lastItemName: String?,
+        currentItemSummary: String? = null,
         history: List<ChatTurn> = emptyList(),
     ): Result<ItemAction> {
         val instruction = buildString {
@@ -56,17 +57,21 @@ class RemoteAssistant {
             append("判断用户这句话是在【新增物品】、【修改上一条物品】还是【普通提问】。\n")
             append("JSON 字段：\n")
             append("action: add | update | none\n")
-            append("itemName: 物品名称（修改时如果没提新名字就留空）\n")
+            append("itemName: 物品名称；只有用户明确说出新名字时才填，改日期/改价格/改分类/改位置时一定留空\n")
             append("price: 数字，没有就 null\n")
-            append("purchaseDate: yyyy-MM-dd，没有就空字符串\n")
+            append("purchaseDate: yyyy-MM-dd，没有就空字符串；今年11月=2026-11，明年=2027，26年=2026年\n")
             append("shelfLifeDays: 整数天，没有就 null\n")
             append("category: 必须从这些分类里选一个最合适的：${categories.joinToString("、")}；都不合适选「其他」\n")
             append("location: 存放位置，没有就空字符串\n")
             append("note: 备注，没有就空字符串\n")
             append("规则：用户说「名字写错了/改成/不是…是…」属于 update；用户说「新增/添加/买了/记一下」属于 add；普通提问 action=none。\n")
+            append("特别重要：用户说「把日期改成…」「是今年11月」「购入日期不对」时，只填 purchaseDate，绝不把日期写进 itemName。\n")
             if (!lastItemName.isNullOrBlank()) {
                 append("上一条刚新增的物品是：$lastItemName\n")
                 append("如果用户说「它/这个/刚刚那个/名字错了」，默认就是修改这条。\n")
+            }
+            if (!currentItemSummary.isNullOrBlank()) {
+                append("当前这条物品的现有信息：$currentItemSummary\n")
             }
             append("用户原话：$question")
         }
