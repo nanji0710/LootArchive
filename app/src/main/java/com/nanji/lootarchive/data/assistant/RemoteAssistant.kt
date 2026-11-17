@@ -64,6 +64,7 @@ class RemoteAssistant {
             append("category: 必须从这些分类里选一个最合适的：${categories.joinToString("、")}；都不合适选「其他」\n")
             append("location: 存放位置，没有就空字符串\n")
             append("note: 备注，没有就空字符串\n")
+            append("当前设备时间：${currentTimeText()}。用户说今天、本月、今年或问剩余天数时，以这个时间为基准。\n")
             append("规则：用户说「名字写错了/改成/不是…是…」属于 update；用户说「新增/添加/买了/记一下」属于 add；普通提问 action=none。\n")
             append("特别重要：用户说「把日期改成…」「是今年11月」「购入日期不对」时，只填 purchaseDate，绝不把日期写进 itemName。\n")
             if (!lastItemName.isNullOrBlank()) {
@@ -305,9 +306,11 @@ class RemoteAssistant {
      */
     private fun systemPrompt(inventoryDigest: String, memoryText: String): String = buildString {
         append("你是「拾物集」App 里的物品管理助手。")
-        append("用户的所有数据都保存在这台手机上，下面这份库存摘要是你唯一可用的资料，")
+        append("当前设备时间：${currentTimeText()}。涉及今天、本月、今年、还剩多少天等问题时，必须以这个时间为准。")
+        append("用户的所有物品数据都保存在这台手机上，下面的库存摘要是查询本机物品时的唯一资料，")
         append("不要编造摘要里没有的物品，也不要猜测摘要里没有的字段。")
-        append("只回答与物品、资产、保修、存放位置、整理建议相关的问题；与物品无关的话题，简短说明你只懂物品管理。")
+        append("优先回答物品、资产、保修、存放位置、整理建议相关的问题；与物品无关的普通问题也可以正常回答，")
+        append("但回答本机库存问题时只能依据摘要，不能编造。")
         append("用简体中文、口语化回答，尽量简短（不超过 120 字），金额写成 ¥1,234 这种千分位格式，不要输出 Markdown 表格。")
         if (memoryText.isNotBlank()) {
             append("\n【用户背景记忆，请自然参考，不要刻意逐条复述】\n")
@@ -317,6 +320,16 @@ class RemoteAssistant {
         append("库存摘要（JSON）：")
         append(inventoryDigest)
     }
+
+    /** 当前设备时间（含时区），注入 Prompt 让模型能算保修剩余天数。 */
+    private fun currentTimeText(): String = runCatching {
+        java.time.ZonedDateTime.now().format(
+            java.time.format.DateTimeFormatter.ofPattern(
+                "yyyy-MM-dd HH:mm EEEE",
+                java.util.Locale.SIMPLIFIED_CHINESE
+            )
+        )
+    }.getOrDefault(java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.CHINA).format(java.util.Date()))
 
     /** 有的网关会把 JSON 包在 Markdown 代码块或解释文字里，取第一个完整对象/数组即可。 */
     private fun extractJsonObject(raw: String): String? {

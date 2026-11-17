@@ -806,6 +806,16 @@ private fun compareVersion(a: String, b: String): Int {
 /** 全部历史版本日志：菜单「历史更新日志」展示这里的所有版本。 */
 private val VersionChangelogs = listOf(
     VersionChangelog(
+        "8.0.9", "2026-11-17",
+        listOf(
+            "AI 助手" to listOf(
+                "每次请求都会带上当前设备时间，可以正确回答今天日期、保修还剩多少天等问题。",
+                "日期纠正支持今天、今年、本月等说法，物品修改不会再因为缺少当前时间算错。",
+                "普通问题也可以正常回答；查询本机物品时仍以本地数据为准，不编造库存。",
+            ),
+        ),
+    ),
+    VersionChangelog(
         "8.0.8", "2026-11-17",
         listOf(
             "更新提醒" to listOf(

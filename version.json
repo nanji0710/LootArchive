@@ -1,7 +1,7 @@
 {
-  "versionName": "8.0.8",
-  "versionCode": 8008,
+  "versionName": "8.0.9",
+  "versionCode": 8009,
   "updateDate": "2026-11-17",
-  "updateLog": "v8.0.8 更新\n- 每次启动 App 自动检查更新\n- 有更新时，底栏设置按钮和设置页应用卡显示小红点\n- 关于应用页显示「发现新版本」，点击进入更新页直接看到新版本和下载按钮",
-  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.8/LootArchive-release-v8.0.8.apk"
+  "updateLog": "v8.0.9 更新\n- AI 助手每次请求都会带上当前设备时间，可以正确回答今天日期、保修还剩多少天等问题\n- 日期纠正支持今天、今年、本月等说法，物品修改不会再因为缺少当前时间算错\n- 普通问题也可以正常回答；查询本机物品时仍以本地数据为准，不编造库存",
+  "apkDownloadUrl": "https://github.com/nanji0710/LootArchive/releases/download/V8.0.9/LootArchive-release-v8.0.9.apk"
 }
