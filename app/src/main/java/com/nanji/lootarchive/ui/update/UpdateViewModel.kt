@@ -108,10 +108,11 @@ class UpdateViewModel @Inject constructor(
     private var autoChecked = false
 
     /**
-     * 进页面时按「自动检查更新」开关静默查一次。
+     * 应用启动时（或进入更新页时）按「自动检查更新」开关静默查一次。
      *
-     * 只触发一次由两处共同保证：页面用 LaunchedEffect(Unit)，这里用 [autoChecked]
-     * 兜住「退出再进」。已经查过（不是 [UpdateUiState.Idle]）就绝不覆盖用户的当前结果。
+     * 只触发一次由两处共同保证：MainScreen 启动时调用一次，页面用
+     * LaunchedEffect(Unit) 兜底；这里用 [autoChecked] 防止退出再进重复请求。
+     * 已经查过（不是 [UpdateUiState.Idle]）就绝不覆盖用户的当前结果。
      */
     fun autoCheckOnce() {
         if (autoChecked) return

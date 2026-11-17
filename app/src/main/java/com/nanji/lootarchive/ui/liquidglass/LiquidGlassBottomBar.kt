@@ -7,6 +7,7 @@ package com.nanji.lootarchive.ui.liquidglass
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,10 +17,13 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Icon
@@ -133,6 +137,7 @@ internal fun LiquidBottomTabs(
     containerHeight: Dp = 64.dp,
     contentPadding: Dp = 4.dp,
     showSelectionShadow: Boolean = true,
+    badgeIndex: Int? = null,
     content: @Composable RowScope.() -> Unit
 ) {
     val dark = LocalDarkTheme.current
@@ -385,10 +390,29 @@ internal fun LiquidBottomTabs(
                 .height(containerHeight - contentPadding * 2)
                 .fillMaxWidth(1f / tabsCount)
         )
+        // 红点画在选中高亮层之后，避免被设置 Tab 的金色选中光效染色
+        if (badgeIndex != null && badgeIndex in 0 until tabsCount) {
+            val badgeX = contentPadding + with(density) {
+                (tabWidth * (badgeIndex + 0.5f)).toDp()
+            } + 10.dp
+            Box(
+                Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = badgeX, y = 9.dp)
+                    .size(8.dp)
+                    .background(Color(0xFFFF3B30), CircleShape)
+            )
+        }
     }
 }
 
-data class LiquidGlassTab(val label: String, val icon: ImageVector, val filledIcon: ImageVector)
+data class LiquidGlassTab(
+    val label: String,
+    val icon: ImageVector,
+    val filledIcon: ImageVector,
+    /** 设置 Tab 有可用更新时显示小红点。 */
+    val showBadge: Boolean = false,
+)
 
 @Composable
 fun LiquidGlassBottomBar(
@@ -431,6 +455,7 @@ fun LiquidGlassBottomBar(
             onTabSelected = selectTab,
             backdrop = backdrop,
             tabsCount = tabs.size,
+            badgeIndex = tabs.indexOfFirst { it.showBadge }.takeIf { it >= 0 },
             modifier = Modifier
                 .weight(1f)
                 .selectableGroup()
@@ -441,14 +466,19 @@ fun LiquidGlassBottomBar(
                     Modifier.semantics { selected = index == visualSelectedTabIndex }
                 ) {
                     val sampling = LocalLiquidBottomTabSampling.current
-                    Icon(
-                        rememberVectorPainter(if (sampling) tab.filledIcon else tab.icon),
-                        contentDescription = null,
-                        tint = Color.Unspecified,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .graphicsLayer(colorFilter = iconColorFilter)
-                    )
+                    Box(Modifier.size(28.dp)) {
+                        Icon(
+                            rememberVectorPainter(if (sampling) tab.filledIcon else tab.icon),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer(colorFilter = iconColorFilter)
+                        )
+                        if (tab.showBadge) {
+                            // 徽标统一画在 LiquidBottomTabs 的高亮层之后，这里不再重复绘制
+                        }
+                    }
                     BasicText(
                         tab.label,
                         style = TextStyle(contentColor, 12.sp)

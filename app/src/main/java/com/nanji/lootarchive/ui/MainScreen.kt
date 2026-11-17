@@ -41,6 +41,8 @@ import com.nanji.lootarchive.ui.settings.AssistantSettingsScreen
 import com.nanji.lootarchive.ui.settings.GeneralSettingsScreen
 import com.nanji.lootarchive.ui.settings.SettingsScreen
 import com.nanji.lootarchive.ui.update.UpdateScreen
+import com.nanji.lootarchive.ui.update.UpdateUiState
+import com.nanji.lootarchive.ui.update.UpdateViewModel
 import com.nanji.lootarchive.ui.nav.NavKeys
 import com.nanji.lootarchive.ui.nav.navSharedElement
 import com.nanji.lootarchive.ui.nav.ProvideHomeDissolve
@@ -163,6 +165,10 @@ fun MainScreen(assistantEnabled: Boolean = true) {
     // SharedTransitionLayout 在首帧配不上对，这次转场就退化成「没有飞行的淡入淡出」——
     // 冷启动后第一次点卡片看到的「闪一下」就是这么来的。所以先把数据取回来再切页。
     val detailViewModel: DetailViewModel = hiltViewModel()
+    // 启动即检查一次更新；设置 Tab 有可用版本时显示小红点
+    val updateViewModel: UpdateViewModel = hiltViewModel()
+    val updateState by updateViewModel.uiState.collectAsState()
+    LaunchedEffect(Unit) { updateViewModel.autoCheckOnce() }
     val navScope = rememberCoroutineScope()
     // 非 0 = 有一张卡片正在等数据、还没真正切到详情页；此时的返回键视为「取消这次展开」。
     var pendingDetailId by remember { mutableStateOf(0L) }
@@ -361,6 +367,7 @@ fun MainScreen(assistantEnabled: Boolean = true) {
                                         )
                                         else -> SettingsScreen(
                                             isTabMode = true,
+                                            hasUpdate = updateState is UpdateUiState.Available,
                                             onNavigateToCategory = { navigate(Route.CATEGORY) },
                                             onNavigateToGeneral = { navigate(Route.GENERAL) },
                                             onNavigateToAssistantSettings = { navigate(Route.ASSISTANT_SETTINGS) },
@@ -480,6 +487,8 @@ fun MainScreen(assistantEnabled: Boolean = true) {
                                             it.label,
                                             it.icon.tabIcon(false, iconStyle),
                                             it.icon.tabIcon(true, iconStyle),
+                                            showBadge = it == MainTab.SETTINGS &&
+                                                updateState is UpdateUiState.Available,
                                         )
                                     },
                                     selectedTabIndex = selectedIndex,

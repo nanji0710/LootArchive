@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,6 +46,7 @@ fun AboutScreen(
 ) {
     val uriHandler = LocalUriHandler.current
     val updateState by updateViewModel.uiState.collectAsState()
+    LaunchedEffect(Unit) { updateViewModel.autoCheckOnce() }
 
     SettingsPageScaffold(title = "关于应用", onNavigateBack = onNavigateBack) {
 
@@ -52,7 +54,7 @@ fun AboutScreen(
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(230.dp)
+                .height(280.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(
                     Brush.linearGradient(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -52,6 +53,7 @@ import com.nanji.lootarchive.ui.theme.*
 fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
     isTabMode: Boolean = true,
+    hasUpdate: Boolean = false,
     onNavigateToCategory: () -> Unit = {},
     onNavigateToGeneral: () -> Unit = {},
     onNavigateToAssistantSettings: () -> Unit = {},
@@ -137,13 +139,24 @@ fun SettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Image(
-                        painter = painterResource(
-                            if (LocalDarkTheme.current) R.mipmap.ic_launcher_dark else R.mipmap.ic_launcher
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp),
-                    )
+                    Box(Modifier.size(56.dp)) {
+                        Image(
+                            painter = painterResource(
+                                if (LocalDarkTheme.current) R.mipmap.ic_launcher_dark else R.mipmap.ic_launcher
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        if (hasUpdate) {
+                            Box(
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 3.dp, y = (-2).dp)
+                                    .size(9.dp)
+                                    .background(Color(0xFFFF3B30), CircleShape)
+                            )
+                        }
+                    }
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
                         Text(

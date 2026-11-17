@@ -806,6 +806,16 @@ private fun compareVersion(a: String, b: String): Int {
 /** 全部历史版本日志：菜单「历史更新日志」展示这里的所有版本。 */
 private val VersionChangelogs = listOf(
     VersionChangelog(
+        "8.0.8", "2026-11-17",
+        listOf(
+            "更新提醒" to listOf(
+                "每次启动 App 自动检查更新。",
+                "有更新时，底栏设置按钮和设置页应用卡显示小红点。",
+                "关于应用页显示「发现新版本」，点击进入更新页直接看到新版本和下载按钮。",
+            ),
+        ),
+    ),
+    VersionChangelog(
         "8.0.7", "2026-11-16",
         listOf(
             "深色模式" to listOf(
